@@ -33,6 +33,45 @@ class Connection(val dbName: String) {
     val database = MutableDatabase()
 }
 
+
+sealed class Rule {
+    data class AttributePresent(val entityBinderName: String, val attribute: Enum<*>) : Rule()
+}
+
+sealed class Query {
+    data class Find(val outputName: String, val rules: List<Rule>) : Query()
+}
+
+sealed class Solutions<T> {
+    class None<T> : Solutions<T>() {
+        override fun toList(): List<T> = emptyList()
+    }
+
+    data class One<T>(val item: T) : Solutions<T>() {
+        override fun toList(): List<T> = listOf(item)
+    }
+
+    data class Some<T>(val items: List<T>) : Solutions<T>() {
+        override fun toList(): List<T> = items
+    }
+
+    class Any<T> : Solutions<T>() {
+        override fun toList(): List<T> = throw Exception("Solutions unknown")
+    }
+
+    abstract fun toList(): List<T>
+
+    companion object {
+        fun <T> fromList(list: List<T>): Solutions<T> = when {
+            list.isEmpty() -> Solutions.None()
+            list.size == 1 -> Solutions.One(list[0])
+            else -> Solutions.Some(list)
+        }
+    }
+}
+
+data class Binder<T>(val name: String, var solutions: Solutions<T> = Solutions.Any())
+
 class MutableDatabase {
     private var nextEntity: Long = 1
     internal fun popEntity(): Long = nextEntity++
@@ -49,6 +88,33 @@ class MutableDatabase {
     }
 
     private val eavt = mutableMapOf<Long, MutableMap<AttrName, MutableList<ValueAtom>>>()
+
+    fun query(query: Query): List<Value> {
+        query as Query.Find
+        val entityBinders = mutableMapOf<String, Binder<Long>>()
+        query.rules.forEach { rule ->
+            rule as Rule.AttributePresent
+            val entityBinderName = rule.entityBinderName
+            val entityBinder = entityBinders[entityBinderName]
+                ?: Binder<Long>(entityBinderName).also { entityBinders[entityBinderName] = it }
+            val attrName = rule.attribute.toAttrName()
+            val entitySolutions = entityBinder.solutions
+            val domain = when (entitySolutions) {
+                is Solutions.None -> emptyList()
+                is Solutions.One -> listOf(entitySolutions.item)
+                is Solutions.Some -> entitySolutions.items
+                is Solutions.Any -> eavt.keys.toList()
+            }
+            val range = domain.filter {
+                eavt[it]?.get(attrName)?.get(0)?.value != null
+            }
+            entityBinder.solutions = Solutions.fromList(range)
+        }
+        val outputName = query.outputName
+        return entityBinders[outputName]!!.solutions.toList().map {
+            Value.LONG(it)
+        }
+    }
 }
 
 data class ValueAtom(

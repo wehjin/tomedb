@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ConnectionTest {
@@ -43,5 +44,14 @@ class ConnectionTest {
             )
         )
         conn.transactData(firstMovies)
+
+        val db = conn.database
+        val allMovies = db.query(
+            Query.Find(
+                outputName = "e",
+                rules = listOf(Rule.AttributePresent("e", MovieAttribute.Title))
+            )
+        )
+        assertEquals(3, allMovies.size)
     }
 }
