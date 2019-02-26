@@ -22,38 +22,39 @@ class Connection(val dbName: String) {
     fun transactData(data: List<Map<out Enum<*>, Value>>) {
         val time = Date()
         data.forEach { attributes ->
-            val entity = nextEntity++
+            val entity = database.popEntity()
             attributes.forEach { attribute, value ->
                 val attrName = attribute.toAttrName()
-                addFact(entity, attrName, value, time)
+                database.addFact(entity, attrName, value, time)
             }
         }
     }
 
-    private fun addFact(entity: Long, attribute: AttrName, value: Value, time: Date) {
-        val avt = entityAttributeValueTime[entity]
-            ?: mutableMapOf<AttrName, MutableMap<Value, MutableList<Date>>>().also {
-                entityAttributeValueTime[entity] = it
-            }
-        val vt = avt[attribute]
-            ?: mutableMapOf<Value, MutableList<Date>>().also { avt[attribute] = it }
-        val t = vt[value]
-            ?: mutableListOf<Date>().also { vt[value] = it }
-        t.add(0, time)
-    }
-
-    private var nextEntity: Long = 1
-
-    private val entityAttributeValueTime =
-        mutableMapOf<Long, MutableMap<AttrName, MutableMap<Value, MutableList<Date>>>>()
+    val database = MutableDatabase()
 }
 
-data class Change(
-    val before: Database,
-    val after: Database
-)
+class MutableDatabase {
+    private var nextEntity: Long = 1
+    internal fun popEntity(): Long = nextEntity++
 
-data class Database(val id: String, val version: Long)
+    internal fun addFact(entity: Long, attrName: AttrName, value: Value?, time: Date) {
+        val existingAtom = eavt[entity]?.get(attrName)?.get(0)
+        if (existingAtom == null || existingAtom.value != value) {
+            val avt = eavt[entity]
+                ?: mutableMapOf<AttrName, MutableList<ValueAtom>>().also { eavt[entity] = it }
+            val vt = avt[attrName]
+                ?: mutableListOf<ValueAtom>().also { avt[attrName] = it }
+            vt.add(0, ValueAtom(value, time))
+        }
+    }
+
+    private val eavt = mutableMapOf<Long, MutableMap<AttrName, MutableList<ValueAtom>>>()
+}
+
+data class ValueAtom(
+    val value: Value?,
+    val time: Date
+)
 
 interface Attribute {
     val attrName: AttrName

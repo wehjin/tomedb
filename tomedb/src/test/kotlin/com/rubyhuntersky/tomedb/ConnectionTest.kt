@@ -18,7 +18,7 @@ class ConnectionTest {
     }
 
     @Test
-    fun addSchema() {
+    fun happy() {
         val conn = Client().connect("chichi")
         conn.transactAttributes(
             MovieAttribute.Title,
