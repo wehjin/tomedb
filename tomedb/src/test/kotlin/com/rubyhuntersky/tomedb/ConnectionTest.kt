@@ -14,16 +14,34 @@ class ConnectionTest {
         ReleaseYear(ValueType.LONG, Cardinality.ONE, "The year the movie was released in theaters");
 
         override val attrName: AttrName
-            get() = this.toAttrId()
+            get() = this.toAttrName()
     }
 
     @Test
     fun addSchema() {
         val conn = Client().connect("chichi")
-        conn.addAttributes(
+        conn.transactAttributes(
             MovieAttribute.Title,
             MovieAttribute.Genre,
             MovieAttribute.ReleaseYear
         )
+        val firstMovies = listOf(
+            mapOf(
+                Pair(MovieAttribute.Title, Value.STRING("The Goonies")),
+                Pair(Cardinality.ONE, Value.STRING("action/adventure")),
+                Pair(MovieAttribute.ReleaseYear, Value.LONG(1985))
+            )
+            , mapOf(
+                Pair(MovieAttribute.Title, Value.STRING("Commando")),
+                Pair(MovieAttribute.Genre, Value.STRING("action/adventure")),
+                Pair(MovieAttribute.ReleaseYear, Value.LONG(1985))
+            )
+            , mapOf(
+                Pair(MovieAttribute.Title, Value.STRING("Repo Man")),
+                Pair(MovieAttribute.Genre, Value.STRING("punk dystopia")),
+                Pair(MovieAttribute.ReleaseYear, Value.LONG(1984))
+            )
+        )
+        conn.transactData(firstMovies)
     }
 }

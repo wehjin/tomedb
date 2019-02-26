@@ -8,28 +8,29 @@ class Client {
 
 
 class Connection(val dbName: String) {
-    fun addAttributes(vararg attributes: Attribute) {
-        val now = Date()
-        attributes.forEach {
-            val attributeEntity = Value.ATTRNAME(it.attrName)
-            addFact(attributeEntity, AttributeAttribute.NAME.toAttrId(), Value.ATTRNAME(it.attrName), now)
-            addFact(
-                attributeEntity,
-                AttributeAttribute.VALUETYPE.toAttrId(),
-                Value.ATTRNAME(it.valueType.toAttrId()),
-                now
+    fun transactAttributes(vararg attributes: Attribute) {
+        transactData(attributes.map {
+            mapOf(
+                Pair(AttributeAttribute.NAME, Value.ATTRNAME(it.attrName))
+                , Pair(AttributeAttribute.VALUETYPE, Value.ATTRNAME(it.valueType.toAttrName()))
+                , Pair(AttributeAttribute.CARDINALITY, Value.ATTRNAME(it.cardinality.toAttrName()))
+                , Pair(AttributeAttribute.DESCRIPTION, Value.STRING(it.description))
             )
-            addFact(
-                attributeEntity,
-                AttributeAttribute.CARDINALITY.toAttrId(),
-                Value.ATTRNAME(it.cardinality.toAttrId()),
-                now
-            )
-            addFact(attributeEntity, AttributeAttribute.DESCRIPTION.toAttrId(), Value.STRING(it.description), now)
+        })
+    }
+
+    fun transactData(data: List<Map<out Enum<*>, Value>>) {
+        val time = Date()
+        data.forEach { attributes ->
+            val entity = nextEntity++
+            attributes.forEach { attribute, value ->
+                val attrName = attribute.toAttrName()
+                addFact(entity, attrName, value, time)
+            }
         }
     }
 
-    private fun addFact(entity: Value, attribute: AttrName, value: Value, time: Date) {
+    private fun addFact(entity: Long, attribute: AttrName, value: Value, time: Date) {
         val avt = entityAttributeValueTime[entity]
             ?: mutableMapOf<AttrName, MutableMap<Value, MutableList<Date>>>().also {
                 entityAttributeValueTime[entity] = it
@@ -41,8 +42,10 @@ class Connection(val dbName: String) {
         t.add(0, time)
     }
 
+    private var nextEntity: Long = 1
+
     private val entityAttributeValueTime =
-        mutableMapOf<Value, MutableMap<AttrName, MutableMap<Value, MutableList<Date>>>>()
+        mutableMapOf<Long, MutableMap<AttrName, MutableMap<Value, MutableList<Date>>>>()
 }
 
 data class Change(
@@ -83,4 +86,4 @@ enum class AttributeAttribute {
     DESCRIPTION
 }
 
-fun <E : Enum<E>> Enum<E>.toAttrId(): AttrName = AttrName(this::javaClass.name, this.name)
+fun Enum<*>.toAttrName(): AttrName = AttrName(this::javaClass.name, this.name)
