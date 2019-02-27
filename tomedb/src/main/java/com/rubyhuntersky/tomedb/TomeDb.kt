@@ -8,6 +8,7 @@ class Client {
 
 
 class Connection(val dbName: String) {
+
     fun transactAttributes(vararg attributes: Attribute) {
         transactData(attributes.map {
             mapOf(
@@ -124,6 +125,8 @@ data class ValueAtom(
 
 interface Attribute {
     val attrName: AttrName
+        get() = (this as? Enum<*>)?.let { AttrName(this::javaClass.name, this.name) }
+            ?: throw NotImplementedError("Attribute::attrName")
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String

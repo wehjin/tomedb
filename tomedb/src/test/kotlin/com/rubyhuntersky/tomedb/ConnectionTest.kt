@@ -13,9 +13,6 @@ class ConnectionTest {
         Title(ValueType.STRING, Cardinality.ONE, "The title of the movie"),
         Genre(ValueType.STRING, Cardinality.ONE, "The genre of the movie"),
         ReleaseYear(ValueType.LONG, Cardinality.ONE, "The year the movie was released in theaters");
-
-        override val attrName: AttrName
-            get() = this.toAttrName()
     }
 
     @Test
