@@ -36,12 +36,14 @@ class Connection(val dbName: String) {
 
 
 sealed class Rule {
-    data class EntitiesWithAttribute(val varName: String, val attribute: Enum<*>) : Rule()
-    data class EntitiesWithAttributeValue(val binderName: String, val attribute: Enum<*>, val value: Value) : Rule()
+    data class EntitiesWithAttribute(val entityVar: String, val attribute: Enum<*>) : Rule()
+    data class EntitiesWithAttributeValue(val entityVar: String, val attribute: Enum<*>, val value: Value) : Rule()
+    data class RefInEntity(val refVar: String, val entityVar: String, val attribute: Enum<*>) : Rule()
+    data class ValInEntity(val valVar: String, val entityVar: String, val attribute: Enum<*>) : Rule()
 }
 
 sealed class Query {
-    data class Find(val outputName: String, val rules: List<Rule>) : Query()
+    data class Find(val outputVars: List<String>, val rules: List<Rule>) : Query()
 }
 
 sealed class Solutions<T> {

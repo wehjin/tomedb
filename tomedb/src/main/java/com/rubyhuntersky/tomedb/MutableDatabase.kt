@@ -35,7 +35,8 @@ class MutableDatabase {
                 is Rule.EntitiesWithAttributeValue -> processEntitiesWithAttributeValueRule(rule, entityBinders)
             }
         }
-        return entityBinders[query.outputName]!!.solutions.toList().map(Value::LONG)
+        val outputVar = query.outputVars.first()
+        return entityBinders[outputVar]!!.solutions.toList().map(Value::LONG)
     }
 
     data class Binder<T>(val name: String, var solutions: Solutions<T> = Solutions.Any())
@@ -44,8 +45,8 @@ class MutableDatabase {
         rule: Rule.EntitiesWithAttributeValue,
         entityBinders: MutableMap<String, Binder<Long>>
     ) {
-        val entityBinder = entityBinders[rule.binderName]
-            ?: Binder<Long>(rule.binderName).also { entityBinders[rule.binderName] = it }
+        val entityBinder = entityBinders[rule.entityVar]
+            ?: Binder<Long>(rule.entityVar).also { entityBinders[rule.entityVar] = it }
         val attrName = rule.attribute.toAttrName()
         val value = rule.value
         val matches =
@@ -61,8 +62,8 @@ class MutableDatabase {
         rule: Rule.EntitiesWithAttribute,
         entityBinders: MutableMap<String, Binder<Long>>
     ) {
-        val entityBinder = entityBinders[rule.varName]
-            ?: Binder<Long>(rule.varName).also { entityBinders[rule.varName] = it }
+        val entityBinder = entityBinders[rule.entityVar]
+            ?: Binder<Long>(rule.entityVar).also { entityBinders[rule.entityVar] = it }
         val attrName = rule.attribute.toAttrName()
         val matches = entityBinder.solutions.toList(allOptions = { entityAttributeValueAsserted.keys.toList() })
             .filter {

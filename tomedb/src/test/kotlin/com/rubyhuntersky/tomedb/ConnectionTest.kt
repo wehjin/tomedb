@@ -45,7 +45,7 @@ class ConnectionTest {
         val db = conn.database
         val allMovies = db.query(
             Query.Find(
-                outputName = "e",
+                outputVars = listOf("e"),
                 rules = listOf(Rule.EntitiesWithAttribute("e", MovieAttribute.Title))
             )
         )
