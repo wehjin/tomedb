@@ -52,4 +52,9 @@ sealed class Value {
         override val valueType: ValueType
             get() = ValueType.VALUE
     }
+
+    data class DATA(val data: Map<Enum<*>, Value>) : Value() {
+        override val valueType: ValueType
+            get() = ValueType.DATA
+    }
 }

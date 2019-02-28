@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class QuizzerTest {
@@ -10,6 +11,7 @@ class QuizzerTest {
         override val description: String
     ) : Attribute {
         Name(ValueType.STRING, Cardinality.ONE, "The name of the learner"),
+        Selected(ValueType.BOOLEAN, Cardinality.ONE, "The selected learner"),
         Quiz(ValueType.REF, Cardinality.MANY, "A quiz held by the learner")
     }
 
@@ -33,9 +35,73 @@ class QuizzerTest {
         Answer(ValueType.STRING, Cardinality.ONE, "The answer of the lesson")
     }
 
+    private val findSelectedLearners = Query.Find(
+        "e",
+        listOf(Rule.EntitiesWithAttributeValue("e", Learner.Selected, Value.BOOLEAN(true)))
+    )
+
+    private val learnerData = mapOf(
+        Pair(Learner.Name, Value.STRING("Default")),
+        Pair(Learner.Selected, Value.BOOLEAN(true)),
+        Pair(
+            Learner.Quiz, Value.DATA(
+                mapOf(
+                    Pair(Quiz.Name, Value.STRING("Basics")),
+                    Pair(Quiz.Publisher, Value.STRING("Life")),
+                    Pair(
+                        Quiz.Lesson, Value.DATA(
+                            mapOf(
+                                Pair(Lesson.Question, Value.STRING("Hello?")),
+                                Pair(Lesson.Answer, Value.STRING("World"))
+                            )
+                        )
+                    ),
+                    Pair(
+                        Quiz.Lesson, Value.DATA(
+                            mapOf(
+                                Pair(Lesson.Question, Value.STRING("Moshi moshi ka")),
+                                Pair(Lesson.Answer, Value.STRING("Sekkai"))
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+        Pair(
+            Learner.Quiz, Value.DATA(
+                mapOf(
+                    Pair(Quiz.Name, Value.STRING("Scisab")),
+                    Pair(Quiz.Publisher, Value.STRING("Life")),
+                    Pair(
+                        Quiz.Lesson, Value.DATA(
+                            mapOf(
+                                Pair(Lesson.Question, Value.STRING("World?")),
+                                Pair(Lesson.Answer, Value.STRING("Hello"))
+                            )
+                        )
+                    ),
+                    Pair(
+                        Quiz.Lesson, Value.DATA(
+                            mapOf(
+                                Pair(Lesson.Question, Value.STRING("Sekkai ka")),
+                                Pair(Lesson.Answer, Value.STRING("Moshi moshi"))
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+
     @Test
     fun happy() {
-        val conn = Client().connect("chichi")
+        val conn = Client().connect("quizzer")
         conn.transactAttributes(*Lesson.values(), *Quiz.values(), *Learner.values())
+
+        val database = conn.database
+        assertEquals(0, database.query(findSelectedLearners).size)
+
+        conn.transactData(listOf(learnerData))
+        assertEquals(1, database.query(findSelectedLearners).size)
     }
 }

@@ -46,7 +46,7 @@ class ConnectionTest {
         val allMovies = db.query(
             Query.Find(
                 outputName = "e",
-                rules = listOf(Rule.AttributePresent("e", MovieAttribute.Title))
+                rules = listOf(Rule.EntitiesWithAttribute("e", MovieAttribute.Title))
             )
         )
         assertEquals(3, allMovies.size)
