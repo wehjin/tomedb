@@ -36,10 +36,14 @@ class Connection(val dbName: String) {
 
 
 sealed class Rule {
-    data class EntitiesWithAttribute(val entityVar: String, val attribute: Enum<*>) : Rule()
-    data class EntitiesWithAttributeValue(val entityVar: String, val attribute: Enum<*>, val value: Value) : Rule()
-    data class RefInEntity(val refVar: String, val entityVar: String, val attribute: Enum<*>) : Rule()
-    data class ValInEntity(val valVar: String, val entityVar: String, val attribute: Enum<*>) : Rule()
+    data class CollectEntitiesWithAttribute(val entityVar: String, val attribute: Enum<*>) : Rule()
+    data class CollectEntitiesWithValue(val entityVar: String, val attribute: Enum<*>, val value: Value) : Rule()
+    data class CollectEntitiesReferringToEntities(val startVar: String, val endVar: String, val attribute: Enum<*>) : Rule()
+    data class MapEntitiesToValues(
+        val entityVar: String,
+        val attribute: Enum<*>,
+        val valVar: String
+    ) : Rule()
 }
 
 sealed class Query {

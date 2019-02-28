@@ -37,16 +37,16 @@ class QuizzerTest {
 
     private val findSelectedLearners = Query.Find(
         listOf("e"),
-        listOf(Rule.EntitiesWithAttributeValue("e", Learner.Selected, Value.BOOLEAN(true)))
+        listOf(Rule.CollectEntitiesWithValue("e", Learner.Selected, Value.BOOLEAN(true)))
     )
 
     private val findQuizzes = Query.Find(
         listOf("quiz", "name"),
         listOf(
-            Rule.EntitiesWithAttribute("quiz", Quiz.Name),
-            Rule.EntitiesWithAttributeValue("selectedLearner", Learner.Selected, Value.BOOLEAN(true)),
-            Rule.RefInEntity("quiz", "selectedLearner", Learner.Quiz),
-            Rule.ValInEntity("name", "quiz", Quiz.Name)
+            Rule.CollectEntitiesWithAttribute("quiz", Quiz.Name),
+            Rule.CollectEntitiesWithValue("selectedLearner", Learner.Selected, Value.BOOLEAN(true)),
+            Rule.CollectEntitiesReferringToEntities("selectedLearner", "quiz", Learner.Quiz),
+            Rule.MapEntitiesToValues("quiz", Quiz.Name, "name")
         )
     )
 

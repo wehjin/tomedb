@@ -31,8 +31,8 @@ class MutableDatabase {
         val entityBinders = mutableMapOf<String, Binder<Long>>()
         query.rules.forEach { rule ->
             when (rule) {
-                is Rule.EntitiesWithAttribute -> processEntityWithAttributeRule(rule, entityBinders)
-                is Rule.EntitiesWithAttributeValue -> processEntitiesWithAttributeValueRule(rule, entityBinders)
+                is Rule.CollectEntitiesWithAttribute -> processEntityWithAttributeRule(rule, entityBinders)
+                is Rule.CollectEntitiesWithValue -> processEntitiesWithAttributeValueRule(rule, entityBinders)
             }
         }
         val outputVar = query.outputVars.first()
@@ -42,7 +42,7 @@ class MutableDatabase {
     data class Binder<T>(val name: String, var solutions: Solutions<T> = Solutions.Any())
 
     private fun processEntitiesWithAttributeValueRule(
-        rule: Rule.EntitiesWithAttributeValue,
+        rule: Rule.CollectEntitiesWithValue,
         entityBinders: MutableMap<String, Binder<Long>>
     ) {
         val entityBinder = entityBinders[rule.entityVar]
@@ -59,7 +59,7 @@ class MutableDatabase {
     }
 
     private fun processEntityWithAttributeRule(
-        rule: Rule.EntitiesWithAttribute,
+        rule: Rule.CollectEntitiesWithAttribute,
         entityBinders: MutableMap<String, Binder<Long>>
     ) {
         val entityBinder = entityBinders[rule.entityVar]
