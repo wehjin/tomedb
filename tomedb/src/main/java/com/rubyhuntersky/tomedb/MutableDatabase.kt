@@ -28,53 +28,8 @@ class MutableDatabase {
 
     fun query(query: Query): List<Value> {
         query as Query.Find
-        val entityBinders = mutableMapOf<String, Binder<Long>>()
-        query.rules.forEach { rule ->
-            when (rule) {
-                is Rule.CollectEntitiesWithAttribute -> processEntityWithAttributeRule(rule, entityBinders)
-                is Rule.CollectEntitiesWithValue -> processEntitiesWithAttributeValueRule(rule, entityBinders)
-            }
-        }
-        val outputVar = query.outputVars.first()
-        return entityBinders[outputVar]!!.solutions.toList().map(Value::LONG)
-    }
-
-    data class Binder<T>(val name: String, var solutions: Solutions<T> = Solutions.Any())
-
-    private fun processEntitiesWithAttributeValueRule(
-        rule: Rule.CollectEntitiesWithValue,
-        entityBinders: MutableMap<String, Binder<Long>>
-    ) {
-        val entityBinder = entityBinders[rule.entityVar]
-            ?: Binder<Long>(rule.entityVar).also { entityBinders[rule.entityVar] = it }
-        val attrName = rule.attribute.toAttrName()
-        val value = rule.value
-        val matches =
-            entityBinder.solutions.toList(allOptions = { entityAttributeValueAsserted.keys.toList() })
-                .filter {
-                    entityAttributeValueAsserted[it]?.get(attrName)?.get(value)?.isAsserted
-                        ?: false
-                }
-        entityBinder.solutions = Solutions.fromList(matches)
-    }
-
-    private fun processEntityWithAttributeRule(
-        rule: Rule.CollectEntitiesWithAttribute,
-        entityBinders: MutableMap<String, Binder<Long>>
-    ) {
-        val entityBinder = entityBinders[rule.entityVar]
-            ?: Binder<Long>(rule.entityVar).also { entityBinders[rule.entityVar] = it }
-        val attrName = rule.attribute.toAttrName()
-        val matches = entityBinder.solutions.toList(allOptions = { entityAttributeValueAsserted.keys.toList() })
-            .filter {
-                entityAttributeValueAsserted[it]?.get(attrName)?.values?.fold(false) { didMatch, next ->
-                    if (didMatch) {
-                        true
-                    } else {
-                        next.isAsserted
-                    }
-                } ?: false
-            }
-        entityBinder.solutions = Solutions.fromList(matches)
+        val binderRack = BinderRack()
+        binderRack.shake(query.rules, entityAttributeValueAsserted)
+        return binderRack.join(query.outputVars)
     }
 }
