@@ -46,7 +46,7 @@ class QuizzerTest {
             Rule.CollectEntitiesWithAttribute("quiz", Quiz.Name),
             Rule.CollectEntitiesWithValue("selectedLearner", Learner.Selected, Value.BOOLEAN(true)),
             Rule.CollectEntitiesReferringToEntities("selectedLearner", "quiz", Learner.Quiz),
-            Rule.MapEntitiesToValues("quiz", Quiz.Name, "name")
+            Rule.CollectEntitiesAndValueWithAttributes("quiz", Quiz.Name, "name")
         )
     )
 

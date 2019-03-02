@@ -38,11 +38,13 @@ class Connection(val dbName: String) {
 sealed class Rule {
     data class CollectEntitiesWithAttribute(val entityVar: String, val attribute: Enum<*>) : Rule()
     data class CollectEntitiesWithValue(val entityVar: String, val attribute: Enum<*>, val value: Value) : Rule()
-    data class CollectEntitiesReferringToEntities(val startVar: String, val endVar: String, val attribute: Enum<*>) : Rule()
-    data class MapEntitiesToValues(
+    data class CollectEntitiesReferringToEntities(val startVar: String, val endVar: String, val attribute: Enum<*>) :
+        Rule()
+
+    data class CollectEntitiesAndValueWithAttributes(
         val entityVar: String,
         val attribute: Enum<*>,
-        val valVar: String
+        val valueVar: String
     ) : Rule()
 }
 

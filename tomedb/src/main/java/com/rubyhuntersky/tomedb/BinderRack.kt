@@ -23,8 +23,52 @@ class BinderRack {
             when (it) {
                 is Rule.CollectEntitiesWithAttribute -> it.shake(eava)
                 is Rule.CollectEntitiesWithValue -> it.shake(eava)
+                is Rule.CollectEntitiesReferringToEntities -> it.shake(eava)
+                is Rule.CollectEntitiesAndValueWithAttributes -> it.shake(eava)
             }
         }
+    }
+
+    private fun Rule.CollectEntitiesAndValueWithAttributes.shake(
+        terms: MutableMap<Long, MutableMap<AttrName, MutableMap<Value, MutableDatabase.IsAssertedTime>>>
+    ) {
+        val entityBinder = addBinder<Long>(entityVar)
+        val attrName = attribute.toAttrName()
+        val valueBinder = addBinder<Value>(valueVar)
+        val substitutions =
+            entityBinder.solutions.toList { terms.keys.toList() }
+                .map { entity ->
+                    valueBinder.solutions.toList {
+                        terms[entity]?.get(attrName)?.keys?.toList() ?: emptyList()
+                    }.map { value ->
+                        Pair(entity, value)
+                    }
+                }
+                .flatten()
+                .filter {
+                    terms[it.first]?.get(attrName)?.get(it.second)?.isAsserted ?: false
+                }
+        entityBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::first))
+        valueBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::second))
+    }
+
+    private fun Rule.CollectEntitiesReferringToEntities.shake(
+        terms: MutableMap<Long, MutableMap<AttrName, MutableMap<Value, MutableDatabase.IsAssertedTime>>>
+    ) {
+        val startBinder = addBinder<Long>(startVar)
+        val endBinder = addBinder<Long>(endVar)
+        val attrName = attribute.toAttrName()
+        val substitutions =
+            startBinder.solutions.toList { terms.keys.toList() }
+                .map { start: Long ->
+                    endBinder.solutions.toList { terms.keys.toList() }.map { end: Long -> Pair(start, end) }
+                }
+                .flatten()
+                .filter {
+                    terms[it.first]?.get(attrName)?.get(Value.LONG(it.second))?.isAsserted ?: false
+                }
+        startBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::first))
+        endBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::second))
     }
 
     private fun Rule.CollectEntitiesWithValue.shake(terms: MutableMap<Long, MutableMap<AttrName, MutableMap<Value, MutableDatabase.IsAssertedTime>>>) {
