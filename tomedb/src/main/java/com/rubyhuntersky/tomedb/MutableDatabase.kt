@@ -28,8 +28,6 @@ class MutableDatabase {
 
     fun query(query: Query): List<Value> {
         query as Query.Find
-        val binderRack = BinderRack()
-        binderRack.shake(query.rules, entityAttributeValueAsserted)
-        return binderRack.join(query.outputVars)
+        return BinderRack().stir(query.outputVars, query.rules, Datalog(entityAttributeValueAsserted))
     }
 }
