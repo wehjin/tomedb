@@ -1,8 +1,7 @@
 package com.rubyhuntersky.tomedb.app
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.rubyhuntersky.tomedb.R
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 

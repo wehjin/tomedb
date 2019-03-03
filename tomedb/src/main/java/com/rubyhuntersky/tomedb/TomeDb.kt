@@ -11,24 +11,35 @@ class Connection(val dbName: String) {
 
     fun transactAttributes(vararg attributes: Attribute) {
         transactData(attributes.map {
-            mapOf(
-                Pair(AttributeAttribute.NAME, Value.ATTRNAME(it.attrName))
-                , Pair(AttributeAttribute.VALUETYPE, Value.ATTRNAME(it.valueType.toAttrName()))
-                , Pair(AttributeAttribute.CARDINALITY, Value.ATTRNAME(it.cardinality.toAttrName()))
-                , Pair(AttributeAttribute.DESCRIPTION, Value.STRING(it.description))
+            listOf(
+                Pair(Scheme.NAME, Value.ATTRNAME(it.attrName))
+                , Pair(Scheme.VALUETYPE, Value.ATTRNAME(it.valueType.toAttrName()))
+                , Pair(Scheme.CARDINALITY, Value.ATTRNAME(it.cardinality.toAttrName()))
+                , Pair(Scheme.DESCRIPTION, Value.STRING(it.description))
             )
         })
     }
 
-    fun transactData(data: List<Map<out Enum<*>, Value>>) {
+    fun transactData(data: List<List<Pair<Enum<*>, Value>>>): List<Long> {
         val time = Date()
+        val entities = mutableListOf<Long>()
         data.forEach { attributes ->
-            val entity = database.popEntity()
-            attributes.forEach { attribute, value ->
-                val attrName = attribute.toAttrName()
-                database.addFact(entity, attrName, value, true, time)
+            val entity = database.nextEntity()
+            attributes.forEach {
+                val attribute = it.first
+                val value = it.second
+                val subValue = if (value is Value.DATA) {
+                    val subData = listOf(value.v)
+                    val subEntities = transactData(subData)
+                    Value.LONG(subEntities.first())
+                } else {
+                    value
+                }
+                database.addFact(entity, attribute.toAttrName(), subValue, true, time)
             }
+            entities.add(entity)
         }
+        return entities
     }
 
     val database = MutableDatabase()
@@ -36,15 +47,15 @@ class Connection(val dbName: String) {
 
 
 sealed class Rule {
-    data class CollectEntitiesWithAttribute(val entityVar: String, val attribute: Enum<*>) : Rule()
-    data class CollectEntitiesWithValue(val entityVar: String, val attribute: Enum<*>, val value: Value) : Rule()
-    data class CollectEntitiesReferringToEntities(val startVar: String, val endVar: String, val attribute: Enum<*>) :
+    data class EinA(val entityVar: String, val attribute: Enum<*>) : Rule()
+    data class EinAV(val entityVar: String, val attribute: Enum<*>, val value: Value) : Rule()
+    data class EEinA(val startVar: String, val endVar: String, val attribute: Enum<*>) :
         Rule()
 
-    data class CollectEntitiesAndValueWithAttributes(
+    data class EVinA(
         val entityVar: String,
-        val attribute: Enum<*>,
-        val valueVar: String
+        val valueVar: String,
+        val attribute: Enum<*>
     ) : Rule()
 }
 
@@ -71,24 +82,25 @@ sealed class Solutions<T> {
 
     abstract fun toList(): List<T>
 
-    fun toList(allOptions: () -> List<T>): List<T> = if (this is Solutions.Any) {
-        allOptions.invoke()
-    } else {
-        this.toList()
-    }
+    fun toList(allOptions: () -> List<T>): List<T> =
+        if (this is Solutions.Any) {
+            allOptions.invoke()
+        } else {
+            this.toList()
+        }.toSet().toList()
 
     companion object {
         fun <T> fromList(list: List<T>): Solutions<T> = when {
             list.isEmpty() -> Solutions.None()
             list.size == 1 -> Solutions.One(list[0])
-            else -> Solutions.Some(list)
+            else -> Solutions.Some(list.toSet().toList())
         }
     }
 }
 
 interface Attribute {
     val attrName: AttrName
-        get() = (this as? Enum<*>)?.let { AttrName(this::javaClass.name, this.name) }
+        get() = (this as? Enum<*>)?.toAttrName()
             ?: throw NotImplementedError("Attribute::attrName")
     val valueType: ValueType
     val cardinality: Cardinality
@@ -113,11 +125,11 @@ enum class Cardinality {
     MANY
 }
 
-enum class AttributeAttribute {
+enum class Scheme {
     NAME,
     VALUETYPE,
     CARDINALITY,
     DESCRIPTION
 }
 
-fun Enum<*>.toAttrName(): AttrName = AttrName(this::javaClass.name, this.name)
+fun Enum<*>.toAttrName(): AttrName = AttrName(this::class.java.simpleName, this.name)

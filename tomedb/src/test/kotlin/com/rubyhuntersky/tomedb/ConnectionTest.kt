@@ -24,17 +24,17 @@ class ConnectionTest {
             MovieAttribute.ReleaseYear
         )
         val firstMovies = listOf(
-            mapOf(
+            listOf(
                 Pair(MovieAttribute.Title, Value.STRING("The Goonies")),
                 Pair(Cardinality.ONE, Value.STRING("action/adventure")),
                 Pair(MovieAttribute.ReleaseYear, Value.LONG(1985))
             )
-            , mapOf(
+            , listOf(
                 Pair(MovieAttribute.Title, Value.STRING("Commando")),
                 Pair(MovieAttribute.Genre, Value.STRING("action/adventure")),
                 Pair(MovieAttribute.ReleaseYear, Value.LONG(1985))
             )
-            , mapOf(
+            , listOf(
                 Pair(MovieAttribute.Title, Value.STRING("Repo Man")),
                 Pair(MovieAttribute.Genre, Value.STRING("punk dystopia")),
                 Pair(MovieAttribute.ReleaseYear, Value.LONG(1984))
@@ -46,7 +46,7 @@ class ConnectionTest {
         val allMovies = db.query(
             Query.Find(
                 outputVars = listOf("e"),
-                rules = listOf(Rule.CollectEntitiesWithAttribute("e", MovieAttribute.Title))
+                rules = listOf(Rule.EinA("e", MovieAttribute.Title))
             )
         )
         assertEquals(3, allMovies.size)
