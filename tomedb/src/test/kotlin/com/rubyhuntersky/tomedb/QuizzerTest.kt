@@ -93,8 +93,8 @@ class QuizzerTest {
         val conn = Client().connect("quizzer")
         conn.transactAttributes(*Lesson.values(), *Quiz.values(), *Learner.values())
         val findSelectedLearners = Query.Find(
-            listOf("e"),
-            listOf(Rule.EinAV("e", Learner.Selected, Value.BOOLEAN(true)))
+            rules = listOf(Rule.EExactV("e", Value.BOOLEAN(true), Learner.Selected)),
+            outputs = listOf("e")
         )
         assertEquals(0, conn.database[findSelectedLearners].size)
 
@@ -102,15 +102,29 @@ class QuizzerTest {
         assertEquals(1, conn.database[findSelectedLearners].size)
 
         val quizzes = conn.database[Query.Find(
-            listOf("quiz", "name"),
-            listOf(
-                Rule.EinAV("selectedLearner", Learner.Selected, Value.BOOLEAN(true)),
-                Rule.EEinA("selectedLearner", "quiz", Learner.Quiz),
-                Rule.EVinA("quiz", "name", Quiz.Name)
-            )
+            rules = listOf(
+                Rule.EExactV("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
+                Rule.EE("selectedLearner", "quiz", Learner.Quiz),
+                Rule.EV("quiz", "name", Quiz.Name)
+            ),
+            outputs = listOf("quiz", "name")
         )]
         println("QUIZZES: $quizzes")
         assertEquals(2, quizzes.size)
         assertEquals(setOf("Basics", "Advanced"), quizzes.map { (it["name"] as Value.STRING).v }.toSet())
+
+        val selectedQuiz = quizzes.map { it["quiz"] as Value.LONG }.first()
+        println("SELECTED QUIZ: $selectedQuiz")
+        val lessons = conn.database[Query.Find(
+            rules = listOf(
+                Rule.EE("selectedQuiz", "lesson", Quiz.Lesson),
+                Rule.EV("lesson", "question", Lesson.Question),
+                Rule.EV("lesson", "answer", Lesson.Answer)
+            ),
+            inputs = listOf(Input("selectedQuiz", listOf(selectedQuiz))),
+            outputs = listOf("lesson", "question", "answer")
+        )]
+        println("LESSONS: $lessons")
+        assertEquals(2, lessons.size)
     }
 }

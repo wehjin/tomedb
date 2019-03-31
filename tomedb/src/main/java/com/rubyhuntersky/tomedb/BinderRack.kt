@@ -92,14 +92,14 @@ class BinderRack {
         rules.forEach {
             when (it) {
                 is Rule.EinA -> it.shake(datalog, binders)
-                is Rule.EinAV -> it.shake(datalog, binders)
-                is Rule.EEinA -> it.shake(datalog, binders)
-                is Rule.EVinA -> it.shake(datalog, binders)
+                is Rule.EExactV -> it.shake(datalog, binders)
+                is Rule.EE -> it.shake(datalog, binders)
+                is Rule.EV -> it.shake(datalog, binders)
             }
         }
     }
 
-    private fun Rule.EVinA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EV.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
         val attrName = attribute.toAttrName()
         val valueBinder = binders.addBinder(valueVar, datalog::values, Value::VALUE)
@@ -114,7 +114,7 @@ class BinderRack {
         valueBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::second))
     }
 
-    private fun Rule.EEinA.shake(
+    private fun Rule.EE.shake(
         datalog: Datalog,
         binders: MutableMap<String, Binder<*>>
     ) {
@@ -132,7 +132,7 @@ class BinderRack {
         endBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::second))
     }
 
-    private fun Rule.EinAV.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EExactV.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
         val attrName = attribute.toAttrName()
         val value = value

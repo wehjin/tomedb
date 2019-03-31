@@ -59,19 +59,18 @@ class Connection(val dbName: String) {
 
 sealed class Rule {
     data class EinA(val entityVar: String, val attribute: Enum<*>) : Rule()
-    data class EinAV(val entityVar: String, val attribute: Enum<*>, val value: Value) : Rule()
-    data class EEinA(val startVar: String, val endVar: String, val attribute: Enum<*>) :
-        Rule()
-
-    data class EVinA(
-        val entityVar: String,
-        val valueVar: String,
-        val attribute: Enum<*>
-    ) : Rule()
+    data class EExactV(val entityVar: String, val value: Value, val attribute: Enum<*>) : Rule()
+    data class EE(val startVar: String, val endVar: String, val attribute: Enum<*>) : Rule()
+    data class EV(val entityVar: String, val valueVar: String, val attribute: Enum<*>) : Rule()
 }
 
+data class Input(
+    val label: String,
+    val values: List<Value>
+)
+
 sealed class Query {
-    data class Find(val outputVars: List<String>, val rules: List<Rule>) : Query()
+    data class Find(val rules: List<Rule>, val inputs: List<Input>? = null, val outputs: List<String>) : Query()
 }
 
 sealed class Solutions<T> {
