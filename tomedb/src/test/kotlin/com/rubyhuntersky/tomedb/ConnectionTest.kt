@@ -43,12 +43,10 @@ class ConnectionTest {
         conn.transactData(firstMovies)
 
         val db = conn.database
-        val allMovies = db.query(
-            Query.Find(
-                outputVars = listOf("e"),
-                rules = listOf(Rule.EinA("e", MovieAttribute.Title))
-            )
-        )
+        val allMovies = db[Query.Find(
+            outputVars = listOf("e"),
+            rules = listOf(Rule.EinA("e", MovieAttribute.Title))
+        )]
         assertEquals(3, allMovies.size)
     }
 }

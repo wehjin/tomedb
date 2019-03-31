@@ -35,21 +35,6 @@ class QuizzerTest {
         Answer(ValueType.STRING, Cardinality.ONE, "The answer of the lesson");
     }
 
-    private val findSelectedLearners = Query.Find(
-        listOf("e"),
-        listOf(Rule.EinAV("e", Learner.Selected, Value.BOOLEAN(true)))
-    )
-
-    private val findQuizzes = Query.Find(
-        listOf("quiz", "name"),
-        listOf(
-            Rule.EinA("quiz", Quiz.Name),
-            Rule.EinAV("selectedLearner", Learner.Selected, Value.BOOLEAN(true)),
-            Rule.EEinA("selectedLearner", "quiz", Learner.Quiz),
-            Rule.EVinA("quiz", "name", Quiz.Name)
-        )
-    )
-
     private val learnerData = listOf(
         Pair(Learner.Name, Value.STRING("Default")),
         Pair(Learner.Selected, Value.BOOLEAN(true)),
@@ -107,12 +92,23 @@ class QuizzerTest {
     fun happy() {
         val conn = Client().connect("quizzer")
         conn.transactAttributes(*Lesson.values(), *Quiz.values(), *Learner.values())
-        assertEquals(0, conn.database.query(findSelectedLearners).size)
+        val findSelectedLearners = Query.Find(
+            listOf("e"),
+            listOf(Rule.EinAV("e", Learner.Selected, Value.BOOLEAN(true)))
+        )
+        assertEquals(0, conn.database[findSelectedLearners].size)
 
         conn.transactData(listOf(learnerData))
-        assertEquals(1, conn.database.query(findSelectedLearners).size)
+        assertEquals(1, conn.database[findSelectedLearners].size)
 
-        val quizzes = conn.database.query(findQuizzes)
+        val quizzes = conn.database[Query.Find(
+            listOf("quiz", "name"),
+            listOf(
+                Rule.EinAV("selectedLearner", Learner.Selected, Value.BOOLEAN(true)),
+                Rule.EEinA("selectedLearner", "quiz", Learner.Quiz),
+                Rule.EVinA("quiz", "name", Quiz.Name)
+            )
+        )]
         println("QUIZZES: $quizzes")
         assertEquals(2, quizzes.size)
         assertEquals(setOf("Basics", "Advanced"), quizzes.map { (it["name"] as Value.STRING).v }.toSet())

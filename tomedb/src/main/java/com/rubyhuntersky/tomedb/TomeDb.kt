@@ -6,6 +6,17 @@ class Client {
     fun connect(dbName: String) = Connection(dbName)
 }
 
+data class AttrUp(
+    val value: Value,
+    val attr: Enum<*>,
+    val entity: Long? = null
+)
+
+data class EntityUp(
+    val attrUps: List<AttrUp>,
+    val entity: Long? = null
+)
+
 
 class Connection(val dbName: String) {
 

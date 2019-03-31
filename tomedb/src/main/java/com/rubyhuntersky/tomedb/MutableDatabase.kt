@@ -12,9 +12,9 @@ class MutableDatabase {
 
     private val datalog = Datalog()
 
-    fun query(query: Query): List<Map<String, Value>> {
-        query as Query.Find
-        return BinderRack().stir(query.outputVars, query.rules, datalog)
+    operator fun get(query: Query): List<Map<String, Value>> {
+        val find = query as Query.Find
+        return BinderRack().stir(find.outputVars, find.rules, datalog)
     }
 
     override fun toString(): String {
