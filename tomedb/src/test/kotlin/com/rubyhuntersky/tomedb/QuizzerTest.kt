@@ -93,13 +93,21 @@ class QuizzerTest {
         val conn = Client().connect("quizzer")
         conn.transactAttributes(*Lesson.values(), *Quiz.values(), *Learner.values())
         val findSelectedLearners = Query.Find(
-            rules = listOf(Rule.EExactV("e", Value.BOOLEAN(true), Learner.Selected)),
+            rules = listOf(
+                Rule.EExactV("e", Value.BOOLEAN(true), Learner.Selected)
+            ),
             outputs = listOf("e")
         )
-        assertEquals(0, conn.database[findSelectedLearners].size)
+        assertEquals(
+            0,
+            conn.database[findSelectedLearners].size
+        )
 
         conn.transactData(listOf(learnerData))
-        assertEquals(1, conn.database[findSelectedLearners].size)
+        assertEquals(
+            1,
+            conn.database[findSelectedLearners].size
+        )
 
         val quizResults = conn.database[Query.Find(
             rules = listOf(
@@ -110,8 +118,14 @@ class QuizzerTest {
             outputs = listOf("quiz", "name")
         )]
         println("QUIZZES: $quizResults")
-        assertEquals(2, quizResults.size)
-        assertEquals(setOf("Basics", "Advanced"), quizResults.map { it["name"].asString() }.toSet())
+        assertEquals(
+            2,
+            quizResults.size
+        )
+        assertEquals(
+            setOf("Basics", "Advanced"),
+            quizResults.map { it["name"].asString() }.toSet()
+        )
 
         val lessons = conn.database[Query.Find(
             rules = listOf(
@@ -129,6 +143,9 @@ class QuizzerTest {
         )]
         println("LESSONS: $lessons")
         assertEquals(2, lessons.size)
-        assertEquals(setOf("World", "Sekkai"), lessons.map { it["answer"].asString() }.toSet())
+        assertEquals(
+            setOf("World", "Sekkai"),
+            lessons.map { it["answer"].asString() }.toSet()
+        )
     }
 }
