@@ -64,10 +64,9 @@ sealed class Rule {
     data class EV(val entityVar: String, val valueVar: String, val attribute: Enum<*>) : Rule()
 }
 
-data class Input(
-    val label: String,
-    val values: List<Value>
-)
+data class Input(val label: String, val value: Value) {
+    constructor(label: String, long: Long) : this(label, Value.LONG(long))
+}
 
 sealed class Query {
     data class Find(val rules: List<Rule>, val inputs: List<Input>? = null, val outputs: List<String>) : Query()
@@ -100,10 +99,13 @@ sealed class Solutions<T> {
         }.toSet().toList()
 
     companion object {
-        fun <T> fromList(list: List<T>): Solutions<T> = when {
-            list.isEmpty() -> Solutions.None()
-            list.size == 1 -> Solutions.One(list[0])
-            else -> Solutions.Some(list.toSet().toList())
+        fun <T> fromList(list: List<T>): Solutions<T> {
+            val set = list.toSet()
+            return when (set.size) {
+                0 -> Solutions.None()
+                1 -> Solutions.One(set.first())
+                else -> Solutions.Some(set.toList())
+            }
         }
     }
 }
@@ -143,3 +145,16 @@ enum class Scheme {
 }
 
 fun Enum<*>.toAttrName(): AttrName = AttrName(this::class.java.simpleName, this.name)
+
+internal fun Input.toBinder(): Binder<*> = when (value) {
+    is Value.LONG -> Binder(label, { listOf(value.v) }, Value::LONG, Solutions.One(value.v))
+    is Value.REF -> Binder(label, { listOf(value.v) }, Value::REF, Solutions.One(value.v))
+    is Value.ATTRNAME -> Binder(label, { listOf(value.v) }, Value::ATTRNAME, Solutions.One(value.v))
+    is Value.DATE -> Binder(label, { listOf(value.v) }, Value::DATE, Solutions.One(value.v))
+    is Value.BOOLEAN -> Binder(label, { listOf(value.v) }, Value::BOOLEAN, Solutions.One(value.v))
+    is Value.STRING -> Binder(label, { listOf(value.v) }, Value::STRING, Solutions.One(value.v))
+    is Value.DOUBLE -> Binder(label, { listOf(value.v) }, Value::DOUBLE, Solutions.One(value.v))
+    is Value.BIGDEC -> Binder(label, { listOf(value.v) }, Value::BIGDEC, Solutions.One(value.v))
+    is Value.VALUE -> Binder(label, { listOf(value.v) }, Value::VALUE, Solutions.One(value.v))
+    is Value.DATA -> Binder(label, { listOf(value.v) }, Value::DATA, Solutions.One(value.v))
+}

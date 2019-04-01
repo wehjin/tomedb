@@ -101,7 +101,7 @@ class QuizzerTest {
         conn.transactData(listOf(learnerData))
         assertEquals(1, conn.database[findSelectedLearners].size)
 
-        val quizzes = conn.database[Query.Find(
+        val quizResults = conn.database[Query.Find(
             rules = listOf(
                 Rule.EExactV("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
                 Rule.EE("selectedLearner", "quiz", Learner.Quiz),
@@ -109,22 +109,26 @@ class QuizzerTest {
             ),
             outputs = listOf("quiz", "name")
         )]
-        println("QUIZZES: $quizzes")
-        assertEquals(2, quizzes.size)
-        assertEquals(setOf("Basics", "Advanced"), quizzes.map { (it["name"] as Value.STRING).v }.toSet())
+        println("QUIZZES: $quizResults")
+        assertEquals(2, quizResults.size)
+        assertEquals(setOf("Basics", "Advanced"), quizResults.map { it["name"].asString() }.toSet())
 
-        val selectedQuiz = quizzes.map { it["quiz"] as Value.LONG }.first()
-        println("SELECTED QUIZ: $selectedQuiz")
         val lessons = conn.database[Query.Find(
             rules = listOf(
                 Rule.EE("selectedQuiz", "lesson", Quiz.Lesson),
                 Rule.EV("lesson", "question", Lesson.Question),
                 Rule.EV("lesson", "answer", Lesson.Answer)
             ),
-            inputs = listOf(Input("selectedQuiz", listOf(selectedQuiz))),
+            inputs = listOf(
+                Input(
+                    "selectedQuiz",
+                    quizResults.first { it["name"].asString() == "Basics" }["quiz"].asLong()
+                )
+            ),
             outputs = listOf("lesson", "question", "answer")
         )]
         println("LESSONS: $lessons")
         assertEquals(2, lessons.size)
+        assertEquals(setOf("World", "Sekkai"), lessons.map { it["answer"].asString() }.toSet())
     }
 }

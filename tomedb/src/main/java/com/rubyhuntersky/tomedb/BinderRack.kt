@@ -1,20 +1,8 @@
 package com.rubyhuntersky.tomedb
 
-class BinderRack {
-    private val binders = mutableMapOf<String, Binder<*>>()
+class BinderRack(initBinders: List<Binder<*>>?) {
 
-    data class Binder<T>(
-        val name: String,
-        val allSolutions: () -> List<T>,
-        val toValue: (T) -> Value,
-        var solutions: Solutions<T> = Solutions.Any()
-    ) {
-        fun toValueList(): List<Value> = toList().map { toValue(it) }
-        private fun toList(): List<T> = solutions.toList { allSolutions.invoke() }
-        override fun toString(): String {
-            return "Binder(name='$name', solutions=$solutions)"
-        }
-    }
+    private val binders = initBinders?.associateBy { it.name }?.toMutableMap() ?: mutableMapOf()
 
     fun stir(outputs: List<String>, rules: List<Rule>, datalog: Datalog): List<Map<String, Value>> {
         shake(rules, datalog, binders)

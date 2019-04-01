@@ -14,7 +14,8 @@ class MutableDatabase {
 
     operator fun get(query: Query): List<Map<String, Value>> {
         val find = query as Query.Find
-        return BinderRack().stir(find.outputs, find.rules, datalog)
+        val initBinders = find.inputs?.map(Input::toBinder)
+        return BinderRack(initBinders).stir(find.outputs, find.rules, datalog)
     }
 
     override fun toString(): String {
