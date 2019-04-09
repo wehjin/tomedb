@@ -90,7 +90,7 @@ class QuizzerTest {
 
     @Test
     fun happy() {
-        val conn = Client().connect("quizzer")
+        val conn = Client().connect(TransientLedgerWriter())
         conn.transactAttributes(*Lesson.values(), *Quiz.values(), *Learner.values())
         val findSelectedLearners = Query.Find(
             rules = listOf(

@@ -17,7 +17,7 @@ class ConnectionTest {
 
     @Test
     fun happy() {
-        val conn = Client().connect("chichi")
+        val conn = Client().connect(TransientLedgerWriter())
         conn.transactAttributes(
             MovieAttribute.Title,
             MovieAttribute.Genre,
