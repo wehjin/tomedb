@@ -17,11 +17,13 @@ class ConnectionTest {
 
     @Test
     fun happy() {
-        val conn = Client().connect(TransientLedgerWriter())
-        conn.transactAttributes(
-            MovieAttribute.Title,
-            MovieAttribute.Genre,
-            MovieAttribute.ReleaseYear
+        val conn = Client().connect(
+            ConnectionStarter.Attributes(
+                listOf(
+                    MovieAttribute.Title, MovieAttribute.Genre, MovieAttribute.ReleaseYear
+                )
+            ),
+            TransientLedgerWriter()
         )
         val firstMovies = listOf(
             listOf(

@@ -90,8 +90,14 @@ class QuizzerTest {
 
     @Test
     fun happy() {
-        val conn = Client().connect(TransientLedgerWriter())
-        conn.transactAttributes(*Lesson.values(), *Quiz.values(), *Learner.values())
+        val conn = Client().connect(
+            ConnectionStarter.Attributes(
+                listOf(
+                    *Lesson.values(), *Quiz.values(), *Learner.values()
+                )
+            ),
+            TransientLedgerWriter()
+        )
         val findSelectedLearners = Query.Find(
             rules = listOf(
                 Rule.EExactV("e", Value.BOOLEAN(true), Learner.Selected)

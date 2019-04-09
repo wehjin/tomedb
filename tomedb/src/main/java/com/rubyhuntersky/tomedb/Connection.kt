@@ -2,9 +2,18 @@ package com.rubyhuntersky.tomedb
 
 import java.util.*
 
-class Connection(private val writer: Ledger.Writer, private val reader: Ledger.Reader? = null) {
+class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) {
 
-    fun transactAttributes(vararg attributes: Attribute) {
+    val database = MutableDatabase()
+
+    init {
+        when (starter) {
+            is ConnectionStarter.Attributes -> transactAttributes(starter.attributes)
+            is ConnectionStarter.Data -> throw NotImplementedError()
+        }
+    }
+
+    private fun transactAttributes(attributes: List<Attribute>) {
         transactData(attributes.map {
             listOf(
                 Pair(Scheme.NAME, Value.ATTRNAME(it.attrName))
@@ -49,5 +58,4 @@ class Connection(private val writer: Ledger.Writer, private val reader: Ledger.R
         return entities
     }
 
-    val database = MutableDatabase()
 }
