@@ -1,21 +1,10 @@
 package com.rubyhuntersky.tomedb
 
-data class AttrUp(
-    val value: Value,
-    val attr: Enum<*>,
-    val entity: Long? = null
-)
-
-data class EntityUp(
-    val attrUps: List<AttrUp>,
-    val entity: Long? = null
-)
-
 sealed class Rule {
-    data class EinA(val entityVar: String, val attribute: Enum<*>) : Rule()
-    data class EExactV(val entityVar: String, val value: Value, val attribute: Enum<*>) : Rule()
-    data class EE(val startVar: String, val endVar: String, val attribute: Enum<*>) : Rule()
-    data class EV(val entityVar: String, val valueVar: String, val attribute: Enum<*>) : Rule()
+    data class EExactA(val entityVar: String, val attribute: Enum<*>) : Rule()
+    data class EExactVA(val entityVar: String, val value: Value, val attribute: Enum<*>) : Rule()
+    data class EEExactA(val startVar: String, val endVar: String, val attribute: Enum<*>) : Rule()
+    data class EVExactA(val entityVar: String, val valueVar: String, val attribute: Enum<*>) : Rule()
 }
 
 data class Input(val label: String, val value: Value) {
@@ -46,7 +35,7 @@ sealed class Solutions<T> {
     abstract fun toList(): List<T>
 
     fun toList(allOptions: () -> List<T>): List<T> =
-        if (this is Solutions.Any) {
+        if (this is Any) {
             allOptions.invoke()
         } else {
             this.toList()
@@ -56,9 +45,9 @@ sealed class Solutions<T> {
         fun <T> fromList(list: List<T>): Solutions<T> {
             val set = list.toSet()
             return when (set.size) {
-                0 -> Solutions.None()
-                1 -> Solutions.One(set.first())
-                else -> Solutions.Some(set.toList())
+                0 -> None()
+                1 -> One(set.first())
+                else -> Some(set.toList())
             }
         }
     }

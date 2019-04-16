@@ -79,15 +79,15 @@ class BinderRack(initBinders: List<Binder<*>>?) {
     private fun shake(rules: List<Rule>, datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         rules.forEach {
             when (it) {
-                is Rule.EinA -> it.shake(datalog, binders)
-                is Rule.EExactV -> it.shake(datalog, binders)
-                is Rule.EE -> it.shake(datalog, binders)
-                is Rule.EV -> it.shake(datalog, binders)
+                is Rule.EExactA -> it.shake(datalog, binders)
+                is Rule.EExactVA -> it.shake(datalog, binders)
+                is Rule.EEExactA -> it.shake(datalog, binders)
+                is Rule.EVExactA -> it.shake(datalog, binders)
             }
         }
     }
 
-    private fun Rule.EV.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EVExactA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
         val attrName = attribute.toAttrName()
         val valueBinder = binders.addBinder(valueVar, datalog::values, Value::VALUE)
@@ -102,7 +102,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         valueBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::second))
     }
 
-    private fun Rule.EE.shake(
+    private fun Rule.EEExactA.shake(
         datalog: Datalog,
         binders: MutableMap<String, Binder<*>>
     ) {
@@ -120,7 +120,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         endBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::second))
     }
 
-    private fun Rule.EExactV.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EExactVA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
         val attrName = attribute.toAttrName()
         val value = value
@@ -129,7 +129,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         entityBinder.solutions = Solutions.fromList(matches)
     }
 
-    private fun Rule.EinA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EExactA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
         val attrName = attribute.toAttrName()
         val matches = entityBinder.solutions.toList { datalog.entities }

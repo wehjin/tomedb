@@ -100,7 +100,7 @@ class QuizzerTest {
         )
         val findSelectedLearners = Query.Find(
             rules = listOf(
-                Rule.EExactV("e", Value.BOOLEAN(true), Learner.Selected)
+                Rule.EExactVA("e", Value.BOOLEAN(true), Learner.Selected)
             ),
             outputs = listOf("e")
         )
@@ -117,9 +117,9 @@ class QuizzerTest {
 
         val quizResults = conn.database[Query.Find(
             rules = listOf(
-                Rule.EExactV("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
-                Rule.EE("selectedLearner", "quiz", Learner.Quiz),
-                Rule.EV("quiz", "name", Quiz.Name)
+                Rule.EExactVA("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
+                Rule.EEExactA("selectedLearner", "quiz", Learner.Quiz),
+                Rule.EVExactA("quiz", "name", Quiz.Name)
             ),
             outputs = listOf("quiz", "name")
         )]
@@ -135,9 +135,9 @@ class QuizzerTest {
 
         val lessons = conn.database[Query.Find(
             rules = listOf(
-                Rule.EE("selectedQuiz", "lesson", Quiz.Lesson),
-                Rule.EV("lesson", "question", Lesson.Question),
-                Rule.EV("lesson", "answer", Lesson.Answer)
+                Rule.EEExactA("selectedQuiz", "lesson", Quiz.Lesson),
+                Rule.EVExactA("lesson", "question", Lesson.Question),
+                Rule.EVExactA("lesson", "answer", Lesson.Answer)
             ),
             inputs = listOf(
                 Input(
