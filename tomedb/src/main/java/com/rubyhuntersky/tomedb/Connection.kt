@@ -2,12 +2,17 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
-class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) {
+class Connection(
+    private val writer: Ledger.Writer,
+    starter: ConnectionStarter,
+    timeClock: TimeClock = TimeClock.REALTIME
+) {
 
-    val database = MutableDatabase()
+    val database = MutableDatabase(timeClock)
 
     init {
         when (starter) {
@@ -17,7 +22,7 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
                 while (reader.linesUnread > 0) {
                     val line = reader.readLine()
                     with(line) {
-                        addFact(entity, attr, value, isAsserted, time)
+                        addFact(entity, attr, value, isAsserted)
                     }
                 }
             }
@@ -35,7 +40,7 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
         })
     }
 
-    private fun addFact(entity: Long, attrName: ItemName, value: Value, isAsserted: Boolean, time: Date): Value {
+    private fun addFact(entity: Long, attrName: ItemName, value: Value, isAsserted: Boolean): Pair<Value, Date> {
         val subValue = if (value is Value.DATA) {
             val subData = listOf(value.v)
             val subEntities = transactData(subData)
@@ -43,19 +48,18 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
         } else {
             value
         }
-        database.addFact(entity, attrName, subValue, isAsserted, time)
-        return subValue
+        val time = database.addFact(entity, attrName, subValue, isAsserted)
+        return subValue to time
     }
 
     fun transactData(data: List<List<Pair<NamedItem, Value>>>): List<Long> {
-        val time = Date()
         val entities = mutableListOf<Long>()
         data.forEach { attributes ->
             val entity = database.nextEntity()
             attributes.forEach {
                 val attribute = it.first
                 val value = it.second
-                update(entity, attribute, value, time)
+                update(entity, attribute, value)
             }
             entities.add(entity)
         }
@@ -63,10 +67,10 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
         return entities
     }
 
-    fun update(entity: Long, attribute: NamedItem, value: Value, time: Date = Date()) {
+    fun update(entity: Long, attribute: NamedItem, value: Value) {
         val isAsserted = true
         val attrName = attribute.itemName
-        val subValue = addFact(entity, attrName, value, isAsserted, time)
+        val (subValue, time) = addFact(entity, attrName, value, isAsserted)
         writer.writeLine(Ledger.Line(entity, attrName, subValue, isAsserted, time))
     }
 

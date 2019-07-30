@@ -1,12 +1,14 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.ItemName
+import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
-class Datalog {
+class Datalog(private val timeClock: TimeClock) {
 
-    fun append(entity: Long, attrName: ItemName, value: Value, isAsserted: Boolean, time: Date) {
+    fun append(entity: Long, attrName: ItemName, value: Value, isAsserted: Boolean): Date {
+        val time = timeClock.now
         println("APPEND $entity $attrName $value $isAsserted $time")
         val existing = eavt[entity]?.get(attrName)?.get(value)
         if (existing == null || existing.isAsserted != isAsserted) {
@@ -20,6 +22,7 @@ class Datalog {
                 }
             vt[value] = Transaction(isAsserted, time)
         }
+        return time
     }
 
     private val eavt =
