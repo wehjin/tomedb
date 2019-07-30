@@ -1,5 +1,8 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.asLong
+import com.rubyhuntersky.tomedb.basics.asString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -90,30 +93,18 @@ class QuizzerTest {
 
     @Test
     fun happy() {
-        val conn = Client().connect(
-            ConnectionStarter.Attributes(
-                listOf(
-                    *Lesson.values(), *Quiz.values(), *Learner.values()
-                )
-            ),
-            TransientLedgerWriter()
-        )
+        val starterAttributes =
+            ConnectionStarter.Attributes(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
+
+        val conn = Client().connect(starterAttributes, TransientLedgerWriter())
         val findSelectedLearners = Query.Find(
-            rules = listOf(
-                Rule.EExactVA("e", Value.BOOLEAN(true), Learner.Selected)
-            ),
+            rules = listOf(Rule.EExactVA("e", Value.BOOLEAN(true), Learner.Selected)),
             outputs = listOf("e")
         )
-        assertEquals(
-            0,
-            conn.database[findSelectedLearners].size
-        )
+        assertEquals(0, conn.database[findSelectedLearners].size)
 
         conn.transactData(listOf(learnerData))
-        assertEquals(
-            1,
-            conn.database[findSelectedLearners].size
-        )
+        assertEquals(1, conn.database[findSelectedLearners].size)
 
         val quizResults = conn.database[Query.Find(
             rules = listOf(
@@ -124,10 +115,8 @@ class QuizzerTest {
             outputs = listOf("quiz", "name")
         )]
         println("QUIZZES: $quizResults")
-        assertEquals(
-            2,
-            quizResults.size
-        )
+        assertEquals(2, quizResults.size)
+
         assertEquals(
             setOf("Basics", "Advanced"),
             quizResults.map { it["name"].asString() }.toSet()

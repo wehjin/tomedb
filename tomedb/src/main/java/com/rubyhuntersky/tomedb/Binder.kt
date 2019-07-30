@@ -1,5 +1,7 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.basics.Value
+
 data class Binder<T>(
     val name: String,
     val allSolutions: () -> List<T>,

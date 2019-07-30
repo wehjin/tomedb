@@ -1,10 +1,13 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.Value
+
 sealed class Rule {
-    data class EExactA(val entityVar: String, val attribute: Enum<*>) : Rule()
-    data class EExactVA(val entityVar: String, val value: Value, val attribute: Enum<*>) : Rule()
-    data class EEExactA(val startVar: String, val endVar: String, val attribute: Enum<*>) : Rule()
-    data class EVExactA(val entityVar: String, val valueVar: String, val attribute: Enum<*>) : Rule()
+    data class EExactA(val entityVar: String, val attribute: NamedItemSource) : Rule()
+    data class EExactVA(val entityVar: String, val value: Value, val attribute: NamedItemSource) : Rule()
+    data class EEExactA(val startVar: String, val endVar: String, val attribute: NamedItemSource) : Rule()
+    data class EVExactA(val entityVar: String, val valueVar: String, val attribute: NamedItemSource) : Rule()
 }
 
 data class Input(val label: String, val value: Value) {
@@ -53,18 +56,27 @@ sealed class Solutions<T> {
     }
 }
 
-interface Attribute {
-    val attrName: AttrName
-        get() = (this as? Enum<*>)?.toAttrName()
-            ?: throw NotImplementedError("Attribute::attrName")
+interface TagGroup
+
+interface NamedItemSource {
+
+    val namedItem: NamedItem
+        get() = (this as? Enum<*>)
+            ?.let { NamedItem(this::class.java.simpleName, this.name) }
+            ?: NamedItem(this::class.java.declaringClass?.simpleName ?: "", this::class.java.simpleName)
+}
+
+typealias AttributeGroup = TagGroup
+
+interface Attribute : NamedItemSource {
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String
 }
 
-enum class ValueType {
+enum class ValueType : NamedItemSource {
     REF,
-    ATTRNAME,
+    TAG,
     DATE,
     BOOLEAN,
     STRING,
@@ -75,24 +87,39 @@ enum class ValueType {
     DATA,
 }
 
-enum class Cardinality {
+enum class Cardinality : NamedItemSource {
     ONE,
     MANY
 }
 
-enum class Scheme {
-    NAME,
-    VALUETYPE,
-    CARDINALITY,
-    DESCRIPTION
+enum class Scheme : Attribute {
+    NAME {
+        override val valueType = ValueType.TAG
+        override val cardinality = Cardinality.ONE
+        override val description = "The unique name of an attribute."
+    },
+    VALUETYPE {
+        override val valueType = ValueType.TAG
+        override val cardinality = Cardinality.ONE
+        override val description = "The type of the value that can be associated with a value."
+    },
+    CARDINALITY {
+        override val valueType = ValueType.TAG
+        override val cardinality = Cardinality.ONE
+        override val description =
+            "Specifies whether an attribute associates a single value or a set of values with an entity."
+    },
+    DESCRIPTION {
+        override val valueType = ValueType.STRING
+        override val cardinality = Cardinality.ONE
+        override val description = "Specifies a documentation string"
+    }
 }
-
-fun Enum<*>.toAttrName(): AttrName = AttrName(this::class.java.simpleName, this.name)
 
 internal fun Input.toBinder(): Binder<*> = when (value) {
     is Value.LONG -> Binder(label, { listOf(value.v) }, Value::LONG, Solutions.One(value.v))
     is Value.REF -> Binder(label, { listOf(value.v) }, Value::REF, Solutions.One(value.v))
-    is Value.ATTRNAME -> Binder(label, { listOf(value.v) }, Value::ATTRNAME, Solutions.One(value.v))
+    is Value.TAG -> Binder(label, { listOf(value.v) }, Value::TAG, Solutions.One(value.v))
     is Value.DATE -> Binder(label, { listOf(value.v) }, Value::DATE, Solutions.One(value.v))
     is Value.BOOLEAN -> Binder(label, { listOf(value.v) }, Value::BOOLEAN, Solutions.One(value.v))
     is Value.STRING -> Binder(label, { listOf(value.v) }, Value::STRING, Solutions.One(value.v))

@@ -1,4 +1,4 @@
-package com.rubyhuntersky.tomedb
+package com.rubyhuntersky.tomedb.basics
 
 class Ref {
     override fun equals(other: Any?): Boolean {

@@ -1,18 +1,32 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.asLong
+import com.rubyhuntersky.tomedb.basics.asString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ConnectionTest {
 
-    enum class Movie(
-        override val valueType: ValueType,
-        override val cardinality: Cardinality,
-        override val description: String
-    ) : Attribute {
-        Title(ValueType.STRING, Cardinality.ONE, "The title of the movie"),
-        Genre(ValueType.STRING, Cardinality.ONE, "The genre of the movie"),
-        ReleaseYear(ValueType.LONG, Cardinality.ONE, "The year the movie was released in theaters");
+    object Movie : AttributeGroup {
+
+        object Title : Attribute {
+            override val valueType = ValueType.STRING
+            override val cardinality = Cardinality.ONE
+            override val description = "The title of the movie"
+        }
+
+        object Genre : Attribute {
+            override val valueType = ValueType.STRING
+            override val cardinality = Cardinality.ONE
+            override val description = "The genre of the movie"
+        }
+
+        object ReleaseYear : Attribute {
+            override val valueType = ValueType.LONG
+            override val cardinality = Cardinality.ONE
+            override val description = "The year the movie was released in theaters"
+        }
     }
 
     @Test

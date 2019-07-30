@@ -1,11 +1,9 @@
-package com.rubyhuntersky.tomedb
+package com.rubyhuntersky.tomedb.basics
 
+import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.ValueType
 import java.math.BigDecimal
 import java.util.*
-
-data class AttrName(val first: String, val last: String) {
-    override fun toString(): String = "$first/$last"
-}
 
 sealed class Value {
     abstract val valueType: ValueType
@@ -15,9 +13,9 @@ sealed class Value {
             get() = ValueType.REF
     }
 
-    data class ATTRNAME(val v: AttrName) : Value() {
+    data class TAG(val v: NamedItem) : Value() {
         override val valueType: ValueType
-            get() = ValueType.ATTRNAME
+            get() = ValueType.TAG
     }
 
     data class DATE(val v: Date) : Value() {
@@ -55,11 +53,8 @@ sealed class Value {
             get() = ValueType.VALUE
     }
 
-    data class DATA(val v: List<Pair<Enum<*>, Value>>) : Value() {
+    data class DATA(val v: List<Pair<Attribute, Value>>) : Value() {
         override val valueType: ValueType
             get() = ValueType.DATA
     }
 }
-
-fun Value?.asString(): String = (this as Value.STRING).v
-fun Value?.asLong(): Long = (this as Value.LONG).v

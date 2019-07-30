@@ -1,5 +1,7 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
 class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) {
@@ -14,7 +16,7 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
                 while (reader.linesUnread > 0) {
                     val line = reader.readLine()
                     with(line) {
-                        addFact(entity, attrName, value, isAsserted, time)
+                        addFact(entity, attr, value, isAsserted, time)
                     }
                 }
             }
@@ -24,24 +26,15 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
     private fun transactAttributes(attributes: List<Attribute>) {
         transactData(attributes.map {
             listOf(
-                Pair(Scheme.NAME, Value.ATTRNAME(it.attrName))
-                , Pair(
-                    Scheme.VALUETYPE,
-                    Value.ATTRNAME(it.valueType.toAttrName())
-                )
-                , Pair(
-                    Scheme.CARDINALITY,
-                    Value.ATTRNAME(it.cardinality.toAttrName())
-                )
-                , Pair(
-                    Scheme.DESCRIPTION,
-                    Value.STRING(it.description)
-                )
+                Pair(Scheme.NAME, Value.TAG(it.namedItem))
+                , Pair(Scheme.VALUETYPE, Value.TAG(it.valueType.namedItem))
+                , Pair(Scheme.CARDINALITY, Value.TAG(it.cardinality.namedItem))
+                , Pair(Scheme.DESCRIPTION, Value.STRING(it.description))
             )
         })
     }
 
-    private fun addFact(entity: Long, attrName: AttrName, value: Value, isAsserted: Boolean, time: Date): Value {
+    private fun addFact(entity: Long, attrName: NamedItem, value: Value, isAsserted: Boolean, time: Date): Value {
         val subValue = if (value is Value.DATA) {
             val subData = listOf(value.v)
             val subEntities = transactData(subData)
@@ -53,7 +46,7 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
         return subValue
     }
 
-    fun transactData(data: List<List<Pair<Enum<*>, Value>>>): List<Long> {
+    fun transactData(data: List<List<Pair<NamedItemSource, Value>>>): List<Long> {
         val time = Date()
         val entities = mutableListOf<Long>()
         data.forEach { attributes ->
@@ -69,9 +62,9 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
         return entities
     }
 
-    fun update(entity: Long, attribute: Enum<*>, value: Value, time: Date = Date()) {
+    fun update(entity: Long, attribute: NamedItemSource, value: Value, time: Date = Date()) {
         val isAsserted = true
-        val attrName = attribute.toAttrName()
+        val attrName = attribute.namedItem
         val subValue = addFact(entity, attrName, value, isAsserted, time)
         writer.writeLine(Ledger.Line(entity, attrName, subValue, isAsserted, time))
     }

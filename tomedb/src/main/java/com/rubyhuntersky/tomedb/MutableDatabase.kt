@@ -1,12 +1,14 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
 class MutableDatabase {
     private var nextEntity: Long = 1
     internal fun nextEntity(): Long = nextEntity++
 
-    internal fun addFact(entity: Long, attrName: AttrName, value: Value, isAsserted: Boolean, time: Date) {
+    internal fun addFact(entity: Long, attrName: NamedItem, value: Value, isAsserted: Boolean, time: Date) {
         datalog.append(entity, attrName, value, isAsserted, time)
     }
 
