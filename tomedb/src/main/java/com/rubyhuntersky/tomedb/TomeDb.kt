@@ -2,12 +2,13 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.NamedItem
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.ValueType
 
 sealed class Rule {
-    data class EExactA(val entityVar: String, val attribute: NamedItemSource) : Rule()
-    data class EExactVA(val entityVar: String, val value: Value, val attribute: NamedItemSource) : Rule()
-    data class EEExactA(val startVar: String, val endVar: String, val attribute: NamedItemSource) : Rule()
-    data class EVExactA(val entityVar: String, val valueVar: String, val attribute: NamedItemSource) : Rule()
+    data class EExactA(val entityVar: String, val attribute: NamedItem) : Rule()
+    data class EExactVA(val entityVar: String, val value: Value, val attribute: NamedItem) : Rule()
+    data class EEExactA(val startVar: String, val endVar: String, val attribute: NamedItem) : Rule()
+    data class EVExactA(val entityVar: String, val valueVar: String, val attribute: NamedItem) : Rule()
 }
 
 data class Input(val label: String, val value: Value) {
@@ -56,38 +57,16 @@ sealed class Solutions<T> {
     }
 }
 
-interface TagGroup
+interface Attribute : NamedItem {
 
-interface NamedItemSource {
-
-    val namedItem: NamedItem
-        get() = (this as? Enum<*>)
-            ?.let { NamedItem(this::class.java.simpleName, this.name) }
-            ?: NamedItem(this::class.java.declaringClass?.simpleName ?: "", this::class.java.simpleName)
-}
-
-typealias AttributeGroup = TagGroup
-
-interface Attribute : NamedItemSource {
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String
+
+    interface Group : NamedItem.Group
 }
 
-enum class ValueType : NamedItemSource {
-    REF,
-    TAG,
-    DATE,
-    BOOLEAN,
-    STRING,
-    LONG,
-    DOUBLE,
-    BIGDEC,
-    VALUE,
-    DATA,
-}
-
-enum class Cardinality : NamedItemSource {
+enum class Cardinality : NamedItem {
     ONE,
     MANY
 }
@@ -119,8 +98,8 @@ enum class Scheme : Attribute {
 internal fun Input.toBinder(): Binder<*> = when (value) {
     is Value.LONG -> Binder(label, { listOf(value.v) }, Value::LONG, Solutions.One(value.v))
     is Value.REF -> Binder(label, { listOf(value.v) }, Value::REF, Solutions.One(value.v))
-    is Value.TAG -> Binder(label, { listOf(value.v) }, Value::TAG, Solutions.One(value.v))
-    is Value.DATE -> Binder(label, { listOf(value.v) }, Value::DATE, Solutions.One(value.v))
+    is Value.NAME -> Binder(label, { listOf(value.v) }, Value::NAME, Solutions.One(value.v))
+    is Value.INSTANT -> Binder(label, { listOf(value.v) }, Value::INSTANT, Solutions.One(value.v))
     is Value.BOOLEAN -> Binder(label, { listOf(value.v) }, Value::BOOLEAN, Solutions.One(value.v))
     is Value.STRING -> Binder(label, { listOf(value.v) }, Value::STRING, Solutions.One(value.v))
     is Value.DOUBLE -> Binder(label, { listOf(value.v) }, Value::DOUBLE, Solutions.One(value.v))

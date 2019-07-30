@@ -1,5 +1,14 @@
 package com.rubyhuntersky.tomedb.basics
 
-data class NamedItem(val first: String, val last: String) {
-    override fun toString(): String = "$first/$last"
+interface NamedItem {
+
+    val itemName: ItemName
+        get() = (this as? Enum<*>)
+            ?.let { ItemName(this::class.java.simpleName, this.name) }
+            ?: ItemName(
+                this::class.java.declaringClass?.simpleName ?: "",
+                this::class.java.simpleName
+            )
+
+    interface Group
 }

@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.Value
 
 class BinderRack(initBinders: List<Binder<*>>?) {
@@ -45,8 +45,8 @@ class BinderRack(initBinders: List<Binder<*>>?) {
                 is Value.LONG -> {
                     (locked[name] as Binder<Long>).solutions = Solutions.One(value.v)
                 }
-                is Value.TAG -> {
-                    (locked[name] as Binder<NamedItem>).solutions = Solutions.One(value.v)
+                is Value.NAME -> {
+                    (locked[name] as Binder<ItemName>).solutions = Solutions.One(value.v)
                 }
                 is Value.VALUE -> {
                     (locked[name] as Binder<Value>).solutions = Solutions.One(value.v)
@@ -94,11 +94,11 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         val valueBinder = binders.addBinder(valueVar, datalog::values, Value::VALUE)
         val substitutions = entityBinder.solutions.toList { datalog.entities }
             .map { entity ->
-                valueBinder.solutions.toList { datalog.listValues(entity, attribute.namedItem) }
+                valueBinder.solutions.toList { datalog.listValues(entity, attribute.itemName) }
                     .map { value -> Pair(entity, value) }
             }
             .flatten()
-            .filter { datalog.checkAsserted(it.first, attribute.namedItem, it.second) }
+            .filter { datalog.checkAsserted(it.first, attribute.itemName, it.second) }
         entityBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::first))
         valueBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::second))
     }
@@ -109,7 +109,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
     ) {
         val startBinder = binders.addBinder(startVar, datalog::entities, Value::LONG)
         val endBinder = binders.addBinder(endVar, datalog::entities, Value::LONG)
-        val attrName = attribute.namedItem
+        val attrName = attribute.itemName
         val substitutions =
             startBinder.solutions.toList { datalog.entities }
                 .map { start: Long ->
@@ -123,7 +123,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
 
     private fun Rule.EExactVA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
-        val attrName = attribute.namedItem
+        val attrName = attribute.itemName
         val value = value
         val matches = entityBinder.solutions.toList { datalog.entities }
             .filter { datalog.checkAsserted(it, attrName, value) }
@@ -132,7 +132,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
 
     private fun Rule.EExactA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
-        val attrName = attribute.namedItem
+        val attrName = attribute.itemName
         val matches = entityBinder.solutions.toList { datalog.entities }
             .filter { datalog.checkAttributeAsserted(it, attrName) }
         entityBinder.solutions = Solutions.fromList(matches)

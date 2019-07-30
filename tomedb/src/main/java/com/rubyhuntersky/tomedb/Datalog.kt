@@ -1,17 +1,17 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
 class Datalog {
 
-    fun append(entity: Long, attrName: NamedItem, value: Value, isAsserted: Boolean, time: Date) {
+    fun append(entity: Long, attrName: ItemName, value: Value, isAsserted: Boolean, time: Date) {
         println("APPEND $entity $attrName $value $isAsserted $time")
         val existing = eavt[entity]?.get(attrName)?.get(value)
         if (existing == null || existing.isAsserted != isAsserted) {
             val avt = eavt[entity]
-                ?: mutableMapOf<NamedItem, MutableMap<Value, Transaction>>().also {
+                ?: mutableMapOf<ItemName, MutableMap<Value, Transaction>>().also {
                     eavt[entity] = it
                 }
             val vt = avt[attrName]
@@ -23,7 +23,7 @@ class Datalog {
     }
 
     private val eavt =
-        mutableMapOf<Long, MutableMap<NamedItem, MutableMap<Value, Transaction>>>()
+        mutableMapOf<Long, MutableMap<ItemName, MutableMap<Value, Transaction>>>()
 
     data class Transaction(val isAsserted: Boolean, val time: Date)
 
@@ -38,15 +38,15 @@ class Datalog {
             .map { it.key }.distinct()
             .toList()
 
-    fun listValues(entity: Long, attrName: NamedItem): List<Value> {
+    fun listValues(entity: Long, attrName: ItemName): List<Value> {
         return eavt[entity]?.get(attrName)?.keys?.toList() ?: emptyList()
     }
 
-    fun checkAsserted(entity: Long, attrName: NamedItem, value: Value): Boolean {
+    fun checkAsserted(entity: Long, attrName: ItemName, value: Value): Boolean {
         return eavt[entity]?.get(attrName)?.get(value)?.isAsserted ?: false
     }
 
-    fun checkAttributeAsserted(entity: Long, attrName: NamedItem): Boolean {
+    fun checkAttributeAsserted(entity: Long, attrName: ItemName): Boolean {
         return eavt[entity]?.get(attrName)?.values?.fold(false) { wasAsserted, nextValue ->
             if (wasAsserted) true else nextValue.isAsserted
         } ?: false

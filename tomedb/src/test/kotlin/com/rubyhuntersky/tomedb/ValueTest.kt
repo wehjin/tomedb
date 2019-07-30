@@ -1,7 +1,7 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.Ref
-import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.Value
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,8 +18,8 @@ class ValueTest {
     @Test
     fun symbol() {
         assertEquals(
-            NamedItem("a", "b"), Value.TAG(
-                NamedItem(
+            ItemName("a", "b"), Value.NAME(
+                ItemName(
                     "a",
                     "b"
                 )
@@ -28,7 +28,7 @@ class ValueTest {
 
     @Test
     fun date() {
-        assertEquals(Date(123456), Value.DATE(Date(123456)).v)
+        assertEquals(Date(123456), Value.INSTANT(Date(123456)).v)
     }
 
     @Test

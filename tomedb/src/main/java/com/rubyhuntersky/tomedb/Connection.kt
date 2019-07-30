@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.NamedItem
 import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
@@ -26,15 +27,15 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
     private fun transactAttributes(attributes: List<Attribute>) {
         transactData(attributes.map {
             listOf(
-                Pair(Scheme.NAME, Value.TAG(it.namedItem))
-                , Pair(Scheme.VALUETYPE, Value.TAG(it.valueType.namedItem))
-                , Pair(Scheme.CARDINALITY, Value.TAG(it.cardinality.namedItem))
+                Pair(Scheme.NAME, Value.NAME(it.itemName))
+                , Pair(Scheme.VALUETYPE, Value.NAME(it.valueType.itemName))
+                , Pair(Scheme.CARDINALITY, Value.NAME(it.cardinality.itemName))
                 , Pair(Scheme.DESCRIPTION, Value.STRING(it.description))
             )
         })
     }
 
-    private fun addFact(entity: Long, attrName: NamedItem, value: Value, isAsserted: Boolean, time: Date): Value {
+    private fun addFact(entity: Long, attrName: ItemName, value: Value, isAsserted: Boolean, time: Date): Value {
         val subValue = if (value is Value.DATA) {
             val subData = listOf(value.v)
             val subEntities = transactData(subData)
@@ -46,7 +47,7 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
         return subValue
     }
 
-    fun transactData(data: List<List<Pair<NamedItemSource, Value>>>): List<Long> {
+    fun transactData(data: List<List<Pair<NamedItem, Value>>>): List<Long> {
         val time = Date()
         val entities = mutableListOf<Long>()
         data.forEach { attributes ->
@@ -62,9 +63,9 @@ class Connection(private val writer: Ledger.Writer, starter: ConnectionStarter) 
         return entities
     }
 
-    fun update(entity: Long, attribute: NamedItemSource, value: Value, time: Date = Date()) {
+    fun update(entity: Long, attribute: NamedItem, value: Value, time: Date = Date()) {
         val isAsserted = true
-        val attrName = attribute.namedItem
+        val attrName = attribute.itemName
         val subValue = addFact(entity, attrName, value, isAsserted, time)
         writer.writeLine(Ledger.Line(entity, attrName, subValue, isAsserted, time))
     }

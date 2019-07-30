@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.ValueType
 import com.rubyhuntersky.tomedb.basics.asLong
 import com.rubyhuntersky.tomedb.basics.asString
 import org.junit.Assert.assertEquals
