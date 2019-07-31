@@ -91,15 +91,15 @@ class BinderRack(initBinders: List<Binder<*>>?) {
     }
 
     private fun Rule.EVExactA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
-        val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
-        val valueBinder = binders.addBinder(valueVar, datalog::values, Value::VALUE)
-        val substitutions = entityBinder.solutions.toList { datalog.entities }
+        val entityBinder = binders.addBinder(entityVar, datalog::allEntities, Value::LONG)
+        val valueBinder = binders.addBinder(valueVar, datalog::allValues, Value::VALUE)
+        val substitutions = entityBinder.solutions.toList { datalog.allEntities }
             .map { entity ->
-                valueBinder.solutions.toList { datalog.listValues(entity, attribute.itemName) }
+                valueBinder.solutions.toList { datalog.entityAttrValues(entity, attribute.itemName) }
                     .map { value -> Pair(entity, value) }
             }
             .flatten()
-            .filter { datalog.checkAsserted(it.first, attribute.itemName, it.second) }
+            .filter { datalog.isEntityAttrValueAsserted(it.first, attribute.itemName, it.second) }
         entityBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::first))
         valueBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::second))
     }
@@ -108,34 +108,34 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         datalog: Datalog,
         binders: MutableMap<String, Binder<*>>
     ) {
-        val startBinder = binders.addBinder(startVar, datalog::entities, Value::LONG)
-        val endBinder = binders.addBinder(endVar, datalog::entities, Value::LONG)
+        val startBinder = binders.addBinder(startVar, datalog::allEntities, Value::LONG)
+        val endBinder = binders.addBinder(endVar, datalog::allEntities, Value::LONG)
         val attrName = attribute.itemName
         val substitutions =
-            startBinder.solutions.toList { datalog.entities }
+            startBinder.solutions.toList { datalog.allEntities }
                 .map { start: Long ->
-                    endBinder.solutions.toList { datalog.entities }.map { end: Long -> Pair(start, end) }
+                    endBinder.solutions.toList { datalog.allEntities }.map { end: Long -> Pair(start, end) }
                 }
                 .flatten()
-                .filter { datalog.checkAsserted(it.first, attrName, Value.LONG(it.second)) }
+                .filter { datalog.isEntityAttrValueAsserted(it.first, attrName, Value.LONG(it.second)) }
         startBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::first))
         endBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::second))
     }
 
     private fun Rule.EExactVA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
-        val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
+        val entityBinder = binders.addBinder(entityVar, datalog::allEntities, Value::LONG)
         val attrName = attribute.itemName
         val value = value
-        val matches = entityBinder.solutions.toList { datalog.entities }
-            .filter { datalog.checkAsserted(it, attrName, value) }
+        val matches = entityBinder.solutions.toList { datalog.allEntities }
+            .filter { datalog.isEntityAttrValueAsserted(it, attrName, value) }
         entityBinder.solutions = Solutions.fromList(matches)
     }
 
     private fun Rule.EExactA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
-        val entityBinder = binders.addBinder(entityVar, datalog::entities, Value::LONG)
+        val entityBinder = binders.addBinder(entityVar, datalog::allEntities, Value::LONG)
         val attrName = attribute.itemName
-        val matches = entityBinder.solutions.toList { datalog.entities }
-            .filter { datalog.checkAttributeAsserted(it, attrName) }
+        val matches = entityBinder.solutions.toList { datalog.allEntities }
+            .filter { datalog.isEntityAttrAsserted(it, attrName) }
         entityBinder.solutions = Solutions.fromList(matches)
     }
 
