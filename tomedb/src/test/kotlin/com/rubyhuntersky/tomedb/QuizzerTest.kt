@@ -4,6 +4,7 @@ import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.ValueType
 import com.rubyhuntersky.tomedb.basics.asLong
 import com.rubyhuntersky.tomedb.basics.asString
+import com.rubyhuntersky.tomedb.connection.ConnectionStarter
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

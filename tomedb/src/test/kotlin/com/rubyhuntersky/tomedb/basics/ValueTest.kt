@@ -1,4 +1,4 @@
-package com.rubyhuntersky.tomedb
+package com.rubyhuntersky.tomedb.basics
 
 import com.rubyhuntersky.tomedb.basics.Ref
 import com.rubyhuntersky.tomedb.basics.ItemName

@@ -1,5 +1,6 @@
-package com.rubyhuntersky.tomedb
+package com.rubyhuntersky.tomedb.connection
 
+import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.ValueType
 import com.rubyhuntersky.tomedb.basics.asLong
@@ -69,7 +70,13 @@ class ConnectionTest {
             writer = ledgerWriter
         )
         val result = reconnection.database[Query.Find(
-            rules = listOf(Rule.EVExactA("movie", "title", Movie.Title)),
+            rules = listOf(
+                Rule.EVExactA(
+                    "movie",
+                    "title",
+                    Movie.Title
+                )
+            ),
             outputs = listOf("movie", "title")
         )]
         assertEquals(1, result.first()["movie"].asLong())
@@ -81,7 +88,9 @@ class ConnectionTest {
         val connection = Client().connect(
             ConnectionStarter.Attributes(
                 listOf(
-                    Movie.Title, Movie.Genre, Movie.ReleaseYear
+                    Movie.Title,
+                    Movie.Genre,
+                    Movie.ReleaseYear
                 )
             ),
             TransientLedgerWriter()
@@ -108,7 +117,12 @@ class ConnectionTest {
         val db = connection.database
         val allMovies = db[Query.Find(
             outputs = listOf("e"),
-            rules = listOf(Rule.EExactA("e", Movie.Title))
+            rules = listOf(
+                Rule.EExactA(
+                    "e",
+                    Movie.Title
+                )
+            )
         )]
         assertEquals(3, allMovies.size)
     }

@@ -1,5 +1,9 @@
-package com.rubyhuntersky.tomedb
+package com.rubyhuntersky.tomedb.connection
 
+import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.Ledger
+import com.rubyhuntersky.tomedb.MutableDatabase
+import com.rubyhuntersky.tomedb.Scheme
 import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.NamedItem
 import com.rubyhuntersky.tomedb.basics.TimeClock
