@@ -3,6 +3,7 @@ package com.rubyhuntersky.tomedb.datalog
 import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.datalog.Fact.Standing
 import java.util.*
 
 class Datalog(private val timeClock: TimeClock) {

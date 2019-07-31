@@ -5,7 +5,6 @@ import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.NamedItem
 import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
-import com.rubyhuntersky.tomedb.datalog.Standing
 import java.util.*
 
 class Connection(
@@ -42,7 +41,7 @@ class Connection(
         })
     }
 
-    private fun addFact(entity: Long, attrName: ItemName, value: Value, isAsserted: Boolean): Pair<Value, Date> {
+    private fun addFact(entity: Long, attr: ItemName, value: Value, isAsserted: Boolean): Pair<Value, Date> {
         val subValue = if (value is Value.DATA) {
             val subData = listOf(value.v)
             val subEntities = transactData(subData)
@@ -50,7 +49,8 @@ class Connection(
         } else {
             value
         }
-        val time = database.update(entity, attrName, subValue, Standing.valueOf(isAsserted)).inst
+        val action = FactAction(entity, attr, subValue, FactAction.Type.valueOf(isAsserted))
+        val time = database.updateFact(action).inst
         return subValue to time
     }
 
@@ -71,9 +71,9 @@ class Connection(
 
     fun update(entity: Long, attribute: NamedItem, value: Value) {
         val isAsserted = true
-        val attrName = attribute.itemName
-        val (subValue, time) = addFact(entity, attrName, value, isAsserted)
-        writer.writeLine(Ledger.Line(entity, attrName, subValue, isAsserted, time))
+        val attr = attribute.itemName
+        val (subValue, time) = addFact(entity, attr, value, isAsserted)
+        writer.writeLine(Ledger.Line(entity, attr, subValue, isAsserted, time))
     }
 
     fun commit() {

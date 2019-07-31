@@ -11,4 +11,9 @@ data class Fact(
     val standing: Standing,
     val inst: Date,
     val txn: TxnId
-)
+) {
+    sealed class Standing {
+        object Asserted : Standing()
+        object Retracted : Standing()
+    }
+}

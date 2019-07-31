@@ -1,19 +1,18 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.datalog.Datalog
 import com.rubyhuntersky.tomedb.datalog.Fact
-import com.rubyhuntersky.tomedb.datalog.Standing
 
 class MutableDatabase(timeClock: TimeClock) {
     private var nextEntity: Long = 1
     internal fun nextEntity(): Long = nextEntity++
 
-    internal fun update(entity: Long, attrName: ItemName, value: Value, standing: Standing): Fact {
-        require(value !is Value.DATA)
-        return datalog.append(entity, attrName, value, standing)
+    internal fun updateFact(action: FactAction): Fact {
+        require(action.value !is Value.DATA)
+        val (entity, attr, value, type) = action
+        return datalog.append(entity, attr, value, type.toStanding())
     }
 
     private val datalog = Datalog(timeClock)
