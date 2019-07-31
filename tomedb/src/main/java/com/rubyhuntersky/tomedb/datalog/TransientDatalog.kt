@@ -44,7 +44,7 @@ class TransientDatalog(private val timeClock: TimeClock) :
     override fun append(entity: Long, attr: ItemName, value: Value, standing: Fact.Standing): Fact {
         val instant = timeClock.now
         val txnId = nextTxnId++
-        val txn = Txn(instant, standing, txnId)
+        val txn = Txn(standing, instant, txnId)
         val t = (eavt[entity]?.get(attr)?.get(value) ?: mutableListOf())
             .also {
                 it.add(0, txn)

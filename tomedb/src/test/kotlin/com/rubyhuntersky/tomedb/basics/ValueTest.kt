@@ -1,8 +1,5 @@
 package com.rubyhuntersky.tomedb.basics
 
-import com.rubyhuntersky.tomedb.basics.Ref
-import com.rubyhuntersky.tomedb.basics.ItemName
-import com.rubyhuntersky.tomedb.basics.Value
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
@@ -11,19 +8,8 @@ import java.util.*
 class ValueTest {
 
     @Test
-    fun ref() {
-        assertEquals(Ref(), Value.REF(Ref()).v)
-    }
-
-    @Test
     fun symbol() {
-        assertEquals(
-            ItemName("a", "b"), Value.NAME(
-                ItemName(
-                    "a",
-                    "b"
-                )
-            ).v)
+        assertEquals(ItemName("a", "b"), Value.NAME(ItemName("a", "b")).v)
     }
 
     @Test

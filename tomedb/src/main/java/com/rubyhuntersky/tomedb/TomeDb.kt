@@ -98,7 +98,6 @@ enum class Scheme : Attribute {
 
 internal fun Input.toBinder(): Binder<*> = when (value) {
     is Value.LONG -> Binder(label, { listOf(value.v) }, Value::LONG, Solutions.One(value.v))
-    is Value.REF -> Binder(label, { listOf(value.v) }, Value::REF, Solutions.One(value.v))
     is Value.NAME -> Binder(label, { listOf(value.v) }, Value::NAME, Solutions.One(value.v))
     is Value.INSTANT -> Binder(label, { listOf(value.v) }, Value::INSTANT, Solutions.One(value.v))
     is Value.BOOLEAN -> Binder(label, { listOf(value.v) }, Value::BOOLEAN, Solutions.One(value.v))

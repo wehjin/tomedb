@@ -17,7 +17,7 @@ class QuizzerTest {
     ) : Attribute {
         Name(ValueType.STRING, Cardinality.ONE, "The name of the learner"),
         Selected(ValueType.BOOLEAN, Cardinality.ONE, "The selected learner"),
-        Quiz(ValueType.REF, Cardinality.MANY, "A quiz held by the learner");
+        Quiz(ValueType.LONG, Cardinality.MANY, "A quiz held by the learner");
     }
 
     enum class Quiz(
@@ -27,7 +27,7 @@ class QuizzerTest {
     ) : Attribute {
         Name(ValueType.STRING, Cardinality.ONE, "The name of the quiz"),
         Publisher(ValueType.STRING, Cardinality.ONE, "The name of the publisher who created the quiz"),
-        Lesson(ValueType.REF, Cardinality.MANY, "A lesson in the quiz"),
+        Lesson(ValueType.LONG, Cardinality.MANY, "A lesson in the quiz"),
         CompletedOn(ValueType.INSTANT, Cardinality.ONE, "Time the quiz was completed");
     }
 

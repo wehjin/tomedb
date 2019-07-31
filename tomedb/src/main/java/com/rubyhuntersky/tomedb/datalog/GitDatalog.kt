@@ -3,6 +3,9 @@ package com.rubyhuntersky.tomedb.datalog
 import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.b64Encoder
+import com.rubyhuntersky.tomedb.datalog.Fact.Standing.Asserted
+import com.rubyhuntersky.tomedb.datalog.Fact.Standing.Retracted
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 import java.io.File
@@ -27,14 +30,14 @@ class GitDatalog(
     private val eavtFolder = File(gitFolder, "eavt").also { it.mkdirs() }
 
     override fun append(entity: Long, attr: ItemName, value: Value, standing: Fact.Standing): Fact {
-        val instant = timeClock.now
         val txnId = txnIdCounter.nextTxnId()
-        val txn = Txn(instant, standing, txnId)
 
-        val entityHex = entity.toString(16)
-        val e = File(eavtFolder, entityHex).also { it.mkdirs() }
-        val attrCode = Base64.getEncoder().encodeToString(attr.toString().toByteArray())
-        val ea = File(e, attrCode).also { it.mkdirs() }
+        val eDir = File(eavtFolder, entity.toFolderName()).also { it.mkdirs() }
+        val eaDir = File(eDir, attr.toFolderName()).also { it.mkdirs() }
+        val eavDir = File(eaDir, value.toFolderName()).also { it.mkdirs() }
+        val txnFile = File(eavDir, txnId.height.toString()).apply { writeText("${standing.toContent()}\n") }
+        val txnTime = Date(txnFile.lastModified())
+        val txn = Txn(standing, txnTime, txnId)
 
         val t = (eavt[entity]?.get(attr)?.get(value) ?: mutableListOf())
             .also {
@@ -49,12 +52,25 @@ class GitDatalog(
                 it[attr] = vt
             }
         eavt[entity] = avt
-        return Fact(entity, attr, value, standing, instant, txnId)
+        return Fact(entity, attr, value, standing, timeClock.now, txnId)
             .also {
                 println("APPEND $it")
                 git.add().addFilepattern(".").call()
                 git.commit().setMessage("TXN: ${txnId.height}").call()
             }
+    }
+
+    private fun Long.toFolderName(): String = this.toString()
+
+    private fun ItemName.toFolderName(): String {
+        val first = b64Encoder.encodeToString(first.toByteArray())
+        val last = b64Encoder.encodeToString(last.toByteArray())
+        return "$first,$last"
+    }
+
+    private fun Fact.Standing.toContent(): String = when (this) {
+        Asserted -> "asserted"
+        Retracted -> "retracted"
     }
 
     override val allEntities: List<Long>
@@ -69,7 +85,7 @@ class GitDatalog(
             .map(MutableMap<Value, MutableList<Txn>>::entries).flatten()
             .filter { (_, txns) ->
                 val latest = txns[0]
-                latest.standing == Fact.Standing.Asserted
+                latest.standing == Asserted
             }
             .map(MutableMap.MutableEntry<Value, MutableList<Txn>>::key).distinct()
             .toList()

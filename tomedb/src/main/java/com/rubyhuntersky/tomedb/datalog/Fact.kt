@@ -15,9 +15,9 @@ data class Fact(
 ) {
     sealed class Standing : NamedItem {
 
-        override fun toString(): String = itemName.toString()
-
         object Asserted : Standing()
         object Retracted : Standing()
+
+        override fun toString(): String = this.itemName.toString()
     }
 }
