@@ -13,7 +13,7 @@ class TransientDatalog(private val timeClock: TimeClock) :
     private val eavt =
         mutableMapOf<Long, MutableMap<ItemName, MutableMap<Value, MutableList<Txn>>>>()
 
-    override val allValues: List<Value>
+    override val allAssertedValues: List<Value>
         get() = eavt.values.asSequence()
             .map(MutableMap<ItemName, MutableMap<Value, MutableList<Txn>>>::values).flatten()
             .map(MutableMap<Value, MutableList<Txn>>::entries).flatten()

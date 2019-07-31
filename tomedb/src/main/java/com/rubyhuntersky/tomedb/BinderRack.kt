@@ -92,7 +92,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
 
     private fun Rule.EVExactA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::allEntities, Value::LONG)
-        val valueBinder = binders.addBinder(valueVar, datalog::allValues, Value::VALUE)
+        val valueBinder = binders.addBinder(valueVar, datalog::allAssertedValues, Value::VALUE)
         val substitutions = entityBinder.solutions.toList { datalog.allEntities }
             .map { entity ->
                 valueBinder.solutions.toList { datalog.entityAttrValues(entity, attribute.itemName) }

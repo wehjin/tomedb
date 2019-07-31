@@ -38,9 +38,9 @@ class GitDatalogTest {
     fun main() {
         val datalog = GitDatalog(timeClock, folderPath)
         datalog.append(1, Counter.COUNT.itemName, LONG.of(3))
-        assertEquals(3, (datalog.allValues.first() as LONG).v)
+        assertEquals(3, (datalog.allAssertedValues.first() as LONG).v)
 
         val datalog2 = GitDatalog(timeClock, folderPath)
-        assertEquals(3, (datalog2.allValues.first() as LONG).v)
+        assertEquals(3, (datalog2.allAssertedValues.first() as LONG).v)
     }
 }

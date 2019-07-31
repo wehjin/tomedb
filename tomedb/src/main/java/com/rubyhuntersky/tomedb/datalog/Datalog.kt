@@ -6,7 +6,7 @@ import com.rubyhuntersky.tomedb.datalog.Fact.Standing
 
 interface Datalog {
     val allEntities: List<Long>
-    val allValues: List<Value>
+    val allAssertedValues: List<Value>
     fun entityAttrValues(entity: Long, attr: ItemName): List<Value>
     fun isEntityAttrValueAsserted(entity: Long, attr: ItemName, value: Value): Boolean
     fun isEntityAttrAsserted(entity: Long, attr: ItemName): Boolean

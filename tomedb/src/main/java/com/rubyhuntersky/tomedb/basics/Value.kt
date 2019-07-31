@@ -9,7 +9,11 @@ sealed class Value(val valueType: ValueType) {
     val typeId: Int
         get() = valueType.typeId
 
-    data class BOOLEAN(val v: Boolean) : Value(ValueType.BOOLEAN)
+    data class BOOLEAN(val v: Boolean) : Value(ValueType.BOOLEAN) {
+        companion object {
+            fun of(boolean: Boolean) = BOOLEAN(boolean)
+        }
+    }
 
     data class LONG(val v: Long) : Value(ValueType.LONG) {
         companion object {
@@ -17,11 +21,41 @@ sealed class Value(val valueType: ValueType) {
         }
     }
 
-    data class STRING(val v: String) : Value(ValueType.STRING)
-    data class INSTANT(val v: Date) : Value(ValueType.INSTANT)
-    data class NAME(val v: ItemName) : Value(ValueType.NAME)
-    data class DOUBLE(val v: Double) : Value(ValueType.DOUBLE)
-    data class BIGDEC(val v: BigDecimal) : Value(ValueType.BIGDEC)
-    data class VALUE(val v: Value) : Value(ValueType.VALUE)
+    data class STRING(val v: String) : Value(ValueType.STRING) {
+        companion object {
+            fun of(string: String) = STRING(string)
+        }
+    }
+
+    data class NAME(val v: ItemName) : Value(ValueType.NAME) {
+        companion object {
+            fun of(itemName: ItemName) = NAME(itemName)
+        }
+    }
+
+    data class INSTANT(val v: Date) : Value(ValueType.INSTANT) {
+        companion object {
+            fun of(date: Date) = INSTANT(date)
+        }
+    }
+
+    data class DOUBLE(val v: Double) : Value(ValueType.DOUBLE) {
+        companion object {
+            fun of(double: Double) = DOUBLE(double)
+        }
+    }
+
+    data class BIGDEC(val v: BigDecimal) : Value(ValueType.BIGDEC) {
+        companion object {
+            fun of(bigDecimal: BigDecimal) = BIGDEC(bigDecimal)
+        }
+    }
+
+    data class VALUE(val v: Value) : Value(ValueType.VALUE) {
+        companion object {
+            fun of(value: Value) = VALUE(value)
+        }
+    }
+
     data class DATA(val v: List<Pair<Attribute, Value>>) : Value(ValueType.DATA)
 }

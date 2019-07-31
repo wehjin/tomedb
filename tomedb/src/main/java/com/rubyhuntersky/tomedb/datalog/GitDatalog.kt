@@ -14,7 +14,7 @@ import java.util.*
 
 class GitDatalog(
     private val timeClock: TimeClock,
-    folderPath: Path
+    private val folderPath: Path
 ) : Datalog {
 
     private val gitFolder = folderPath.toFile().also { it.mkdirs() }
@@ -31,28 +31,13 @@ class GitDatalog(
 
     override fun append(entity: Long, attr: ItemName, value: Value, standing: Fact.Standing): Fact {
         val txnId = txnIdCounter.nextTxnId()
-
-        val eDir = File(eavtFolder, entity.toFolderName()).also { it.mkdirs() }
-        val eaDir = File(eDir, attr.toFolderName()).also { it.mkdirs() }
-        val eavDir = File(eaDir, value.toFolderName()).also { it.mkdirs() }
-        val txnFile = File(eavDir, txnId.height.toString()).apply { writeText("${standing.toContent()}\n") }
+        val eDir = entityDir(eavtFolder, entity).also { it.mkdirs() }
+        val eaDir = attrDir(eDir, attr).also { it.mkdirs() }
+        val eavDir = valueDir(eaDir, value).also { it.mkdirs() }
+        val file = txnFile(eavDir, txnId)
+        val txnFile = file.apply { writeText("${standing.toContent()}\n") }
         val txnTime = Date(txnFile.lastModified())
-        val txn = Txn(standing, txnTime, txnId)
-
-        val t = (eavt[entity]?.get(attr)?.get(value) ?: mutableListOf())
-            .also {
-                it.add(0, txn)
-            }
-        val vt = (eavt[entity]?.get(attr) ?: mutableMapOf())
-            .also {
-                it[value] = t
-            }
-        val avt = (eavt[entity] ?: mutableMapOf())
-            .also {
-                it[attr] = vt
-            }
-        eavt[entity] = avt
-        return Fact(entity, attr, value, standing, timeClock.now, txnId)
+        return Fact(entity, attr, value, standing, txnTime, txnId)
             .also {
                 println("APPEND $it")
                 git.add().addFilepattern(".").call()
@@ -60,54 +45,75 @@ class GitDatalog(
             }
     }
 
-    private fun Long.toFolderName(): String = this.toString()
-
-    private fun ItemName.toFolderName(): String {
-        val first = b64Encoder.encodeToString(first.toByteArray())
-        val last = b64Encoder.encodeToString(last.toByteArray())
-        return "$first,$last"
-    }
-
-    private fun Fact.Standing.toContent(): String = when (this) {
-        Asserted -> "asserted"
-        Retracted -> "retracted"
+    private fun entityDirs() = subFiles(eavtFolder).asSequence()
+    private fun valueDirs(entity: Long, attr: ItemName): List<File> {
+        return subFiles(specificAttrDir(entity, attr))
     }
 
     override val allEntities: List<Long>
-        get() = eavt.keys.toList()
+        get() = entityDirs().map(File::getName).map { it.toLong() }.toList()
 
-    private val eavt =
-        mutableMapOf<Long, MutableMap<ItemName, MutableMap<Value, MutableList<Txn>>>>()
+    override val allAssertedValues: List<Value>
+        get() = entityDirs()
+            .map(Companion::subFiles).flatten()
+            .map(Companion::subFiles).flatten()
+            .filter(Companion::isDirAsserted)
+            .map(File::getName).map(::valueOfFolderName)
+            .distinct().toList()
 
-    override val allValues: List<Value>
-        get() = eavt.values.asSequence()
-            .map(MutableMap<ItemName, MutableMap<Value, MutableList<Txn>>>::values).flatten()
-            .map(MutableMap<Value, MutableList<Txn>>::entries).flatten()
-            .filter { (_, txns) ->
-                val latest = txns[0]
-                latest.standing == Asserted
-            }
-            .map(MutableMap.MutableEntry<Value, MutableList<Txn>>::key).distinct()
-            .toList()
+    override fun entityAttrValues(entity: Long, attr: ItemName): List<Value> =
+        valueDirs(entity, attr).map(::valueOfFile)
 
-    override fun entityAttrValues(entity: Long, attr: ItemName): List<Value> {
-        return eavt[entity]?.get(attr)?.keys?.toList() ?: emptyList()
-    }
+    override fun isEntityAttrValueAsserted(entity: Long, attr: ItemName, value: Value): Boolean =
+        isDirAsserted(specificValueDir(entity, attr, value))
 
-    override fun isEntityAttrValueAsserted(entity: Long, attr: ItemName, value: Value): Boolean {
-        val txns = eavt[entity]?.get(attr)?.get(value)
-        val firstTxn = txns?.get(0)
-        return firstTxn?.isAsserted ?: false
-    }
+    private fun specificValueDir(entity: Long, attr: ItemName, value: Value): File =
+        valueDir(specificAttrDir(entity, attr), value)
 
-    override fun isEntityAttrAsserted(entity: Long, attr: ItemName): Boolean {
-        val mapValueToTxnList = eavt[entity]?.get(attr)
-        val txnLists = mapValueToTxnList?.values
-        val firstTxns = txnLists?.map { it[0] }
-        return firstTxns?.map(Txn::isAsserted)?.fold(initial = false, operation = Boolean::or) ?: false
-    }
+    private fun specificAttrDir(entity: Long, attr: ItemName): File = attrDir(specificEntityDir(entity), attr)
+
+    private fun specificEntityDir(entity: Long): File = entityDir(eavtFolder, entity)
+
+    override fun isEntityAttrAsserted(entity: Long, attr: ItemName): Boolean =
+        valueDirs(entity, attr).map(Companion::isDirAsserted).fold(false, Boolean::or)
 
     private var nextTxnId = TxnId(1)
 
-    override fun toString(): String = "Datalog(nextTxnId=$nextTxnId, eavt=$eavt)"
+    override fun toString(): String = "Datalog(nextTxnId=$nextTxnId, repoPath=$folderPath)"
+
+    companion object {
+
+        private fun subFiles(folder: File): List<File> = (folder.listFiles() ?: emptyArray()).toList()
+
+        private fun ItemName.toFolderName(): String {
+            val first = b64Encoder.encodeToString(first.toByteArray())
+            val last = b64Encoder.encodeToString(last.toByteArray())
+            return "$first,$last"
+        }
+
+        private fun Fact.Standing.toContent(): String = when (this) {
+            Asserted -> "asserted"
+            Retracted -> "retracted"
+        }
+
+        private fun valueOfFile(file: File): Value = valueOfFolderName(file.name)
+
+        private fun standingOfFile(file: File): Fact.Standing {
+            var standing: Fact.Standing = Retracted
+            file.forEachLine { if (it == "asserted") standing = Asserted }
+            return standing
+        }
+
+        private fun latestTxnInDir(dir: File): File {
+            val txnFiles = subFiles(dir)
+            val maxHeight = txnFiles.map(File::getName).map(String::toLong).max()!!
+            return File(dir, maxHeight.toString())
+        }
+
+        private fun isDirAsserted(dir: File) = standingOfFile(latestTxnInDir(dir)).isAsserted
+        private fun txnFile(vDir: File, txnId: TxnId) = File(vDir, txnId.height.toString())
+        private fun valueDir(aDir: File, value: Value) = File(aDir, value.toFolderName())
+        private fun attrDir(eDir: File, attr: ItemName) = File(eDir, attr.toFolderName())
+        private fun entityDir(eavtDir: File, entity: Long) = File(eavtDir, entity.toString())
+    }
 }

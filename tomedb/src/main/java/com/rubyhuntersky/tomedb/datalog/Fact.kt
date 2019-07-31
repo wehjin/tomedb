@@ -18,6 +18,9 @@ data class Fact(
         object Asserted : Standing()
         object Retracted : Standing()
 
+        val isAsserted: Boolean
+            get() = this == Asserted
+
         override fun toString(): String = this.itemName.toString()
     }
 }
