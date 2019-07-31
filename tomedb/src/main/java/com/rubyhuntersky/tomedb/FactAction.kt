@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.ItemName
+import com.rubyhuntersky.tomedb.basics.NamedItem
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.datalog.Fact
 
@@ -10,9 +11,12 @@ data class FactAction(
     val value: Value,
     val type: Type
 ) {
-    sealed class Type {
+    sealed class Type : NamedItem {
+
         object Assert : Type()
         object Retract : Type()
+
+        override fun toString(): String = itemName.toString()
 
         fun toStanding(): Fact.Standing = when (this) {
             Assert -> Fact.Standing.Asserted

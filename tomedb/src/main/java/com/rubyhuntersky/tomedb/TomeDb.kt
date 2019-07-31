@@ -72,6 +72,7 @@ enum class Cardinality : NamedItem {
 }
 
 enum class Scheme : Attribute {
+
     NAME {
         override val valueType = ValueType.TAG
         override val cardinality = Cardinality.ONE

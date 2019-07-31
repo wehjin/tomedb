@@ -4,7 +4,16 @@ interface NamedItem {
 
     val itemName: ItemName
         get() = (this as? Enum<*>)
-            ?.let { ItemName(this::class.java.simpleName, this.name) }
+            ?.let {
+                val elementName = this.name
+                val className = this::class.java.simpleName
+                val groupName = if (className != elementName) {
+                    className
+                } else {
+                    this::class.java.enclosingClass?.simpleName ?: ""
+                }
+                ItemName(groupName, elementName)
+            }
             ?: ItemName(
                 this::class.java.declaringClass?.simpleName ?: "",
                 this::class.java.simpleName
