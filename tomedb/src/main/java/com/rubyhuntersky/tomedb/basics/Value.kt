@@ -4,11 +4,14 @@ import com.rubyhuntersky.tomedb.Attribute
 import java.math.BigDecimal
 import java.util.*
 
-sealed class Value(val valueType: ValueType) {
+sealed class Value(private val valueType: ValueType) {
+
+    val typeId: Int
+        get() = valueType.typeId
 
     data class REF(val v: Ref) : Value(ValueType.REF)
-    data class NAME(val v: ItemName) : Value(ValueType.TAG)
-    data class INSTANT(val v: Date) : Value(ValueType.DATE)
+    data class NAME(val v: ItemName) : Value(ValueType.NAME)
+    data class INSTANT(val v: Date) : Value(ValueType.INSTANT)
     data class BOOLEAN(val v: Boolean) : Value(ValueType.BOOLEAN)
     data class STRING(val v: String) : Value(ValueType.STRING)
 

@@ -28,7 +28,7 @@ class QuizzerTest {
         Name(ValueType.STRING, Cardinality.ONE, "The name of the quiz"),
         Publisher(ValueType.STRING, Cardinality.ONE, "The name of the publisher who created the quiz"),
         Lesson(ValueType.REF, Cardinality.MANY, "A lesson in the quiz"),
-        CompletedOn(ValueType.DATE, Cardinality.ONE, "Time the quiz was completed");
+        CompletedOn(ValueType.INSTANT, Cardinality.ONE, "Time the quiz was completed");
     }
 
     enum class Lesson(

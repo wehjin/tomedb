@@ -74,17 +74,17 @@ enum class Cardinality : NamedItem {
 enum class Scheme : Attribute {
 
     NAME {
-        override val valueType = ValueType.TAG
+        override val valueType = ValueType.NAME
         override val cardinality = Cardinality.ONE
         override val description = "The unique name of an attribute."
     },
     VALUETYPE {
-        override val valueType = ValueType.TAG
+        override val valueType = ValueType.NAME
         override val cardinality = Cardinality.ONE
         override val description = "The type of the value that can be associated with a value."
     },
     CARDINALITY {
-        override val valueType = ValueType.TAG
+        override val valueType = ValueType.NAME
         override val cardinality = Cardinality.ONE
         override val description =
             "Specifies whether an attribute associates a single value or a set of values with an entity."
