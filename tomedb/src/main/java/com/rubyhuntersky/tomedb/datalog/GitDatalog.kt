@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 import java.io.File
 import java.nio.file.Path
+import java.util.*
 
 class GitDatalog(
     private val timeClock: TimeClock,
@@ -29,6 +30,12 @@ class GitDatalog(
         val instant = timeClock.now
         val txnId = txnIdCounter.nextTxnId()
         val txn = Txn(instant, standing, txnId)
+
+        val entityHex = entity.toString(16)
+        val e = File(eavtFolder, entityHex).also { it.mkdirs() }
+        val attrCode = Base64.getEncoder().encodeToString(attr.toString().toByteArray())
+        val ea = File(e, attrCode).also { it.mkdirs() }
+
         val t = (eavt[entity]?.get(attr)?.get(value) ?: mutableListOf())
             .also {
                 it.add(0, txn)
