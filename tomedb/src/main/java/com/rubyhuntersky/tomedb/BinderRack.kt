@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.datalog.Datalog
 
 class BinderRack(initBinders: List<Binder<*>>?) {
 

@@ -1,13 +1,11 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.Attribute
-import com.rubyhuntersky.tomedb.Ledger
-import com.rubyhuntersky.tomedb.MutableDatabase
-import com.rubyhuntersky.tomedb.Scheme
+import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.NamedItem
 import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.datalog.Standing
 import java.util.*
 
 class Connection(
@@ -52,7 +50,7 @@ class Connection(
         } else {
             value
         }
-        val time = database.addFact(entity, attrName, subValue, isAsserted)
+        val time = database.update(entity, attrName, subValue, Standing.valueOf(isAsserted)).inst
         return subValue to time
     }
 
