@@ -10,5 +10,5 @@ interface Datalog {
     fun entityAttrValues(entity: Long, attr: ItemName): List<Value>
     fun isEntityAttrValueAsserted(entity: Long, attr: ItemName, value: Value): Boolean
     fun isEntityAttrAsserted(entity: Long, attr: ItemName): Boolean
-    fun append(entity: Long, attr: ItemName, value: Value, standing: Standing): Fact
+    fun append(entity: Long, attr: ItemName, value: Value, standing: Standing = Standing.Asserted): Fact
 }
