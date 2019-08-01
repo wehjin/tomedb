@@ -49,8 +49,8 @@ class Connection(
         } else {
             value
         }
-        val action = FactAction(entity, attr, subValue, FactAction.Type.valueOf(isAsserted))
-        val time = database.updateFact(action).inst
+        val action = Update(entity, attr, subValue, Update.Type.valueOf(isAsserted))
+        val time = database.update(action).inst
         return subValue to time
     }
 

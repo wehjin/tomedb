@@ -10,10 +10,15 @@ class MutableDatabase(timeClock: TimeClock) {
     private var nextEntity: Long = 1
     internal fun nextEntity(): Long = nextEntity++
 
-    internal fun updateFact(action: FactAction): Fact {
-        require(action.value !is Value.DATA)
-        val (entity, attr, value, type) = action
+    internal fun update(update: Update): Fact {
+        val (entity, attr, value, type) = update
+        require(value !is Value.DATA)
         return datalog.append(entity, attr, value, type.toStanding())
+    }
+
+    private fun Update.Type.toStanding(): Fact.Standing = when (this) {
+        Update.Type.Assert -> Fact.Standing.Asserted
+        Update.Type.Retract -> Fact.Standing.Retracted
     }
 
     private val datalog: Datalog = TransientDatalog(timeClock)
