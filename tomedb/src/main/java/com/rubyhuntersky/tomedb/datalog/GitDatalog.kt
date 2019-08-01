@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.basics.Meter
+import com.rubyhuntersky.tomedb.basics.Attr
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.stringToFolderName
 import com.rubyhuntersky.tomedb.datalog.Fact.Standing.Asserted
@@ -26,14 +26,14 @@ class GitDatalog(private val repoPath: Path) : Datalog {
 
     private val eavtIndexDir = File(repoDir, "eavt").also { it.mkdirs() }
 
-    override fun append(entity: Long, meter: Meter, value: Value, standing: Fact.Standing): Fact {
+    override fun append(entity: Long, attr: Attr, value: Value, standing: Fact.Standing): Fact {
         val txnId = txnIdCounter.nextTxnId()
         val eDir = entityDir(eavtIndexDir, entity).also { it.mkdirs() }
-        val eaDir = meterDir(eDir, meter).also { it.mkdirs() }
+        val eaDir = attrDir(eDir, attr).also { it.mkdirs() }
         val eavDir = valueDir(eaDir, value).also { it.mkdirs() }
         val eavtFile = standingFile(eavDir).apply { writeText("${standing.toContent()}\n") }
         val txnTime = Date(eavtFile.lastModified())
-        return Fact(entity, meter, value, standing, txnTime, txnId)
+        return Fact(entity, attr, value, standing, txnTime, txnId)
             .also {
                 println("APPEND $it")
                 git.add().addFilepattern(".").call()
@@ -43,8 +43,8 @@ class GitDatalog(private val repoPath: Path) : Datalog {
     }
 
     private fun entityDirs() = subFiles(eavtIndexDir).asSequence()
-    private fun valueDirs(entity: Long, meter: Meter): List<File> {
-        return subFiles(specificMeterDir(entity, meter))
+    private fun valueDirs(entity: Long, attr: Attr): List<File> {
+        return subFiles(specificAttrDir(entity, attr))
     }
 
     override val allEntities: List<Long>
@@ -58,24 +58,24 @@ class GitDatalog(private val repoPath: Path) : Datalog {
             .map(File::getName).map(::valueOfFolderName)
             .distinct().toList()
 
-    override fun entityMeterValues(entity: Long, meter: Meter): List<Value> {
-        return valueDirs(entity, meter).map(::valueOfFile)
+    override fun entityAttrValues(entity: Long, attr: Attr): List<Value> {
+        return valueDirs(entity, attr).map(::valueOfFile)
     }
 
-    override fun isEntityMeterValueAsserted(entity: Long, meter: Meter, value: Value): Boolean {
-        val valueDir = specificValueDir(entity, meter, value)
+    override fun isEntityAttrValueAsserted(entity: Long, attr: Attr, value: Value): Boolean {
+        val valueDir = specificValueDir(entity, attr, value)
         return isStandingAssertedInDir(valueDir)
     }
 
-    private fun specificValueDir(entity: Long, meter: Meter, value: Value): File =
-        valueDir(specificMeterDir(entity, meter), value)
+    private fun specificValueDir(entity: Long, attr: Attr, value: Value): File =
+        valueDir(specificAttrDir(entity, attr), value)
 
-    private fun specificMeterDir(entity: Long, meter: Meter): File = meterDir(specificEntityDir(entity), meter)
+    private fun specificAttrDir(entity: Long, attr: Attr): File = attrDir(specificEntityDir(entity), attr)
 
     private fun specificEntityDir(entity: Long): File = entityDir(eavtIndexDir, entity)
 
-    override fun isEntityMeterAsserted(entity: Long, meter: Meter): Boolean =
-        valueDirs(entity, meter).map(Companion::isStandingAssertedInDir).fold(false, Boolean::or)
+    override fun isEntityAttrAsserted(entity: Long, attr: Attr): Boolean =
+        valueDirs(entity, attr).map(Companion::isStandingAssertedInDir).fold(false, Boolean::or)
 
     private var nextTxnId = TxnId(1)
 
@@ -85,9 +85,9 @@ class GitDatalog(private val repoPath: Path) : Datalog {
 
         private fun subFiles(folder: File): List<File> = (folder.listFiles() ?: emptyArray()).toList()
 
-        private fun Meter.toFolderName(): String {
-            val first = stringToFolderName(meterName)
-            val last = stringToFolderName(meterGroup)
+        private fun Attr.toFolderName(): String {
+            val first = stringToFolderName(attrName)
+            val last = stringToFolderName(attrGroup)
             return "$first,$last"
         }
 
@@ -118,7 +118,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
             return File(aDir, folderName)
         }
 
-        private fun meterDir(eDir: File, meter: Meter) = File(eDir, meter.toFolderName())
+        private fun attrDir(eDir: File, attr: Attr) = File(eDir, attr.toFolderName())
         private fun entityDir(eavtDir: File, entity: Long) = File(eavtDir, entity.toString())
     }
 }

@@ -1,10 +1,10 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.MeterSpec
+import com.rubyhuntersky.tomedb.AttrSpec
 import com.rubyhuntersky.tomedb.MutableDatabase
 import com.rubyhuntersky.tomedb.Scheme
 import com.rubyhuntersky.tomedb.Update
-import com.rubyhuntersky.tomedb.basics.Meter
+import com.rubyhuntersky.tomedb.basics.Attr
 import com.rubyhuntersky.tomedb.basics.Value
 import java.nio.file.Path
 import java.util.*
@@ -15,13 +15,13 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
 
     init {
         when (starter) {
-            is ConnectionStarter.MeterSpecs -> transactMeterSpecs(starter.meters)
+            is ConnectionStarter.AttrSpecs -> transactAttrSpecs(starter.attrs)
             is ConnectionStarter.None -> Unit
         }
     }
 
-    private fun transactMeterSpecs(meterSpecs: List<MeterSpec>) {
-        transactData(meterSpecs.map {
+    private fun transactAttrSpecs(attrSpecs: List<AttrSpec>) {
+        transactData(attrSpecs.map {
             listOf(
                 Pair(Scheme.NAME, Value.NAME(it))
                 , Pair(Scheme.VALUETYPE, Value.NAME(it.valueType))
@@ -31,7 +31,7 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
         })
     }
 
-    private fun addFact(entity: Long, meter: Meter, value: Value, isAsserted: Boolean): Pair<Value, Date> {
+    private fun addFact(entity: Long, attr: Attr, value: Value, isAsserted: Boolean): Pair<Value, Date> {
         val subValue = if (value is Value.DATA) {
             val subData = listOf(value.v)
             val subEntities = transactData(subData)
@@ -39,12 +39,12 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
         } else {
             value
         }
-        val action = Update(entity, meter, subValue, Update.Type.valueOf(isAsserted))
+        val action = Update(entity, attr, subValue, Update.Type.valueOf(isAsserted))
         val time = database.update(action).inst
         return subValue to time
     }
 
-    fun transactData(data: List<List<Pair<Meter, Value>>>): List<Long> {
+    fun transactData(data: List<List<Pair<Attr, Value>>>): List<Long> {
         val entities = mutableListOf<Long>()
         data.forEach { meters ->
             val entity = database.nextEntity()
@@ -57,8 +57,8 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
         return entities
     }
 
-    fun update(entity: Long, meter: Meter, value: Value, isAsserted: Boolean = true) {
-        addFact(entity, meter, value, isAsserted)
+    fun update(entity: Long, attr: Attr, value: Value, isAsserted: Boolean = true) {
+        addFact(entity, attr, value, isAsserted)
     }
 
     fun commit() {

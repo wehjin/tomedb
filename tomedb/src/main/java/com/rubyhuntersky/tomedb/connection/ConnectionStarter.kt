@@ -1,8 +1,8 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.MeterSpec
+import com.rubyhuntersky.tomedb.AttrSpec
 
 sealed class ConnectionStarter {
-    data class MeterSpecs(val meters: List<MeterSpec>) : ConnectionStarter()
+    data class AttrSpecs(val attrs: List<AttrSpec>) : ConnectionStarter()
     object None : ConnectionStarter()
 }

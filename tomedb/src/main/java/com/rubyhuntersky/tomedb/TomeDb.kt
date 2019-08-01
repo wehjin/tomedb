@@ -1,14 +1,14 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.Meter
+import com.rubyhuntersky.tomedb.basics.Attr
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.ValueType
 
 sealed class Rule {
-    data class EExactM(val entityVar: String, val meter: Meter) : Rule()
-    data class EExactVM(val entityVar: String, val value: Value, val meter: Meter) : Rule()
-    data class EEExactM(val startVar: String, val endVar: String, val meter: Meter) : Rule()
-    data class EVExactM(val entityVar: String, val valueVar: String, val meter: Meter) : Rule()
+    data class EExactM(val entityVar: String, val attr: Attr) : Rule()
+    data class EExactVM(val entityVar: String, val value: Value, val attr: Attr) : Rule()
+    data class EEExactM(val startVar: String, val endVar: String, val attr: Attr) : Rule()
+    data class EVExactM(val entityVar: String, val valueVar: String, val attr: Attr) : Rule()
 }
 
 data class Input(val label: String, val value: Value) {
@@ -60,18 +60,18 @@ sealed class Solutions<T> {
     }
 }
 
-interface MeterSpec : Meter {
+interface AttrSpec : Attr {
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String
 }
 
-enum class Cardinality : Meter {
+enum class Cardinality : Attr {
     ONE,
     MANY
 }
 
-enum class Scheme : MeterSpec {
+enum class Scheme : AttrSpec {
 
     NAME {
         override val valueType = ValueType.NAME

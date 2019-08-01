@@ -5,19 +5,19 @@ import org.junit.Test
 
 class NamedItemTest {
 
-    enum class A : Meter {
+    enum class A : Attr {
         U
     }
 
-    enum class B(val typeId: Int) : Meter {
+    enum class B(val typeId: Int) : Attr {
         V(1)
     }
 
     object C {
-        object W : Meter
+        object W : Attr
     }
 
-    interface NamedItemItem : Meter {
+    interface NamedItemItem : Attr {
         val hello: Int
     }
 
@@ -30,21 +30,21 @@ class NamedItemTest {
 
     @Test
     fun simpleEnum() {
-        assertEquals("A/U", A.U.toMeterString())
+        assertEquals("A/U", A.U.toAttrString())
     }
 
     @Test
     fun dataEnum() {
-        assertEquals("B/V", B.V.toMeterString())
+        assertEquals("B/V", B.V.toAttrString())
     }
 
     @Test
     fun objectInObject() {
-        assertEquals("C/W", C.W.toMeterString())
+        assertEquals("C/W", C.W.toAttrString())
     }
 
     @Test
     fun implementingEnum() {
-        assertEquals("D/X", D.X.toMeterString())
+        assertEquals("D/X", D.X.toAttrString())
     }
 }

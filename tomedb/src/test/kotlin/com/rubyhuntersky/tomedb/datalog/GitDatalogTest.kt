@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.MeterSpec
+import com.rubyhuntersky.tomedb.AttrSpec
 import com.rubyhuntersky.tomedb.Cardinality
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.Value.LONG
@@ -14,7 +14,7 @@ import java.nio.file.Path
 
 class GitDatalogTest {
 
-    enum class Counter : MeterSpec {
+    enum class Counter : AttrSpec {
         COUNT {
             override val valueType: ValueType = ValueType.LONG
             override val cardinality: Cardinality = Cardinality.ONE
@@ -49,7 +49,7 @@ class GitDatalogTest {
     @Test
     fun neverAssertedValuesReturnFalseForIsAsserted() {
         val datalog = GitDatalog(folderPath)
-        assertFalse(datalog.isEntityMeterValueAsserted(3, Counter.MAXCOUNT, "Hello"()))
+        assertFalse(datalog.isEntityAttrValueAsserted(3, Counter.MAXCOUNT, "Hello"()))
     }
 
     @Test
@@ -57,6 +57,6 @@ class GitDatalogTest {
         val datalog = GitDatalog(folderPath)
         datalog.append(1, Counter.COUNT, 3())
         datalog.append(1, Counter.COUNT, 4())
-        assertEquals(2, datalog.entityMeterValues(1, Counter.COUNT).size)
+        assertEquals(2, datalog.entityAttrValues(1, Counter.COUNT).size)
     }
 }

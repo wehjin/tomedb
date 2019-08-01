@@ -1,15 +1,15 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.Meter
+import com.rubyhuntersky.tomedb.basics.Attr
 import com.rubyhuntersky.tomedb.basics.Value
 
 data class Update(
     val entity: Long,
-    val meter: Meter,
+    val attr: Attr,
     val value: Value,
     val type: Type
 ) {
-    sealed class Type : Meter {
+    sealed class Type : Attr {
         companion object {
             fun valueOf(assert: Boolean) = if (assert) Assert else Retract
         }
@@ -17,6 +17,6 @@ data class Update(
         object Assert : Type()
         object Retract : Type()
 
-        override fun toString(): String = toMeterString()
+        override fun toString(): String = toAttrString()
     }
 }

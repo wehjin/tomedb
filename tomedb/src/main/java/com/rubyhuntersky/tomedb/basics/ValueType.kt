@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.basics
 
-enum class ValueType(val typeId: Int) : Meter {
+enum class ValueType(val typeId: Int) : Attr {
     BOOLEAN(1),
     LONG(2),
     STRING(3),

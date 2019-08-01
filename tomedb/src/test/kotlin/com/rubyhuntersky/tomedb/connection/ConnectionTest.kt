@@ -14,19 +14,19 @@ class ConnectionTest {
 
     object Movie {
 
-        object Title : MeterSpec {
+        object Title : AttrSpec {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The title of the movie"
         }
 
-        object Genre : MeterSpec {
+        object Genre : AttrSpec {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The genre of the movie"
         }
 
-        object ReleaseYear : MeterSpec {
+        object ReleaseYear : AttrSpec {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
             override val description = "The year the movie was released in theaters"
@@ -42,7 +42,7 @@ class ConnectionTest {
 
     @Test
     fun reconnectionLoadsDataFromLedger() {
-        Client().connect(dataDir, ConnectionStarter.MeterSpecs(listOf(Movie.Title)))
+        Client().connect(dataDir, ConnectionStarter.AttrSpecs(listOf(Movie.Title)))
             .also { connection ->
                 connection.update(1, Movie.Title, Value.STRING("Return of the King"))
                 connection.commit()
@@ -62,7 +62,7 @@ class ConnectionTest {
     fun happy() {
         val connection = Client().connect(
             dataDir,
-            ConnectionStarter.MeterSpecs(
+            ConnectionStarter.AttrSpecs(
                 listOf(
                     Movie.Title,
                     Movie.Genre,
