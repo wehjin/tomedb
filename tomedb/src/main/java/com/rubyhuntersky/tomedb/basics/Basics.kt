@@ -21,4 +21,28 @@ operator fun Date.invoke(): Value.INSTANT = Value.INSTANT(this)
 operator fun Double.invoke(): Value.DOUBLE = Value.DOUBLE(this)
 operator fun BigDecimal.invoke(): Value.BIGDEC = Value.BIGDEC(this)
 operator fun Value.invoke(): Value.VALUE = Value.VALUE(this)
-operator fun List<Pair<Attr, Value>>.invoke(): Value.DATA = Value.DATA(this)
+operator fun TagList.invoke(): Value.DATA = Value.DATA(this)
+
+data class Tag(val value: Value, val attr: Attr)
+
+fun tagOf(value: Value, attr: Attr): Tag = Tag(value, attr)
+infix fun Value.at(attr: Attr): Tag = tagOf(this, attr)
+infix fun Boolean.at(attr: Attr): Tag = this() at attr
+infix fun Long.at(attr: Attr): Tag = this() at attr
+infix fun Int.at(attr: Attr): Tag = this() at attr
+infix fun Attr.at(attr: Attr): Tag = this() at attr
+infix fun String.at(attr: Attr): Tag = this() at attr
+infix fun Date.at(attr: Attr): Tag = this() at attr
+infix fun Double.at(attr: Attr): Tag = this() at attr
+infix fun BigDecimal.at(attr: Attr): Tag = this() at attr
+infix fun TagList.at(attr: Attr): Tag = this() at attr
+
+data class TagList(val tags: List<Tag>) : Iterable<Tag> {
+
+    override fun iterator(): Iterator<Tag> = tags.iterator()
+}
+
+fun tagListOf(vararg tag: Tag): TagList = TagList(tag.toList())
+
+
+

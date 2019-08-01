@@ -1,9 +1,7 @@
 package com.rubyhuntersky.tomedb.quizzer
 
 import com.rubyhuntersky.tomedb.*
-import com.rubyhuntersky.tomedb.basics.Value
-import com.rubyhuntersky.tomedb.basics.asLong
-import com.rubyhuntersky.tomedb.basics.asString
+import com.rubyhuntersky.tomedb.basics.*
 import com.rubyhuntersky.tomedb.connection.ConnectionStarter
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -74,56 +72,32 @@ class QuizzerTest {
         )
     }
 
-    private val learnerData = listOf(
-        Pair(Learner.Name, Value.STRING("Default")),
-        Pair(Learner.Selected, Value.BOOLEAN(true)),
-        Pair(
-            Learner.Quiz, Value.DATA(
-                listOf(
-                    Pair(Quiz.Name, Value.STRING("Basics")),
-                    Pair(Quiz.Publisher, Value.STRING("Life")),
-                    Pair(
-                        Quiz.Lesson, Value.DATA(
-                            listOf(
-                                Pair(Lesson.Question, Value.STRING("Hello?")),
-                                Pair(Lesson.Answer, Value.STRING("World"))
-                            )
-                        )
-                    ),
-                    Pair(
-                        Quiz.Lesson, Value.DATA(
-                            listOf(
-                                Pair(Lesson.Question, Value.STRING("Moshi moshi ka")),
-                                Pair(Lesson.Answer, Value.STRING("Sekkai"))
-                            )
-                        )
-                    )
-                )
-            )
-        ),
-        Pair(
-            Learner.Quiz, Value.DATA(
-                listOf(
-                    Pair(Quiz.Name, Value.STRING("Advanced")),
-                    Pair(Quiz.Publisher, Value.STRING("Life")),
-                    Pair(
-                        Quiz.Lesson, Value.DATA(
-                            listOf(
-                                Pair(Lesson.Question, Value.STRING("World?")),
-                                Pair(Lesson.Answer, Value.STRING("Hello"))
-                            )
-                        )
-                    ),
-                    Pair(
-                        Quiz.Lesson, Value.DATA(
-                            listOf(
-                                Pair(Lesson.Question, Value.STRING("Sekkai ka")),
-                                Pair(Lesson.Answer, Value.STRING("Moshi moshi"))
-                            )
-                        )
-                    )
-                )
-            )
-        )
+    private val learnerData = tagListOf(
+        "Default" at Learner.Name,
+        true at Learner.Selected,
+        tagListOf(
+            "Basics" at Quiz.Name,
+            "Life" at Quiz.Publisher,
+            tagListOf(
+                "Hello?" at Lesson.Question,
+                "World" at Lesson.Answer
+            ) at Quiz.Lesson,
+            tagListOf(
+                "Moshi moshi ka" at Lesson.Question,
+                "Sekkai" at Lesson.Answer
+            ) at Quiz.Lesson
+        ) at Learner.Quiz,
+        tagListOf(
+            "Advanced" at Quiz.Name,
+            "Life" at Quiz.Publisher,
+            tagListOf(
+                "World?" at Lesson.Question,
+                "Hello" at Lesson.Answer
+            ) at Quiz.Lesson,
+            tagListOf(
+                "Sekkai ka" at Lesson.Question,
+                "Moshi moshi" at Lesson.Answer
+            ) at Quiz.Lesson
+        ) at Learner.Quiz
     )
 }

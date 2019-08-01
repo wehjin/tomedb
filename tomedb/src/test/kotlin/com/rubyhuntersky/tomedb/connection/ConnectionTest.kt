@@ -1,10 +1,7 @@
 package com.rubyhuntersky.tomedb.connection
 
 import com.rubyhuntersky.tomedb.*
-import com.rubyhuntersky.tomedb.basics.Value
-import com.rubyhuntersky.tomedb.basics.ValueType
-import com.rubyhuntersky.tomedb.basics.asLong
-import com.rubyhuntersky.tomedb.basics.asString
+import com.rubyhuntersky.tomedb.basics.*
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -71,20 +68,20 @@ class ConnectionTest {
             )
         )
         val firstMovies = listOf(
-            listOf(
-                Pair(Movie.Title, Value.STRING("The Goonies")),
-                Pair(Cardinality.ONE, Value.STRING("action/adventure")),
-                Pair(Movie.ReleaseYear, Value.LONG(1985))
-            )
-            , listOf(
-                Pair(Movie.Title, Value.STRING("Commando")),
-                Pair(Movie.Genre, Value.STRING("action/adventure")),
-                Pair(Movie.ReleaseYear, Value.LONG(1985))
-            )
-            , listOf(
-                Pair(Movie.Title, Value.STRING("Repo Man")),
-                Pair(Movie.Genre, Value.STRING("punk dystopia")),
-                Pair(Movie.ReleaseYear, Value.LONG(1984))
+            tagListOf(
+                "The Goonies" at Movie.Title,
+                "action/adventure" at Cardinality.ONE,
+                1985 at Movie.ReleaseYear
+            ),
+            tagListOf(
+                "Commando" at Movie.Title,
+                "action/adventure" at Movie.Genre,
+                1985 at Movie.ReleaseYear
+            ),
+            tagListOf(
+                "Repo Man" at Movie.Title,
+                "punk dystopia" at Movie.Genre,
+                1984 at Movie.ReleaseYear
             )
         )
         connection.transactData(firstMovies)

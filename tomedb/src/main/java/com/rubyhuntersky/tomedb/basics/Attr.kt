@@ -30,5 +30,6 @@ interface Attr {
         result = 31 * result + attrGroup.hashCode()
         return result
     }
+
 }
 
