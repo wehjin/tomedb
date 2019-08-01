@@ -34,14 +34,14 @@ class GitDatalog(
         val eDir = entityDir(eavtFolder, entity).also { it.mkdirs() }
         val eaDir = attrDir(eDir, attr).also { it.mkdirs() }
         val eavDir = valueDir(eaDir, value).also { it.mkdirs() }
-        val file = txnFile(eavDir, txnId)
-        val txnFile = file.apply { writeText("${standing.toContent()}\n") }
-        val txnTime = Date(txnFile.lastModified())
+        val eavtFile = standingFile(eavDir).apply { writeText("${standing.toContent()}\n") }
+        val txnTime = Date(eavtFile.lastModified())
         return Fact(entity, attr, value, standing, txnTime, txnId)
             .also {
                 println("APPEND $it")
                 git.add().addFilepattern(".").call()
                 git.commit().setMessage("TXN: ${txnId.height}").call()
+                git.tag().setName("h${txnId.height}").call()
             }
     }
 
@@ -57,7 +57,7 @@ class GitDatalog(
         get() = entityDirs()
             .map(Companion::subFiles).flatten()
             .map(Companion::subFiles).flatten()
-            .filter(Companion::isDirAsserted)
+            .filter(Companion::isStandingAssertedInDir)
             .map(File::getName).map(::valueOfFolderName)
             .distinct().toList()
 
@@ -65,7 +65,7 @@ class GitDatalog(
         valueDirs(entity, attr).map(::valueOfFile)
 
     override fun isEntityAttrValueAsserted(entity: Long, attr: ItemName, value: Value): Boolean =
-        isDirAsserted(specificValueDir(entity, attr, value))
+        isStandingAssertedInDir(specificValueDir(entity, attr, value))
 
     private fun specificValueDir(entity: Long, attr: ItemName, value: Value): File =
         valueDir(specificAttrDir(entity, attr), value)
@@ -75,7 +75,7 @@ class GitDatalog(
     private fun specificEntityDir(entity: Long): File = entityDir(eavtFolder, entity)
 
     override fun isEntityAttrAsserted(entity: Long, attr: ItemName): Boolean =
-        valueDirs(entity, attr).map(Companion::isDirAsserted).fold(false, Boolean::or)
+        valueDirs(entity, attr).map(Companion::isStandingAssertedInDir).fold(false, Boolean::or)
 
     private var nextTxnId = TxnId(1)
 
@@ -104,14 +104,8 @@ class GitDatalog(
             return standing
         }
 
-        private fun latestTxnInDir(dir: File): File {
-            val txnFiles = subFiles(dir)
-            val maxHeight = txnFiles.map(File::getName).map(String::toLong).max()!!
-            return File(dir, maxHeight.toString())
-        }
-
-        private fun isDirAsserted(dir: File) = standingOfFile(latestTxnInDir(dir)).isAsserted
-        private fun txnFile(vDir: File, txnId: TxnId) = File(vDir, txnId.height.toString())
+        private fun isStandingAssertedInDir(dir: File) = standingOfFile(standingFile(dir)).isAsserted
+        private fun standingFile(vDir: File) = File(vDir, "standing")
         private fun valueDir(aDir: File, value: Value) = File(aDir, value.toFolderName())
         private fun attrDir(eDir: File, attr: ItemName) = File(eDir, attr.toFolderName())
         private fun entityDir(eavtDir: File, entity: Long) = File(eavtDir, entity.toString())
