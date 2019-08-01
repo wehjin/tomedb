@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.basics
 
-import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.MeterSpec
 import java.math.BigDecimal
 import java.util.*
 
@@ -29,9 +29,9 @@ sealed class Value(val valueType: ValueType) {
         override fun toString(): String = v
     }
 
-    data class NAME(val v: ItemName) : Value(ValueType.NAME) {
+    data class NAME(val v: Meter) : Value(ValueType.NAME) {
         companion object {
-            fun of(itemName: ItemName) = NAME(itemName)
+            fun of(itemName: Meter) = NAME(itemName)
         }
     }
 
@@ -59,5 +59,5 @@ sealed class Value(val valueType: ValueType) {
         }
     }
 
-    data class DATA(val v: List<Pair<Attribute, Value>>) : Value(ValueType.DATA)
+    data class DATA(val v: List<Pair<MeterSpec, Value>>) : Value(ValueType.DATA)
 }

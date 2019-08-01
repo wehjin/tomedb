@@ -1,19 +1,18 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.basics.ItemName
-import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.Meter
 import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
 data class Fact(
     val entity: Long,
-    val attr: ItemName,
+    val meter: Meter,
     val value: Value,
     val standing: Standing,
     val inst: Date,
     val txn: TxnId
 ) {
-    sealed class Standing : NamedItem {
+    sealed class Standing : Meter {
 
         object Asserted : Standing()
         object Retracted : Standing()
@@ -21,6 +20,6 @@ data class Fact(
         val isAsserted: Boolean
             get() = this == Asserted
 
-        override fun toString(): String = this.itemName.toString()
+        override fun toString(): String = toMeterString()
     }
 }

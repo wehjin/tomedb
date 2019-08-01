@@ -11,9 +11,9 @@ class MutableDatabase(dataDir: Path) {
     internal fun nextEntity(): Long = nextEntity++
 
     internal fun update(update: Update): Fact {
-        val (entity, attr, value, type) = update
+        val (entity, meter, value, type) = update
         require(value !is Value.DATA)
-        return datalog.append(entity, attr, value, type.toStanding())
+        return datalog.append(entity, meter, value, type.toStanding())
     }
 
     private val datalog: Datalog = GitDatalog(dataDir)

@@ -1,11 +1,10 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.MeterSpec
 import com.rubyhuntersky.tomedb.MutableDatabase
 import com.rubyhuntersky.tomedb.Scheme
 import com.rubyhuntersky.tomedb.Update
-import com.rubyhuntersky.tomedb.basics.ItemName
-import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.Meter
 import com.rubyhuntersky.tomedb.basics.Value
 import java.nio.file.Path
 import java.util.*
@@ -16,23 +15,23 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
 
     init {
         when (starter) {
-            is ConnectionStarter.Attributes -> transactAttributes(starter.attributes)
+            is ConnectionStarter.MeterSpecs -> transactMeterSpecs(starter.meters)
             is ConnectionStarter.None -> Unit
         }
     }
 
-    private fun transactAttributes(attributes: List<Attribute>) {
-        transactData(attributes.map {
+    private fun transactMeterSpecs(meterSpecs: List<MeterSpec>) {
+        transactData(meterSpecs.map {
             listOf(
-                Pair(Scheme.NAME, Value.NAME(it.itemName))
-                , Pair(Scheme.VALUETYPE, Value.NAME(it.valueType.itemName))
-                , Pair(Scheme.CARDINALITY, Value.NAME(it.cardinality.itemName))
+                Pair(Scheme.NAME, Value.NAME(it))
+                , Pair(Scheme.VALUETYPE, Value.NAME(it.valueType))
+                , Pair(Scheme.CARDINALITY, Value.NAME(it.cardinality))
                 , Pair(Scheme.DESCRIPTION, Value.STRING(it.description))
             )
         })
     }
 
-    private fun addFact(entity: Long, attr: ItemName, value: Value, isAsserted: Boolean): Pair<Value, Date> {
+    private fun addFact(entity: Long, meter: Meter, value: Value, isAsserted: Boolean): Pair<Value, Date> {
         val subValue = if (value is Value.DATA) {
             val subData = listOf(value.v)
             val subEntities = transactData(subData)
@@ -40,19 +39,17 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
         } else {
             value
         }
-        val action = Update(entity, attr, subValue, Update.Type.valueOf(isAsserted))
+        val action = Update(entity, meter, subValue, Update.Type.valueOf(isAsserted))
         val time = database.update(action).inst
         return subValue to time
     }
 
-    fun transactData(data: List<List<Pair<NamedItem, Value>>>): List<Long> {
+    fun transactData(data: List<List<Pair<Meter, Value>>>): List<Long> {
         val entities = mutableListOf<Long>()
-        data.forEach { attributes ->
+        data.forEach { meters ->
             val entity = database.nextEntity()
-            attributes.forEach {
-                val attribute = it.first
-                val value = it.second
-                update(entity, attribute, value)
+            meters.forEach { (meter, value) ->
+                update(entity, meter, value)
             }
             entities.add(entity)
         }
@@ -60,8 +57,8 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
         return entities
     }
 
-    fun update(entity: Long, attribute: NamedItem, value: Value, isAsserted: Boolean = true) {
-        addFact(entity, attribute.itemName, value, isAsserted)
+    fun update(entity: Long, meter: Meter, value: Value, isAsserted: Boolean = true) {
+        addFact(entity, meter, value, isAsserted)
     }
 
     fun commit() {

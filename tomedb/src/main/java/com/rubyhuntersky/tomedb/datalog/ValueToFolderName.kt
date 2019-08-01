@@ -17,8 +17,8 @@ private fun Value.toFolderNameUntyped(): String = when (this) {
     is Value.LONG -> v.toString()
     is Value.STRING -> stringToFolderName(v)
     is Value.NAME -> {
-        val first = stringToFolderName(v.first)
-        val last = stringToFolderName(v.last)
+        val first = stringToFolderName(v.meterName)
+        val last = stringToFolderName(v.meterGroup)
         "$first,$last"
     }
     is Value.INSTANT -> v.time.toString()
@@ -37,7 +37,7 @@ private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Va
         }
         ValueType.NAME -> {
             val (first, last) = content.split(',')
-            val itemName = ItemName(folderNameToString(first), folderNameToString(last))
+            val itemName = CommonMeter(folderNameToString(first), folderNameToString(last))
             Value.NAME.of(itemName)
         }
         ValueType.INSTANT -> Value.INSTANT.of(Date(content.toLong()))

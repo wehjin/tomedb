@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.MeterSpec
 import com.rubyhuntersky.tomedb.Cardinality
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.Value
@@ -14,7 +14,7 @@ import java.nio.file.Path
 
 class GitDatalogTest {
 
-    enum class Counter : Attribute {
+    enum class Counter : MeterSpec {
         COUNT {
             override val valueType: ValueType = ValueType.LONG
             override val cardinality: Cardinality = Cardinality.ONE
@@ -39,7 +39,7 @@ class GitDatalogTest {
     @Test
     fun assertedValuesPersist() {
         val datalog = GitDatalog(folderPath)
-        datalog.append(1, Counter.COUNT.itemName, LONG.of(3))
+        datalog.append(1, Counter.COUNT, LONG.of(3))
         assertEquals(3, (datalog.allAssertedValues.first() as LONG).v)
 
         val datalog2 = GitDatalog(folderPath)
@@ -49,14 +49,14 @@ class GitDatalogTest {
     @Test
     fun neverAssertedValuesReturnFalseForIsAsserted() {
         val datalog = GitDatalog(folderPath)
-        assertFalse(datalog.isEntityAttrValueAsserted(3, Counter.MAXCOUNT.itemName, Value.STRING.of("Hello")))
+        assertFalse(datalog.isEntityMeterValueAsserted(3, Counter.MAXCOUNT, Value.STRING.of("Hello")))
     }
 
     @Test
     fun findMultipleValuesAfterAsserting() {
         val datalog = GitDatalog(folderPath)
-        datalog.append(1, Counter.COUNT.itemName, LONG.of(3))
-        datalog.append(1, Counter.COUNT.itemName, LONG.of(4))
-        assertEquals(2, datalog.entityAttrValues(1, Counter.COUNT.itemName).size)
+        datalog.append(1, Counter.COUNT, LONG.of(3))
+        datalog.append(1, Counter.COUNT, LONG.of(4))
+        assertEquals(2, datalog.entityMeterValues(1, Counter.COUNT).size)
     }
 }

@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.ItemName
+import com.rubyhuntersky.tomedb.basics.Meter
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.datalog.Datalog
 
@@ -49,7 +49,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
                     (locked[name] as Binder<Long>).solutions = Solutions.One(value.v)
                 }
                 is Value.NAME -> {
-                    (locked[name] as Binder<ItemName>).solutions = Solutions.One(value.v)
+                    (locked[name] as Binder<Meter>).solutions = Solutions.One(value.v)
                 }
                 is Value.VALUE -> {
                     (locked[name] as Binder<Value>).solutions = Solutions.One(value.v)
@@ -84,22 +84,22 @@ class BinderRack(initBinders: List<Binder<*>>?) {
     private fun shake(rules: List<Rule>, datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         rules.forEach {
             when (it) {
-                is Rule.EExactA -> it.shake(datalog, binders)
-                is Rule.EExactVA -> it.shake(datalog, binders)
-                is Rule.EEExactA -> it.shake(datalog, binders)
-                is Rule.EVExactA -> it.shake(datalog, binders)
+                is Rule.EExactM -> it.shake(datalog, binders)
+                is Rule.EExactVM -> it.shake(datalog, binders)
+                is Rule.EEExactM -> it.shake(datalog, binders)
+                is Rule.EVExactM -> it.shake(datalog, binders)
             }
         }
     }
 
-    private fun Rule.EVExactA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EVExactM.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::allEntities, Value::LONG)
         val valueBinder = binders.addBinder(valueVar, datalog::allAssertedValues, Value::VALUE)
         val unfiltered = entityBinder.solutions.toList { datalog.allEntities }
             .map { entity ->
                 valueBinder.solutions.toList(
                     allOptions = {
-                        datalog.entityAttrValues(entity, attribute.itemName)
+                        datalog.entityMeterValues(entity, meter)
                     }
                 ).map { value -> Pair(entity, value) }
             }
@@ -107,8 +107,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
 
         val substitutions = unfiltered
             .filter { (entity, value) ->
-                val attr = attribute.itemName
-                val isAsserted = datalog.isEntityAttrValueAsserted(entity, attr, value)
+                val isAsserted = datalog.isEntityMeterValueAsserted(entity, meter, value)
                 isAsserted
             }
 
@@ -116,38 +115,34 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         valueBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value>::second))
     }
 
-    private fun Rule.EEExactA.shake(
+    private fun Rule.EEExactM.shake(
         datalog: Datalog,
         binders: MutableMap<String, Binder<*>>
     ) {
         val startBinder = binders.addBinder(startVar, datalog::allEntities, Value::LONG)
         val endBinder = binders.addBinder(endVar, datalog::allEntities, Value::LONG)
-        val attrName = attribute.itemName
         val substitutions =
             startBinder.solutions.toList { datalog.allEntities }
                 .map { start: Long ->
                     endBinder.solutions.toList { datalog.allEntities }.map { end: Long -> Pair(start, end) }
                 }
                 .flatten()
-                .filter { datalog.isEntityAttrValueAsserted(it.first, attrName, Value.LONG(it.second)) }
+                .filter { datalog.isEntityMeterValueAsserted(it.first, meter, Value.LONG(it.second)) }
         startBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::first))
         endBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::second))
     }
 
-    private fun Rule.EExactVA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EExactVM.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::allEntities, Value::LONG)
-        val attrName = attribute.itemName
-        val value = value
         val matches = entityBinder.solutions.toList { datalog.allEntities }
-            .filter { datalog.isEntityAttrValueAsserted(it, attrName, value) }
+            .filter { datalog.isEntityMeterValueAsserted(it, meter, this.value) }
         entityBinder.solutions = Solutions.fromList(matches)
     }
 
-    private fun Rule.EExactA.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EExactM.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::allEntities, Value::LONG)
-        val attrName = attribute.itemName
         val matches = entityBinder.solutions.toList { datalog.allEntities }
-            .filter { datalog.isEntityAttrAsserted(it, attrName) }
+            .filter { datalog.isEntityMeterAsserted(it, meter) }
         entityBinder.solutions = Solutions.fromList(matches)
     }
 

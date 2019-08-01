@@ -1,14 +1,14 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.NamedItem
+import com.rubyhuntersky.tomedb.basics.Meter
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.ValueType
 
 sealed class Rule {
-    data class EExactA(val entityVar: String, val attribute: NamedItem) : Rule()
-    data class EExactVA(val entityVar: String, val value: Value, val attribute: NamedItem) : Rule()
-    data class EEExactA(val startVar: String, val endVar: String, val attribute: NamedItem) : Rule()
-    data class EVExactA(val entityVar: String, val valueVar: String, val attribute: NamedItem) : Rule()
+    data class EExactM(val entityVar: String, val meter: Meter) : Rule()
+    data class EExactVM(val entityVar: String, val value: Value, val meter: Meter) : Rule()
+    data class EEExactM(val startVar: String, val endVar: String, val meter: Meter) : Rule()
+    data class EVExactM(val entityVar: String, val valueVar: String, val meter: Meter) : Rule()
 }
 
 data class Input(val label: String, val value: Value) {
@@ -60,26 +60,23 @@ sealed class Solutions<T> {
     }
 }
 
-interface Attribute : NamedItem {
-
+interface MeterSpec : Meter {
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String
-
-    interface Group : NamedItem.Group
 }
 
-enum class Cardinality : NamedItem {
+enum class Cardinality : Meter {
     ONE,
     MANY
 }
 
-enum class Scheme : Attribute {
+enum class Scheme : MeterSpec {
 
     NAME {
         override val valueType = ValueType.NAME
         override val cardinality = Cardinality.ONE
-        override val description = "The unique name of an attribute."
+        override val description = "The unique name of an meter."
     },
     VALUETYPE {
         override val valueType = ValueType.NAME
@@ -90,7 +87,7 @@ enum class Scheme : Attribute {
         override val valueType = ValueType.NAME
         override val cardinality = Cardinality.ONE
         override val description =
-            "Specifies whether an attribute associates a single value or a set of values with an entity."
+            "Specifies whether an meter associates an entity with a single value or a set of values."
     },
     DESCRIPTION {
         override val valueType = ValueType.STRING

@@ -12,21 +12,21 @@ import java.nio.file.Path
 
 class ConnectionTest {
 
-    object Movie : Attribute.Group {
+    object Movie {
 
-        object Title : Attribute {
+        object Title : MeterSpec {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The title of the movie"
         }
 
-        object Genre : Attribute {
+        object Genre : MeterSpec {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The genre of the movie"
         }
 
-        object ReleaseYear : Attribute {
+        object ReleaseYear : MeterSpec {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
             override val description = "The year the movie was released in theaters"
@@ -42,7 +42,7 @@ class ConnectionTest {
 
     @Test
     fun reconnectionLoadsDataFromLedger() {
-        Client().connect(dataDir, ConnectionStarter.Attributes(listOf(Movie.Title)))
+        Client().connect(dataDir, ConnectionStarter.MeterSpecs(listOf(Movie.Title)))
             .also { connection ->
                 connection.update(1, Movie.Title, Value.STRING("Return of the King"))
                 connection.commit()
@@ -50,7 +50,7 @@ class ConnectionTest {
 
         val reconn = Client().connect(dataDir, ConnectionStarter.None)
         val query = Query.Find(
-            rules = listOf(Rule.EVExactA("movie", "title", Movie.Title)),
+            rules = listOf(Rule.EVExactM("movie", "title", Movie.Title)),
             outputs = listOf("movie", "title")
         )
         val result = reconn.database(query)
@@ -62,7 +62,7 @@ class ConnectionTest {
     fun happy() {
         val connection = Client().connect(
             dataDir,
-            ConnectionStarter.Attributes(
+            ConnectionStarter.MeterSpecs(
                 listOf(
                     Movie.Title,
                     Movie.Genre,
@@ -90,7 +90,7 @@ class ConnectionTest {
         connection.transactData(firstMovies)
 
         val db = connection.database
-        val query = Query.Find(outputs = listOf("e"), rules = listOf(Rule.EExactA("e", Movie.Title)))
+        val query = Query.Find(outputs = listOf("e"), rules = listOf(Rule.EExactM("e", Movie.Title)))
         val allMovies = db(query)
         assertEquals(3, allMovies.size)
     }

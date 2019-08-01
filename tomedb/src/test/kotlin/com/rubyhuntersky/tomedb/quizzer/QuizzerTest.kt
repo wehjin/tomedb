@@ -21,12 +21,12 @@ class QuizzerTest {
 
     @Test
     fun happy() {
-        val starterAttributes =
-            ConnectionStarter.Attributes(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
+        val starterMeterSpecs =
+            ConnectionStarter.MeterSpecs(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
 
-        val conn = Client().connect(dataDir, starterAttributes)
+        val conn = Client().connect(dataDir, starterMeterSpecs)
         val findSelectedLearners = Query.Find(
-            rules = listOf(Rule.EExactVA("e", Value.BOOLEAN(true), Learner.Selected)),
+            rules = listOf(Rule.EExactVM("e", Value.BOOLEAN(true), Learner.Selected)),
             outputs = listOf("e")
         )
         assertEquals(0, conn.database(findSelectedLearners).size)
@@ -37,9 +37,9 @@ class QuizzerTest {
         val quizResults = conn.database(
             Query.Find(
                 rules = listOf(
-                    Rule.EExactVA("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
-                    Rule.EEExactA("selectedLearner", "quiz", Learner.Quiz),
-                    Rule.EVExactA("quiz", "name", Quiz.Name)
+                    Rule.EExactVM("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
+                    Rule.EEExactM("selectedLearner", "quiz", Learner.Quiz),
+                    Rule.EVExactM("quiz", "name", Quiz.Name)
                 ),
                 outputs = listOf("quiz", "name")
             )
@@ -54,9 +54,9 @@ class QuizzerTest {
 
         val query = Query.Find(
             rules = listOf(
-                Rule.EEExactA("selectedQuiz", "lesson", Quiz.Lesson),
-                Rule.EVExactA("lesson", "question", Lesson.Question),
-                Rule.EVExactA("lesson", "answer", Lesson.Answer)
+                Rule.EEExactM("selectedQuiz", "lesson", Quiz.Lesson),
+                Rule.EVExactM("lesson", "question", Lesson.Question),
+                Rule.EVExactM("lesson", "answer", Lesson.Answer)
             ),
             inputs = listOf(
                 Input(

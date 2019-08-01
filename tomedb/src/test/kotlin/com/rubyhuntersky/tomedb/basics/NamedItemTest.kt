@@ -1,23 +1,23 @@
 package com.rubyhuntersky.tomedb.basics
 
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class NamedItemTest {
 
-    enum class A : NamedItem {
+    enum class A : Meter {
         U
     }
 
-    enum class B(val typeId: Int) : NamedItem {
+    enum class B(val typeId: Int) : Meter {
         V(1)
     }
 
     object C {
-        object W : NamedItem
+        object W : Meter
     }
 
-    interface NamedItemItem : NamedItem {
+    interface NamedItemItem : Meter {
         val hello: Int
     }
 
@@ -30,21 +30,21 @@ class NamedItemTest {
 
     @Test
     fun simpleEnum() {
-        assertEquals("A/U", A.U.itemName.toString())
+        assertEquals("A/U", A.U.toMeterString())
     }
 
     @Test
     fun dataEnum() {
-        assertEquals("B/V", B.V.itemName.toString())
+        assertEquals("B/V", B.V.toMeterString())
     }
 
     @Test
     fun objectInObject() {
-        assertEquals("C/W", C.W.itemName.toString())
+        assertEquals("C/W", C.W.toMeterString())
     }
 
     @Test
     fun implementingEnum() {
-        assertEquals("D/X", D.X.itemName.toString())
+        assertEquals("D/X", D.X.toMeterString())
     }
 }

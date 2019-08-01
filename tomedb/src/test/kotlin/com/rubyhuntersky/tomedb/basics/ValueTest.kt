@@ -9,7 +9,7 @@ class ValueTest {
 
     @Test
     fun symbol() {
-        assertEquals(ItemName("a", "b"), Value.NAME(ItemName("a", "b")).v)
+        assertEquals(CommonMeter("a", "b"), Value.NAME(CommonMeter("a", "b")).v)
     }
 
     @Test
