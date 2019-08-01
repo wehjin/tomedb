@@ -1,32 +1,23 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.*
+import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.MutableDatabase
+import com.rubyhuntersky.tomedb.Scheme
+import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.basics.ItemName
 import com.rubyhuntersky.tomedb.basics.NamedItem
-import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
+import java.nio.file.Path
 import java.util.*
 
-class Connection(
-    private val writer: Ledger.Writer,
-    starter: ConnectionStarter,
-    timeClock: TimeClock = TimeClock.REALTIME
-) {
+class Connection(dataPath: Path, starter: ConnectionStarter) {
 
-    val database = MutableDatabase(timeClock)
+    val database = MutableDatabase(dataPath)
 
     init {
         when (starter) {
             is ConnectionStarter.Attributes -> transactAttributes(starter.attributes)
-            is ConnectionStarter.Data -> {
-                val reader = starter.reader
-                while (reader.linesUnread > 0) {
-                    val line = reader.readLine()
-                    with(line) {
-                        addFact(entity, attr, value, isAsserted)
-                    }
-                }
-            }
+            is ConnectionStarter.None -> Unit
         }
     }
 
@@ -69,15 +60,11 @@ class Connection(
         return entities
     }
 
-    fun update(entity: Long, attribute: NamedItem, value: Value) {
-        val isAsserted = true
-        val attr = attribute.itemName
-        val (subValue, time) = addFact(entity, attr, value, isAsserted)
-        writer.writeLine(Ledger.Line(entity, attr, subValue, isAsserted, time))
+    fun update(entity: Long, attribute: NamedItem, value: Value, isAsserted: Boolean = true) {
+        addFact(entity, attribute.itemName, value, isAsserted)
     }
 
     fun commit() {
-        writer.commit()
+        database.commit()
     }
-
 }

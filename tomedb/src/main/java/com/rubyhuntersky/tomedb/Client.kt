@@ -2,8 +2,8 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.connection.Connection
 import com.rubyhuntersky.tomedb.connection.ConnectionStarter
+import java.nio.file.Path
 
 class Client {
-    fun connect(starter: ConnectionStarter, writer: Ledger.Writer) =
-        Connection(writer, starter)
+    fun connect(dataDir: Path, starter: ConnectionStarter) = Connection(dataDir, starter)
 }

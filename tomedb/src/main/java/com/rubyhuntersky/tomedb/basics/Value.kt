@@ -25,6 +25,8 @@ sealed class Value(val valueType: ValueType) {
         companion object {
             fun of(string: String) = STRING(string)
         }
+
+        override fun toString(): String = v
     }
 
     data class NAME(val v: ItemName) : Value(ValueType.NAME) {

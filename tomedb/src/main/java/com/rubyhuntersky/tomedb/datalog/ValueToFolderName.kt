@@ -15,10 +15,10 @@ internal fun valueOfFolderName(folderName: String): Value {
 private fun Value.toFolderNameUntyped(): String = when (this) {
     is Value.BOOLEAN -> (if (v) 1 else 0).toString()
     is Value.LONG -> v.toString()
-    is Value.STRING -> b64Encoder.encodeToString(v.toByteArray())
+    is Value.STRING -> stringToFolderName(v)
     is Value.NAME -> {
-        val first = b64Encoder.encodeToString(v.first.toByteArray())
-        val last = b64Encoder.encodeToString(v.last.toByteArray())
+        val first = stringToFolderName(v.first)
+        val last = stringToFolderName(v.last)
         "$first,$last"
     }
     is Value.INSTANT -> v.time.toString()
@@ -32,10 +32,12 @@ private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Va
     return when (valueType) {
         ValueType.BOOLEAN -> Value.BOOLEAN.of(content == "1")
         ValueType.LONG -> Value.LONG.of(content.toLong())
-        ValueType.STRING -> Value.STRING.of(b64Decoder.decode(content).toString())
+        ValueType.STRING -> {
+            Value.STRING.of(folderNameToString(content))
+        }
         ValueType.NAME -> {
             val (first, last) = content.split(',')
-            val itemName = ItemName(b64Decoder.decode(first).toString(), b64Decoder.decode(last).toString())
+            val itemName = ItemName(folderNameToString(first), folderNameToString(last))
             Value.NAME.of(itemName)
         }
         ValueType.INSTANT -> Value.INSTANT.of(Date(content.toLong()))

@@ -43,10 +43,9 @@ sealed class Solutions<T> {
     abstract fun toList(): List<T>
 
     fun toList(allOptions: () -> List<T>): List<T> =
-        if (this is Any) {
-            allOptions.invoke()
-        } else {
-            this.toList()
+        when {
+            this is Any -> allOptions.invoke()
+            else -> this.toList()
         }.toSet().toList()
 
     companion object {
