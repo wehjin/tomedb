@@ -4,6 +4,7 @@ import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.basics.*
 import com.rubyhuntersky.tomedb.connection.ConnectionStarter
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import java.nio.file.Path
@@ -49,26 +50,25 @@ class QuizzerTest {
             quizResults.map { it["name"].asString() }.toSet()
         )
 
-        val query = Query.Find(
-            rules = listOf(
-                Rule.EntityContainsAnyEntityAtAttr("selectedQuiz", "lesson", Quiz.Lesson),
-                Rule.EntityContainsAnyValueAtAttr("lesson", "question", Lesson.Question),
-                Rule.EntityContainsAnyValueAtAttr("lesson", "answer", Lesson.Answer)
-            ),
-            inputs = listOf(
-                Input(
-                    "selectedQuiz",
-                    quizResults.first { it["name"].asString() == "Basics" }["quiz"].asLong()
-                )
-            ),
-            outputs = listOf("lesson", "question", "answer")
+        val selectedQuizEntity = quizResults.first { it["name"].asString() == "Basics" }["quiz"].asLong()
+        assertNotNull(selectedQuizEntity)
+
+        val lessonResults = conn.database(
+            Query.Find(
+                inputs = listOf(Input(label = "selectedQuiz", value = selectedQuizEntity())),
+                rules = listOf(
+                    Rule.EntityContainsAnyEntityAtAttr("selectedQuiz", "lesson", Quiz.Lesson),
+                    Rule.EntityContainsAnyValueAtAttr("lesson", "question", Lesson.Question),
+                    Rule.EntityContainsAnyValueAtAttr("lesson", "answer", Lesson.Answer)
+                ),
+                outputs = listOf("lesson", "question", "answer")
+            )
         )
-        val lessons = conn.database(query)
-        println("LESSONS: $lessons")
-        assertEquals(2, lessons.size)
+        println("LESSONS: $lessonResults")
+        assertEquals(2, lessonResults.size)
         assertEquals(
             setOf("World", "Sekkai"),
-            lessons.map { it["answer"].asString() }.toSet()
+            lessonResults.map { it["answer"].asString() }.toSet()
         )
     }
 

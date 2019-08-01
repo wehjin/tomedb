@@ -28,7 +28,7 @@ class MutableDatabase(dataDir: Path) {
     }
 
     operator fun invoke(query: Query): List<Map<String, Value<*>>> {
-        val (rules, inputs, outputs) = query as Query.Find
+        val (inputs, rules, outputs) = query as Query.Find
         val initBinders = inputs?.map(Input::toBinder)
         return BinderRack(initBinders).stir(outputs, rules, datalog)
     }

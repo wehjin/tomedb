@@ -18,8 +18,8 @@ data class Input(val label: String, val value: Value<*>) {
 
 sealed class Query {
     data class Find(
-        val rules: List<Rule>,
         val inputs: List<Input>? = null,
+        val rules: List<Rule>,
         val outputs: List<String>
     ) : Query()
 }
