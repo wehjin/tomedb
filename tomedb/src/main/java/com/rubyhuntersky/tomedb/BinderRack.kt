@@ -48,7 +48,7 @@ class BinderRack(initBinders: List<Binder<*>>?) {
                 is Value.LONG -> {
                     (locked[name] as Binder<Long>).solutions = Solutions.One(value.v)
                 }
-                is Value.NAME -> {
+                is Value.ATTR -> {
                     (locked[name] as Binder<Attr>).solutions = Solutions.One(value.v)
                 }
                 is Value.VALUE -> {

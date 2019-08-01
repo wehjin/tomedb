@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.AttrSpec
+import com.rubyhuntersky.tomedb.Attribute
 import com.rubyhuntersky.tomedb.Cardinality
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.Value.LONG
@@ -14,7 +14,7 @@ import java.nio.file.Path
 
 class GitDatalogTest {
 
-    enum class Counter : AttrSpec {
+    enum class Counter : Attribute {
         COUNT {
             override val valueType: ValueType = ValueType.LONG
             override val cardinality: Cardinality = Cardinality.ONE

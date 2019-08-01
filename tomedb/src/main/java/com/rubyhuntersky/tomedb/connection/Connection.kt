@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.AttrSpec
+import com.rubyhuntersky.tomedb.Attribute
 import com.rubyhuntersky.tomedb.MutableDatabase
 import com.rubyhuntersky.tomedb.Scheme
 import com.rubyhuntersky.tomedb.Update
@@ -15,17 +15,17 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
 
     init {
         when (starter) {
-            is ConnectionStarter.AttrSpecs -> transactAttrSpecs(starter.attrs)
+            is ConnectionStarter.Attributes -> transactAttributes(starter.attrs)
             is ConnectionStarter.None -> Unit
         }
     }
 
-    private fun transactAttrSpecs(attrSpecs: List<AttrSpec>) {
-        transactData(attrSpecs.map {
+    private fun transactAttributes(attributes: List<Attribute>) {
+        transactData(attributes.map {
             listOf(
-                Pair(Scheme.NAME, Value.NAME(it))
-                , Pair(Scheme.VALUETYPE, Value.NAME(it.valueType))
-                , Pair(Scheme.CARDINALITY, Value.NAME(it.cardinality))
+                Pair(Scheme.NAME, Value.ATTR(it))
+                , Pair(Scheme.VALUETYPE, Value.ATTR(it.valueType))
+                , Pair(Scheme.CARDINALITY, Value.ATTR(it.cardinality))
                 , Pair(Scheme.DESCRIPTION, Value.STRING(it.description))
             )
         })
@@ -46,10 +46,10 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
 
     fun transactData(data: List<List<Pair<Attr, Value>>>): List<Long> {
         val entities = mutableListOf<Long>()
-        data.forEach { meters ->
+        data.forEach { attrs ->
             val entity = database.nextEntity()
-            meters.forEach { (meter, value) ->
-                update(entity, meter, value)
+            attrs.forEach { (attr, value) ->
+                update(entity, attr, value)
             }
             entities.add(entity)
         }

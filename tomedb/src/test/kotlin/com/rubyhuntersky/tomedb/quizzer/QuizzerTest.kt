@@ -21,7 +21,7 @@ class QuizzerTest {
 
     @Test
     fun happy() {
-        val specs = ConnectionStarter.AttrSpecs(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
+        val specs = ConnectionStarter.Attributes(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
 
         val conn = Client().connect(dataDir, specs)
         val findSelectedLearners = Query.Find(

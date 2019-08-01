@@ -60,7 +60,7 @@ sealed class Solutions<T> {
     }
 }
 
-interface AttrSpec : Attr {
+interface Attribute : Attr {
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String
@@ -71,23 +71,23 @@ enum class Cardinality : Attr {
     MANY
 }
 
-enum class Scheme : AttrSpec {
+enum class Scheme : Attribute {
 
     NAME {
-        override val valueType = ValueType.NAME
+        override val valueType = ValueType.ATTR
         override val cardinality = Cardinality.ONE
-        override val description = "The unique name of an meter."
+        override val description = "The unique name of an attribute."
     },
     VALUETYPE {
-        override val valueType = ValueType.NAME
+        override val valueType = ValueType.ATTR
         override val cardinality = Cardinality.ONE
         override val description = "The type of the value that can be associated with a value."
     },
     CARDINALITY {
-        override val valueType = ValueType.NAME
+        override val valueType = ValueType.ATTR
         override val cardinality = Cardinality.ONE
         override val description =
-            "Specifies whether an meter associates an entity with a single value or a set of values."
+            "Specifies whether an attribute associates an entity with a single value or a set of values."
     },
     DESCRIPTION {
         override val valueType = ValueType.STRING
@@ -98,7 +98,7 @@ enum class Scheme : AttrSpec {
 
 internal fun Input.toBinder(): Binder<*> = when (value) {
     is Value.LONG -> Binder(label, { listOf(value.v) }, Value::LONG, Solutions.One(value.v))
-    is Value.NAME -> Binder(label, { listOf(value.v) }, Value::NAME, Solutions.One(value.v))
+    is Value.ATTR -> Binder(label, { listOf(value.v) }, Value::ATTR, Solutions.One(value.v))
     is Value.INSTANT -> Binder(label, { listOf(value.v) }, Value::INSTANT, Solutions.One(value.v))
     is Value.BOOLEAN -> Binder(label, { listOf(value.v) }, Value::BOOLEAN, Solutions.One(value.v))
     is Value.STRING -> Binder(label, { listOf(value.v) }, Value::STRING, Solutions.One(value.v))

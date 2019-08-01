@@ -16,7 +16,7 @@ private fun Value.toFolderNameUntyped(): String = when (this) {
     is Value.BOOLEAN -> (if (v) 1 else 0).toString()
     is Value.LONG -> v.toString()
     is Value.STRING -> stringToFolderName(v)
-    is Value.NAME -> {
+    is Value.ATTR -> {
         val first = stringToFolderName(v.attrName)
         val last = stringToFolderName(v.attrGroup)
         "$first,$last"
@@ -35,7 +35,7 @@ private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Va
         ValueType.STRING -> {
             folderNameToString(content)()
         }
-        ValueType.NAME -> {
+        ValueType.ATTR -> {
             val (first, last) = content.split(',')
             val itemName = BasicAttr(folderNameToString(first), folderNameToString(last))
             itemName()
@@ -53,7 +53,7 @@ private val ValueType.typeCode: String
         ValueType.BOOLEAN -> "b"
         ValueType.LONG -> "l"
         ValueType.STRING -> "s"
-        ValueType.NAME -> "n"
+        ValueType.ATTR -> "a"
         ValueType.INSTANT -> "i"
         ValueType.DOUBLE -> "d"
         ValueType.BIGDEC -> "t"
@@ -65,7 +65,7 @@ private fun valueTypeOfTypeCode(typeCode: String): ValueType = when (typeCode) {
     "b" -> ValueType.BOOLEAN
     "l" -> ValueType.LONG
     "s" -> ValueType.STRING
-    "n" -> ValueType.NAME
+    "a" -> ValueType.ATTR
     "i" -> ValueType.INSTANT
     "d" -> ValueType.DOUBLE
     "t" -> ValueType.BIGDEC
