@@ -69,16 +69,18 @@ class ConnectionTest {
             starter = ConnectionStarter.Data(ledgerWriter.toReader()),
             writer = ledgerWriter
         )
-        val result = reconnection.database[Query.Find(
-            rules = listOf(
-                Rule.EVExactA(
-                    "movie",
-                    "title",
-                    Movie.Title
-                )
-            ),
-            outputs = listOf("movie", "title")
-        )]
+        val result = reconnection.database(
+            Query.Find(
+                rules = listOf(
+                    Rule.EVExactA(
+                        "movie",
+                        "title",
+                        Movie.Title
+                    )
+                ),
+                outputs = listOf("movie", "title")
+            )
+        )
         assertEquals(1, result.first()["movie"].asLong())
         assertEquals("Return of the King", result.first()["title"].asString())
     }
@@ -115,15 +117,8 @@ class ConnectionTest {
         connection.transactData(firstMovies)
 
         val db = connection.database
-        val allMovies = db[Query.Find(
-            outputs = listOf("e"),
-            rules = listOf(
-                Rule.EExactA(
-                    "e",
-                    Movie.Title
-                )
-            )
-        )]
+        val query = Query.Find(outputs = listOf("e"), rules = listOf(Rule.EExactA("e", Movie.Title)))
+        val allMovies = db(query)
         assertEquals(3, allMovies.size)
     }
 }

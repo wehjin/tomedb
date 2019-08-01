@@ -103,19 +103,21 @@ class QuizzerTest {
             rules = listOf(Rule.EExactVA("e", Value.BOOLEAN(true), Learner.Selected)),
             outputs = listOf("e")
         )
-        assertEquals(0, conn.database[findSelectedLearners].size)
+        assertEquals(0, conn.database(findSelectedLearners).size)
 
         conn.transactData(listOf(learnerData))
-        assertEquals(1, conn.database[findSelectedLearners].size)
+        assertEquals(1, conn.database(findSelectedLearners).size)
 
-        val quizResults = conn.database[Query.Find(
-            rules = listOf(
-                Rule.EExactVA("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
-                Rule.EEExactA("selectedLearner", "quiz", Learner.Quiz),
-                Rule.EVExactA("quiz", "name", Quiz.Name)
-            ),
-            outputs = listOf("quiz", "name")
-        )]
+        val quizResults = conn.database(
+            Query.Find(
+                rules = listOf(
+                    Rule.EExactVA("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
+                    Rule.EEExactA("selectedLearner", "quiz", Learner.Quiz),
+                    Rule.EVExactA("quiz", "name", Quiz.Name)
+                ),
+                outputs = listOf("quiz", "name")
+            )
+        )
         println("QUIZZES: $quizResults")
         assertEquals(2, quizResults.size)
 
@@ -124,7 +126,7 @@ class QuizzerTest {
             quizResults.map { it["name"].asString() }.toSet()
         )
 
-        val lessons = conn.database[Query.Find(
+        val query = Query.Find(
             rules = listOf(
                 Rule.EEExactA("selectedQuiz", "lesson", Quiz.Lesson),
                 Rule.EVExactA("lesson", "question", Lesson.Question),
@@ -137,7 +139,8 @@ class QuizzerTest {
                 )
             ),
             outputs = listOf("lesson", "question", "answer")
-        )]
+        )
+        val lessons = conn.database(query)
         println("LESSONS: $lessons")
         assertEquals(2, lessons.size)
         assertEquals(

@@ -16,14 +16,14 @@ class MutableDatabase(timeClock: TimeClock) {
         return datalog.append(entity, attr, value, type.toStanding())
     }
 
+    private val datalog: Datalog = TransientDatalog(timeClock)
+
     private fun Update.Type.toStanding(): Fact.Standing = when (this) {
         Update.Type.Assert -> Fact.Standing.Asserted
         Update.Type.Retract -> Fact.Standing.Retracted
     }
 
-    private val datalog: Datalog = TransientDatalog(timeClock)
-
-    operator fun get(query: Query): List<Map<String, Value>> {
+    operator fun invoke(query: Query): List<Map<String, Value>> {
         val find = query as Query.Find
         val initBinders = find.inputs?.map(Input::toBinder)
         return BinderRack(initBinders).stir(find.outputs, find.rules, datalog)
