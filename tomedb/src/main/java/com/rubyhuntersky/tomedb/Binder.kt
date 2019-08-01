@@ -10,6 +10,10 @@ data class Binder<T : Any>(
 ) {
     fun toValueList(): List<Value<*>> = toList().map { toValue(it) }
 
+    fun <U : Any> acceptSolutions(solutions: Solutions.One<U>) {
+        this.solutions = solutions as Solutions.One<T>
+    }
+
     private fun toList(): List<T> = solutions.toList { allSolutions.invoke() }
 
     override fun toString(): String {

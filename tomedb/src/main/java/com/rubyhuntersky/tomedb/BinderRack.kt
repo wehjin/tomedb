@@ -1,7 +1,6 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.AnyValue
-import com.rubyhuntersky.tomedb.basics.Attr
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.Value.LONG
 import com.rubyhuntersky.tomedb.datalog.Datalog
@@ -15,52 +14,41 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         println("BINDERS after shake: $binders")
         val outputBinders = outputs.map { binders[it] ?: throw Exception("No binder for var $it") }
         val outputBindings = outputBinders.join(emptyList())
+
         val checkedOutputBindings = outputBindings
-            .filter { join ->
-                val lockedBinders = binders.lock(join)
-                shake(rules, datalog, lockedBinders)
-                val binderNames = join.map { it.first }
-                binderNames.fold(true) { canSucceed, name ->
-                    if (!canSucceed) {
-                        false
-                    } else {
-                        lockedBinders[name]!!.solutions is Solutions.One
+            .filter { outputBinding ->
+                val constrainedBinders = binders.constrainSolutions(outputBinding)
+                shake(rules, datalog, constrainedBinders)
+                val hasSingleSolutionPerOutput = outputBinding.map { (name, _) -> name }
+                    .fold(true) { allPreviousBindersHaveOneSolution, name ->
+                        allPreviousBindersHaveOneSolution && constrainedBinders[name]!!.solutions is Solutions.One
                     }
-                }
+                hasSingleSolutionPerOutput
             }
 
         return checkedOutputBindings.map { bindings ->
-            val associate = bindings.associate {
-                val value = it.second
-                val unwrapped = if (value is Value.VALUE) {
-                    value.v.value
-                } else {
-                    value
-                }
-                Pair(it.first, unwrapped)
+            bindings.associate { (name, value) ->
+                val unwrappedValue = if (value is Value.VALUE) value.v.value else value
+                Pair(name, unwrappedValue)
             }
-            associate
         }
     }
 
-    private fun MutableMap<String, Binder<*>>.lock(bindings: List<Pair<String, Value<*>>>): MutableMap<String, Binder<*>> {
-        val locked = this.entries.associate { Pair(it.key, it.value.copy()) }.toMutableMap()
-        bindings.forEach { (name, value) ->
-            when (value) {
-                is LONG -> {
-                    (locked[name] as Binder<Long>).solutions = Solutions.One(value.v)
+    private fun MutableMap<String, Binder<*>>.constrainSolutions(bindings: List<Pair<String, Value<*>>>): MutableMap<String, Binder<*>> {
+        return mapValues { (_, binder) -> binder.copy() }
+            .also {
+                bindings.forEach { (name, value) ->
+                    val binder = it[name] ?: error("No binder with name $name.")
+                    binder.acceptSolutions(value.toSolutionsOne())
                 }
-                is Value.ATTR -> {
-                    (locked[name] as Binder<Attr>).solutions = Solutions.One(value.v)
-                }
-                is Value.VALUE -> {
-                    (locked[name] as Binder<Value<*>>).solutions = Solutions.One(value.v.value)
-                }
-                else -> throw Exception("Invalid value $value with name $name")
-            }
-        }
-        return locked
+            }.toMutableMap()
     }
+
+    private fun Value<*>.toSolutionsOne(): Solutions.One<Any> =
+        when (this) {
+            is Value.VALUE -> Solutions.One(v.value)
+            else -> Solutions.One(v)
+        }
 
     private fun List<Binder<*>>.join(prefixes: List<List<Pair<String, Value<*>>>>): List<List<Pair<String, Value<*>>>> {
         return if (this.isEmpty()) {
