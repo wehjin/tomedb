@@ -7,7 +7,7 @@ import java.util.*
 data class Fact(
     val entity: Long,
     val attr: Attr,
-    val value: Value,
+    val value: Value<*>,
     val standing: Standing,
     val inst: Date,
     val txn: TxnId

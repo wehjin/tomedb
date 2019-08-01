@@ -44,6 +44,6 @@ class ValueTest {
 
     @Test
     fun value() {
-        assertEquals(Value.LONG(1L), Value.VALUE(Value.LONG(1L)).v)
+        assertEquals(Value.LONG(1L), Value.VALUE(AnyValue(Value.LONG(1L))).v.value)
     }
 }

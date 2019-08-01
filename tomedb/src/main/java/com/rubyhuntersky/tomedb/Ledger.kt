@@ -13,7 +13,7 @@ interface Ledger {
     data class Line(
         val entity: Long,
         val attr: Attr,
-        val value: Value,
+        val value: Value<*>,
         val isAsserted: Boolean,
         val time: Date
     )

@@ -3,16 +3,16 @@ package com.rubyhuntersky.tomedb.datalog
 import com.rubyhuntersky.tomedb.basics.*
 import java.util.*
 
-internal fun Value.toFolderName(): String = valueType.typeCode + toFolderNameUntyped()
+internal fun <T : Any> Value<T>.toFolderName(): String = valueType.typeCode + toFolderNameUntyped()
 
-internal fun valueOfFolderName(folderName: String): Value {
+internal fun valueOfFolderName(folderName: String): Value<*> {
     val typeCode = folderName.substring(0, 1)
     val content = folderName.substring(1)
     val valueType = valueTypeOfTypeCode(typeCode)
     return valueOfFolderNameWithType(valueType, content)
 }
 
-private fun Value.toFolderNameUntyped(): String = when (this) {
+private fun <T : Any> Value<T>.toFolderNameUntyped(): String = when (this) {
     is Value.BOOLEAN -> (if (v) 1 else 0).toString()
     is Value.LONG -> v.toString()
     is Value.STRING -> stringToFolderName(v)
@@ -24,11 +24,11 @@ private fun Value.toFolderNameUntyped(): String = when (this) {
     is Value.INSTANT -> v.time.toString()
     is Value.DOUBLE -> v.toString()
     is Value.BIGDEC -> v.toString()
-    is Value.VALUE -> v.toFolderName()
+    is Value.VALUE -> v.value.toFolderName()
     is Value.DATA -> error("Not supported.")
 }
 
-private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Value {
+private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Value<*> {
     return when (valueType) {
         ValueType.BOOLEAN -> (content == "1")()
         ValueType.LONG -> (content.toLong())()

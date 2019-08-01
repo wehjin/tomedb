@@ -26,7 +26,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
 
     private val eavtIndexDir = File(repoDir, "eavt").also { it.mkdirs() }
 
-    override fun append(entity: Long, attr: Attr, value: Value, standing: Fact.Standing): Fact {
+    override fun append(entity: Long, attr: Attr, value: Value<*>, standing: Fact.Standing): Fact {
         val txnId = txnIdCounter.nextTxnId()
         val eDir = entityDir(eavtIndexDir, entity).also { it.mkdirs() }
         val eaDir = attrDir(eDir, attr).also { it.mkdirs() }
@@ -50,7 +50,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
     override val allEntities: List<Long>
         get() = entityDirs().map(File::getName).map { it.toLong() }.toList()
 
-    override val allAssertedValues: List<Value>
+    override val allAssertedValues: List<Value<*>>
         get() = entityDirs()
             .map(Companion::subFiles).flatten()
             .map(Companion::subFiles).flatten()
@@ -58,16 +58,16 @@ class GitDatalog(private val repoPath: Path) : Datalog {
             .map(File::getName).map(::valueOfFolderName)
             .distinct().toList()
 
-    override fun entityAttrValues(entity: Long, attr: Attr): List<Value> {
+    override fun entityAttrValues(entity: Long, attr: Attr): List<Value<*>> {
         return valueDirs(entity, attr).map(::valueOfFile)
     }
 
-    override fun isEntityAttrValueAsserted(entity: Long, attr: Attr, value: Value): Boolean {
+    override fun isEntityAttrValueAsserted(entity: Long, attr: Attr, value: Value<*>): Boolean {
         val valueDir = specificValueDir(entity, attr, value)
         return isStandingAssertedInDir(valueDir)
     }
 
-    private fun specificValueDir(entity: Long, attr: Attr, value: Value): File =
+    private fun specificValueDir(entity: Long, attr: Attr, value: Value<*>): File =
         valueDir(specificAttrDir(entity, attr), value)
 
     private fun specificAttrDir(entity: Long, attr: Attr): File = attrDir(specificEntityDir(entity), attr)
@@ -96,7 +96,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
             Retracted -> "retracted"
         }
 
-        private fun valueOfFile(file: File): Value {
+        private fun valueOfFile(file: File): Value<*> {
             return valueOfFolderName(file.name)
         }
 
@@ -113,7 +113,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
         }
 
         private fun standingFile(vDir: File) = File(vDir, "standing")
-        private fun valueDir(aDir: File, value: Value): File {
+        private fun valueDir(aDir: File, value: Value<*>): File {
             val folderName = value.toFolderName()
             return File(aDir, folderName)
         }

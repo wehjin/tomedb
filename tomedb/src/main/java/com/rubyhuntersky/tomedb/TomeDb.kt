@@ -2,17 +2,18 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.Attr
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.Value.*
 import com.rubyhuntersky.tomedb.basics.ValueType
 
 sealed class Rule {
     data class EExactM(val entityVar: String, val attr: Attr) : Rule()
-    data class EExactVM(val entityVar: String, val value: Value, val attr: Attr) : Rule()
+    data class EExactVM(val entityVar: String, val value: Value<*>, val attr: Attr) : Rule()
     data class EEExactM(val startVar: String, val endVar: String, val attr: Attr) : Rule()
     data class EVExactM(val entityVar: String, val valueVar: String, val attr: Attr) : Rule()
 }
 
-data class Input(val label: String, val value: Value) {
-    constructor(label: String, long: Long) : this(label, Value.LONG(long))
+data class Input(val label: String, val value: Value<*>) {
+    constructor(label: String, long: Long) : this(label, LONG(long))
 }
 
 sealed class Query {
@@ -97,13 +98,13 @@ enum class Scheme : Attribute {
 }
 
 internal fun Input.toBinder(): Binder<*> = when (value) {
-    is Value.LONG -> Binder(label, { listOf(value.v) }, Value::LONG, Solutions.One(value.v))
-    is Value.ATTR -> Binder(label, { listOf(value.v) }, Value::ATTR, Solutions.One(value.v))
-    is Value.INSTANT -> Binder(label, { listOf(value.v) }, Value::INSTANT, Solutions.One(value.v))
-    is Value.BOOLEAN -> Binder(label, { listOf(value.v) }, Value::BOOLEAN, Solutions.One(value.v))
-    is Value.STRING -> Binder(label, { listOf(value.v) }, Value::STRING, Solutions.One(value.v))
-    is Value.DOUBLE -> Binder(label, { listOf(value.v) }, Value::DOUBLE, Solutions.One(value.v))
-    is Value.BIGDEC -> Binder(label, { listOf(value.v) }, Value::BIGDEC, Solutions.One(value.v))
-    is Value.VALUE -> Binder(label, { listOf(value.v) }, Value::VALUE, Solutions.One(value.v))
-    is Value.DATA -> Binder(label, { listOf(value.v) }, Value::DATA, Solutions.One(value.v))
+    is LONG -> Binder(label, { listOf(value.v) }, ::LONG, Solutions.One(value.v))
+    is ATTR -> Binder(label, { listOf(value.v) }, ::ATTR, Solutions.One(value.v))
+    is INSTANT -> Binder(label, { listOf(value.v) }, ::INSTANT, Solutions.One(value.v))
+    is BOOLEAN -> Binder(label, { listOf(value.v) }, ::BOOLEAN, Solutions.One(value.v))
+    is STRING -> Binder(label, { listOf(value.v) }, ::STRING, Solutions.One(value.v))
+    is DOUBLE -> Binder(label, { listOf(value.v) }, ::DOUBLE, Solutions.One(value.v))
+    is BIGDEC -> Binder(label, { listOf(value.v) }, ::BIGDEC, Solutions.One(value.v))
+    is VALUE -> Binder(label, { listOf(value.v) }, ::VALUE, Solutions.One(value.v))
+    is DATA -> Binder(label, { listOf(value.v) }, ::DATA, Solutions.One(value.v))
 }

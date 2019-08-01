@@ -31,7 +31,7 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
         transactData(data)
     }
 
-    private fun addFact(entity: Long, attr: Attr, value: Value, isAsserted: Boolean): Pair<Value, Date> {
+    private fun addFact(entity: Long, attr: Attr, value: Value<*>, isAsserted: Boolean): Pair<Value<*>, Date> {
         val subValue = if (value is Value.DATA) {
             val subData = listOf(value.v)
             val subEntities = transactData(subData)
@@ -57,7 +57,7 @@ class Connection(dataPath: Path, starter: ConnectionStarter) {
         return entities
     }
 
-    fun update(entity: Long, attr: Attr, value: Value, isAsserted: Boolean = true) {
+    fun update(entity: Long, attr: Attr, value: Value<*>, isAsserted: Boolean = true) {
         addFact(entity, attr, value, isAsserted)
     }
 
