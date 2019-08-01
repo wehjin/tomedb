@@ -21,10 +21,9 @@ class QuizzerTest {
 
     @Test
     fun happy() {
-        val starterMeterSpecs =
-            ConnectionStarter.MeterSpecs(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
+        val specs = ConnectionStarter.MeterSpecs(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
 
-        val conn = Client().connect(dataDir, starterMeterSpecs)
+        val conn = Client().connect(dataDir, specs)
         val findSelectedLearners = Query.Find(
             rules = listOf(Rule.EExactVM("e", Value.BOOLEAN(true), Learner.Selected)),
             outputs = listOf("e")

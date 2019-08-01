@@ -30,20 +30,20 @@ private fun Value.toFolderNameUntyped(): String = when (this) {
 
 private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Value {
     return when (valueType) {
-        ValueType.BOOLEAN -> Value.BOOLEAN.of(content == "1")
-        ValueType.LONG -> Value.LONG.of(content.toLong())
+        ValueType.BOOLEAN -> (content == "1")()
+        ValueType.LONG -> (content.toLong())()
         ValueType.STRING -> {
-            Value.STRING.of(folderNameToString(content))
+            folderNameToString(content)()
         }
         ValueType.NAME -> {
             val (first, last) = content.split(',')
             val itemName = CommonMeter(folderNameToString(first), folderNameToString(last))
-            Value.NAME.of(itemName)
+            itemName()
         }
-        ValueType.INSTANT -> Value.INSTANT.of(Date(content.toLong()))
-        ValueType.DOUBLE -> Value.DOUBLE.of(content.toDouble())
-        ValueType.BIGDEC -> Value.BIGDEC.of(content.toBigDecimal())
-        ValueType.VALUE -> Value.VALUE.of(valueOfFolderName(content))
+        ValueType.INSTANT -> Date(content.toLong())()
+        ValueType.DOUBLE -> (content.toDouble())()
+        ValueType.BIGDEC -> (content.toBigDecimal())()
+        ValueType.VALUE -> valueOfFolderName(content)()
         ValueType.DATA -> error("Not supported")
     }
 }
