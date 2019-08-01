@@ -47,7 +47,7 @@ class ConnectionTest {
 
         val reconn = Client().connect(dataDir, ConnectionStarter.None)
         val query = Query.Find(
-            rules = listOf(Rule.EVExactM("movie", "title", Movie.Title)),
+            rules = listOf(Rule.EntityContainsAnyValueAtAttr("movie", "title", Movie.Title)),
             outputs = listOf("movie", "title")
         )
         val result = reconn.database(query)
@@ -87,7 +87,7 @@ class ConnectionTest {
         connection.transactData(firstMovies)
 
         val db = connection.database
-        val query = Query.Find(outputs = listOf("e"), rules = listOf(Rule.EExactM("e", Movie.Title)))
+        val query = Query.Find(outputs = listOf("e"), rules = listOf(Rule.EntityContainsAttr("e", Movie.Title)))
         val allMovies = db(query)
         assertEquals(3, allMovies.size)
     }

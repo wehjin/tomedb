@@ -86,15 +86,15 @@ class BinderRack(initBinders: List<Binder<*>>?) {
     private fun shake(rules: List<Rule>, datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         rules.forEach {
             when (it) {
-                is Rule.EExactM -> it.shake(datalog, binders)
-                is Rule.EExactVM -> it.shake(datalog, binders)
-                is Rule.EEExactM -> it.shake(datalog, binders)
-                is Rule.EVExactM -> it.shake(datalog, binders)
+                is Rule.EntityContainsAttr -> it.shake(datalog, binders)
+                is Rule.EntityContainsExactValueAtAttr -> it.shake(datalog, binders)
+                is Rule.EntityContainsAnyEntityAtAttr -> it.shake(datalog, binders)
+                is Rule.EntityContainsAnyValueAtAttr -> it.shake(datalog, binders)
             }
         }
     }
 
-    private fun Rule.EVExactM.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EntityContainsAnyValueAtAttr.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::allEntities, ::LONG)
         val valueBinder = binders.addBinder(
             name = valueVar,
@@ -123,12 +123,12 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         valueBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Value<*>>::second))
     }
 
-    private fun Rule.EEExactM.shake(
+    private fun Rule.EntityContainsAnyEntityAtAttr.shake(
         datalog: Datalog,
         binders: MutableMap<String, Binder<*>>
     ) {
-        val startBinder = binders.addBinder(startVar, datalog::allEntities, ::LONG)
-        val endBinder = binders.addBinder(endVar, datalog::allEntities, ::LONG)
+        val startBinder = binders.addBinder(entityVar, datalog::allEntities, ::LONG)
+        val endBinder = binders.addBinder(entityValueVar, datalog::allEntities, ::LONG)
         val substitutions =
             startBinder.solutions.toList { datalog.allEntities }
                 .map { start: Long ->
@@ -140,14 +140,14 @@ class BinderRack(initBinders: List<Binder<*>>?) {
         endBinder.solutions = Solutions.fromList(substitutions.map(Pair<Long, Long>::second))
     }
 
-    private fun Rule.EExactVM.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EntityContainsExactValueAtAttr.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::allEntities, ::LONG)
         val matches = entityBinder.solutions.toList { datalog.allEntities }
             .filter { datalog.isEntityAttrValueAsserted(it, attr, this.value) }
         entityBinder.solutions = Solutions.fromList(matches)
     }
 
-    private fun Rule.EExactM.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
+    private fun Rule.EntityContainsAttr.shake(datalog: Datalog, binders: MutableMap<String, Binder<*>>) {
         val entityBinder = binders.addBinder(entityVar, datalog::allEntities, ::LONG)
         val matches = entityBinder.solutions.toList { datalog.allEntities }
             .filter { datalog.isEntityAttrAsserted(it, attr) }

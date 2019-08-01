@@ -23,7 +23,7 @@ class QuizzerTest {
 
         val conn = Client().connect(dataDir, specs)
         val findSelectedLearners = Query.Find(
-            rules = listOf(Rule.EExactVM("e", Value.BOOLEAN(true), Learner.Selected)),
+            rules = listOf(Rule.EntityContainsExactValueAtAttr("e", Value.BOOLEAN(true), Learner.Selected)),
             outputs = listOf("e")
         )
         assertEquals(0, conn.database(findSelectedLearners).size)
@@ -34,9 +34,9 @@ class QuizzerTest {
         val quizResults = conn.database(
             Query.Find(
                 rules = listOf(
-                    Rule.EExactVM("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
-                    Rule.EEExactM("selectedLearner", "quiz", Learner.Quiz),
-                    Rule.EVExactM("quiz", "name", Quiz.Name)
+                    Rule.EntityContainsExactValueAtAttr("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
+                    Rule.EntityContainsAnyEntityAtAttr("selectedLearner", "quiz", Learner.Quiz),
+                    Rule.EntityContainsAnyValueAtAttr("quiz", "name", Quiz.Name)
                 ),
                 outputs = listOf("quiz", "name")
             )
@@ -51,9 +51,9 @@ class QuizzerTest {
 
         val query = Query.Find(
             rules = listOf(
-                Rule.EEExactM("selectedQuiz", "lesson", Quiz.Lesson),
-                Rule.EVExactM("lesson", "question", Lesson.Question),
-                Rule.EVExactM("lesson", "answer", Lesson.Answer)
+                Rule.EntityContainsAnyEntityAtAttr("selectedQuiz", "lesson", Quiz.Lesson),
+                Rule.EntityContainsAnyValueAtAttr("lesson", "question", Lesson.Question),
+                Rule.EntityContainsAnyValueAtAttr("lesson", "answer", Lesson.Answer)
             ),
             inputs = listOf(
                 Input(
