@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb.basics
 
+import com.rubyhuntersky.tomedb.Query
 import java.math.BigDecimal
 import java.util.*
 
@@ -44,5 +45,6 @@ data class TagList(val tags: List<Tag<*>>) : Iterable<Tag<*>> {
 
 fun tagListOf(vararg tag: Tag<*>) = TagList(tag.toList())
 
+fun queryOf(init: Query.Find2.() -> Unit): Query.Find2 = Query.Find2(init)
 
 

@@ -12,17 +12,7 @@ sealed class Rule {
     data class EntityContainsAnyValueAtAttr(val entityVar: String, val valueVar: String, val attr: Attr) : Rule()
 }
 
-data class Input(val label: String, val value: Value<*>) {
-    constructor(label: String, long: Long) : this(label, LONG(long))
-}
-
-sealed class Query {
-    data class Find(
-        val inputs: List<Input>? = null,
-        val rules: List<Rule>,
-        val outputs: List<String>
-    ) : Query()
-}
+data class Input(val label: String, val value: Value<*>)
 
 sealed class Solutions<T> {
     class None<T> : Solutions<T>() {

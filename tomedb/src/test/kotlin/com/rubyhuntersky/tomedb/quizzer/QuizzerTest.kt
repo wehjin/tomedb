@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.quizzer
 
-import com.rubyhuntersky.tomedb.*
+import com.rubyhuntersky.tomedb.Client
+import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.*
 import com.rubyhuntersky.tomedb.connection.ConnectionStarter
 import org.junit.Assert.assertEquals
@@ -8,6 +9,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import java.nio.file.Path
+
 
 class QuizzerTest {
 
@@ -23,47 +25,43 @@ class QuizzerTest {
         val specs = ConnectionStarter.Attributes(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
 
         val conn = Client().connect(dataDir, specs)
-        val findSelectedLearners = Query.Find(
-            rules = listOf(Rule.EntityContainsExactValueAtAttr("e", Value.BOOLEAN(true), Learner.Selected)),
-            outputs = listOf("e")
-        )
-        assertEquals(0, conn.database(findSelectedLearners).size)
+        val findSelectedLearners = queryOf {
+            rules = listOf(
+                "selectedLearners" capture Learner.Selected eq true(),
+                -"selectedLearners"
+            )
+        }
+        val selectedLearnersResult1 = conn.database(findSelectedLearners)
+        assertEquals(0, selectedLearnersResult1.size)
 
         conn.transactData(listOf(learnerData))
-        assertEquals(1, conn.database(findSelectedLearners).size)
+        val selectedLearnersResult2 = conn.database(findSelectedLearners)
+        assertEquals(1, selectedLearnersResult2.size)
 
-        val quizResults = conn.database(
-            Query.Find(
-                rules = listOf(
-                    Rule.EntityContainsExactValueAtAttr("selectedLearner", Value.BOOLEAN(true), Learner.Selected),
-                    Rule.EntityContainsAnyEntityAtAttr("selectedLearner", "quiz", Learner.Quiz),
-                    Rule.EntityContainsAnyValueAtAttr("quiz", "name", Quiz.Name)
-                ),
-                outputs = listOf("quiz", "name")
+        val quizResults = conn.database(queryOf {
+            rules = listOf(
+                "selectedLearner" capture Learner.Selected eq true(),
+                "selectedLearner" capture Learner.Quiz eq !"quiz",
+                "quiz" capture Quiz.Name eq "name",
+                -"quiz" and "name"
             )
-        )
+        })
         println("QUIZZES: $quizResults")
         assertEquals(2, quizResults.size)
-
-        assertEquals(
-            setOf("Basics", "Advanced"),
-            quizResults.map { it["name"].asString() }.toSet()
-        )
+        assertEquals(setOf("Basics", "Advanced"), quizResults.map { it["name"].asString() }.toSet())
 
         val selectedQuizEntity = quizResults.first { it["name"].asString() == "Basics" }["quiz"].asLong()
         assertNotNull(selectedQuizEntity)
 
-        val lessonResults = conn.database(
-            Query.Find(
-                inputs = listOf(Input(label = "selectedQuiz", value = selectedQuizEntity())),
-                rules = listOf(
-                    Rule.EntityContainsAnyEntityAtAttr("selectedQuiz", "lesson", Quiz.Lesson),
-                    Rule.EntityContainsAnyValueAtAttr("lesson", "question", Lesson.Question),
-                    Rule.EntityContainsAnyValueAtAttr("lesson", "answer", Lesson.Answer)
-                ),
-                outputs = listOf("lesson", "question", "answer")
+        val lessonResults = conn.database(queryOf {
+            rules = listOf(
+                +"selectedQuiz" put selectedQuizEntity(),
+                "selectedQuiz" capture Quiz.Lesson eq !"lesson",
+                "lesson" capture Lesson.Question eq "question",
+                "lesson" capture Lesson.Answer eq "answer",
+                -"lesson" and "question" and "answer"
             )
-        )
+        })
         println("LESSONS: $lessonResults")
         assertEquals(2, lessonResults.size)
         assertEquals(
