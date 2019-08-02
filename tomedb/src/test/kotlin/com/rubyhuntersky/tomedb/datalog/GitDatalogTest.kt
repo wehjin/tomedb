@@ -25,7 +25,9 @@ class GitDatalogTest {
             override val valueType: ValueType = ValueType.LONG
             override val cardinality: Cardinality = Cardinality.ONE
             override val description: String = "The maximum value of the counter."
-        }
+        };
+
+        override fun toString(): String = toKeywordString()
     }
 
     private lateinit var folderPath: Path

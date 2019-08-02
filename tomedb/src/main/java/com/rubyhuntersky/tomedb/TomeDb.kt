@@ -67,7 +67,9 @@ interface Attribute : Keyword {
 
 enum class Cardinality : Keyword {
     ONE,
-    MANY
+    MANY;
+
+    override fun toString(): String = toKeywordString()
 }
 
 enum class Scheme : Attribute {
@@ -92,7 +94,9 @@ enum class Scheme : Attribute {
         override val valueType = ValueType.STRING
         override val cardinality = Cardinality.ONE
         override val description = "Specifies a documentation string"
-    }
+    };
+
+    override fun toString(): String = toKeywordString()
 }
 
 internal fun Input.toBinder(): Binder<*> = when (value) {

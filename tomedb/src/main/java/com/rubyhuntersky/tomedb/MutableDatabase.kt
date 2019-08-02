@@ -10,7 +10,11 @@ class MutableDatabase(dataDir: Path) {
     private var nextEntity: Long = 1
     internal fun nextEntity(): Long = nextEntity++
 
-    internal fun update(update: Update): Fact {
+    internal fun update(updates: List<Update>): List<Fact> {
+        return updates.map(this::update).also { commit() }
+    }
+
+    private fun update(update: Update): Fact {
         val (entity, attr, value, type) = update
         require(value !is Value.DATA)
         return datalog.append(entity, attr, value, type.toStanding())
@@ -23,9 +27,7 @@ class MutableDatabase(dataDir: Path) {
         Update.Type.Retract -> Fact.Standing.Retracted
     }
 
-    internal fun commit() {
-        // Unused for now
-    }
+    internal fun commit() = datalog.commit()
 
     operator fun invoke(query: Query): List<Map<String, Value<*>>> {
         return when (query) {

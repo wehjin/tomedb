@@ -12,4 +12,6 @@ enum class Learner(
     Name(ValueType.STRING, Cardinality.ONE, "The name of the learner"),
     Selected(ValueType.BOOLEAN, Cardinality.ONE, "The selected learner"),
     Quiz(ValueType.LONG, Cardinality.MANY, "A quiz held by the learner");
+
+    override fun toString(): String = toKeywordString()
 }

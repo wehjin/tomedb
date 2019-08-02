@@ -20,7 +20,10 @@ internal class TxnIdCounter(folder: File) {
         }
     }
 
-    fun nextTxnId(): TxnId = TxnId(nextHeight).also {
+    val txnId: TxnId
+        get() = TxnId(nextHeight)
+
+    fun advance() {
         nextHeight++
         file.writeText("$nextHeight\n")
     }

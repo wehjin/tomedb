@@ -23,26 +23,36 @@ class GitDatalog(private val repoPath: Path) : Datalog {
     }
 
     private val txnIdCounter = TxnIdCounter(repoDir)
-
     private val eavtIndexDir = File(repoDir, "eavt").also { it.mkdirs() }
+    private var lastAppended: TxnId? = null
 
     override fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Fact.Standing): Fact {
-        val txnId = txnIdCounter.nextTxnId()
+        val txnId = txnIdCounter.txnId
         val eDir = entityDir(eavtIndexDir, entity).also { it.mkdirs() }
         val eaDir = attrDir(eDir, attr).also { it.mkdirs() }
         val eavDir = valueDir(eaDir, value).also { it.mkdirs() }
         val eavtFile = standingFile(eavDir).apply { writeText("${standing.toContent()}\n") }
         val txnTime = Date(eavtFile.lastModified())
-        return Fact(entity, attr, value, standing, txnTime, txnId)
-            .also {
-                println("APPEND $it")
-                git.add().addFilepattern(".").call()
-                git.commit().setMessage("TXN: ${txnId.height}").call()
-                git.tag().setName("h${txnId.height}").call()
-            }
+        return Fact(entity, attr, value, standing, txnTime, txnId).also {
+            this.lastAppended = txnId
+            txnIdCounter.advance()
+            println("APPEND: $it")
+        }
+    }
+
+    override fun commit() {
+        lastAppended?.let {
+            git.add().addFilepattern(".").call()
+            val message = "COMMIT: $it"
+            git.commit().setMessage(message).call()
+            println(message)
+            git.tag().setName("h${it.height}").call()
+            lastAppended = null
+        }
     }
 
     private fun entityDirs() = subFiles(eavtIndexDir).asSequence()
+
     private fun valueDirs(entity: Long, attr: Keyword): List<File> {
         return subFiles(specificAttrDir(entity, attr))
     }

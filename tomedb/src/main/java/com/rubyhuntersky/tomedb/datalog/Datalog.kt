@@ -11,4 +11,5 @@ interface Datalog {
     fun entityAttrValues(entity: Long, attr: Keyword): List<Value<*>>
     fun isEntityAttrValueAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean
     fun isEntityAttrAsserted(entity: Long, attr: Keyword): Boolean
+    fun commit()
 }

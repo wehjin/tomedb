@@ -6,8 +6,9 @@ import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.invoke
+import com.rubyhuntersky.tomedb.datalog.Fact
 import java.nio.file.Path
-import java.util.*
 
 class Connection(dataPath: Path, spec: List<Attribute>?) {
 
@@ -17,37 +18,35 @@ class Connection(dataPath: Path, spec: List<Attribute>?) {
         spec?.let { transactData(it.map(Attribute::tagList)) }
     }
 
-    private fun addFact(entity: Long, attr: Keyword, value: Value<*>, isAsserted: Boolean): Pair<Value<*>, Date> {
-        val subValue = if (value is Value.DATA) {
-            val subData = listOf(value.v)
-            val subEntities = transactData(subData)
-            Value.LONG(subEntities.first())
-        } else {
-            value
+    fun transactData(tagLists: List<TagList>): List<Long> {
+        val updates = tagLists.flatMap {
+            expandTagList(it, database.nextEntity(), Update.Type.Assert)
         }
-        val action = Update(entity, attr, subValue, Update.Type.valueOf(isAsserted))
-        val time = database.update(action).inst
-        return subValue to time
+        return database.update(updates).map(Fact::entity).distinctBy { it }
     }
 
-    fun transactData(data: List<TagList>): List<Long> {
-        val entities = mutableListOf<Long>()
-        data.forEach { tagList ->
-            val entity = database.nextEntity()
-            tagList.forEach { (value, keyword) ->
-                update(entity, keyword, value)
-            }
-            entities.add(entity)
+    private fun expandTagList(tagList: TagList, entity: Long, type: Update.Type): List<Update> {
+        return tagList.flatMap { (value, attr) ->
+            expandDataValues(Update(entity, attr, value, type))
         }
-        commit()
-        return entities
+    }
+
+    private fun expandDataValues(update: Update): List<Update> {
+        val (entity, attr, value, type) = update
+        return if (value is Value.DATA) {
+            val tagList = value.v
+            val subEntity = database.nextEntity()
+            expandTagList(tagList, subEntity, type) + Update(entity, attr, subEntity(), type)
+        } else {
+            listOf(update)
+        }
     }
 
     fun update(entity: Long, attr: Keyword, value: Value<*>, isAsserted: Boolean = true) {
-        addFact(entity, attr, value, isAsserted)
+        val type = Update.Type.valueOf(isAsserted)
+        val updates = expandDataValues(Update(entity, attr, value, type))
+        database.update(updates)
     }
 
-    fun commit() {
-        database.commit()
-    }
+    fun commit() = database.commit()
 }

@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.basics
 
 interface Keyword {
+
     val keywordName: String
         get() = (this as? Enum<*>)?.let { this.name } ?: this::class.java.simpleName
 
@@ -30,5 +31,4 @@ interface Keyword {
         result = 31 * result + keywordGroup.hashCode()
         return result
     }
-
 }

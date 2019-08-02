@@ -15,18 +15,21 @@ class ConnectionTest {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The title of the movie"
+            override fun toString(): String = toKeywordString()
         }
 
         object Genre : Attribute {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The genre of the movie"
+            override fun toString(): String = toKeywordString()
         }
 
         object ReleaseYear : Attribute {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
             override val description = "The year the movie was released in theaters"
+            override fun toString(): String = toKeywordString()
         }
     }
 
