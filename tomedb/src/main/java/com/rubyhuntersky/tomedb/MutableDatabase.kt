@@ -36,6 +36,8 @@ class MutableDatabase(dataDir: Path) {
         }
     }
 
+    operator fun invoke(init: Query.Find2.() -> Unit): List<Map<String, Value<*>>> = this(Query.Find2(init))
+
     private fun find1(query: Query.Find): List<Map<String, Value<*>>> {
         val (inputs, rules, outputs) = query
         return find(inputs, outputs, rules)
@@ -56,13 +58,27 @@ class MutableDatabase(dataDir: Path) {
         }
         val rules1: List<Rule> = rules.mapNotNull {
             when (it) {
-                is Query.Find2.Rule2.SlotAttrSlot ->
-                    Rule.EntityContainsAnyValueAtAttr(it.eSlot.keywordName, it.vSlot.keywordName, it.attr)
-                is Query.Find2.Rule2.SlotAttrValue ->
-                    Rule.EntityContainsExactValueAtAttr(it.eSlot.keywordName, it.value, it.attr)
-                is Query.Find2.Rule2.SlotAttrESlot ->
-                    Rule.EntityContainsAnyEntityAtAttr(it.eSlot.keywordName, it.eSlot2.keywordName, it.attr)
-                else -> null
+                is Query.Find2.Rule2.SlotAttrSlot -> Rule.EntityContainsAnyValueAtAttr(
+                    entityVar = it.eSlot.keywordName,
+                    valueVar = it.vSlot.keywordName,
+                    attr = it.attr
+                )
+                is Query.Find2.Rule2.SlotAttrValue -> Rule.EntityContainsExactValueAtAttr(
+                    entityVar = it.eSlot.keywordName,
+                    value = it.value,
+                    attr = it.attr
+                )
+                is Query.Find2.Rule2.SlotAttrESlot -> Rule.EntityContainsAnyEntityAtAttr(
+                    entityVar = it.eSlot.keywordName,
+                    entityValueVar = it.eSlot2.keywordName,
+                    attr = it.attr
+                )
+                is Query.Find2.Rule2.SlotAttr -> Rule.EntityContainsAttr(
+                    entityVar = it.slot.keywordName,
+                    attr = it.attr
+                )
+                is Query.Find2.Rule2.SlipValue -> null
+                is Query.Find2.Rule2.Slide -> null
             }
         }
         val outputs: List<String> = rules.mapNotNull {

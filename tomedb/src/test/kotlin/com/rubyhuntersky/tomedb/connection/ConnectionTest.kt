@@ -1,6 +1,9 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.*
+import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.Cardinality
+import com.rubyhuntersky.tomedb.Client
+import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.*
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -48,12 +51,13 @@ class ConnectionTest {
                 connection.commit()
             }
 
-        val reconn = Client().connect(dataDir)
-        val query = Query.Find(
-            rules = listOf(Rule.EntityContainsAnyValueAtAttr("movie", "title", Movie.Title)),
-            outputs = listOf("movie", "title")
-        )
-        val result = reconn.database(query)
+        val conn = Client().connect(dataDir)
+        val result = conn.database {
+            rules = listOf(
+                "movie" capture Movie.Title eq "title",
+                -"movie" and "title"
+            )
+        }
         assertEquals(1, result.first()["movie"].asLong())
         assertEquals("Return of the King", result.first()["title"].asString())
     }
@@ -82,8 +86,12 @@ class ConnectionTest {
         conn.transactData(firstMovies)
 
         val db = conn.database
-        val query = Query.Find(outputs = listOf("e"), rules = listOf(Rule.EntityContainsAttr("e", Movie.Title)))
-        val allMovies = db(query)
+        val allMovies = db {
+            rules = listOf(
+                "e" capture Movie.Title,
+                -"e"
+            )
+        }
         assertEquals(3, allMovies.size)
     }
 }
