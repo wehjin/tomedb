@@ -2,33 +2,19 @@ package com.rubyhuntersky.tomedb.connection
 
 import com.rubyhuntersky.tomedb.Attribute
 import com.rubyhuntersky.tomedb.MutableDatabase
-import com.rubyhuntersky.tomedb.Scheme
 import com.rubyhuntersky.tomedb.Update
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.TagList
+import com.rubyhuntersky.tomedb.basics.Value
 import java.nio.file.Path
 import java.util.*
 
-class Connection(dataPath: Path, starter: ConnectionStarter) {
+class Connection(dataPath: Path, spec: List<Attribute>?) {
 
     val database = MutableDatabase(dataPath)
 
     init {
-        when (starter) {
-            is ConnectionStarter.Attributes -> transactAttributes(starter.attrs)
-            is ConnectionStarter.None -> Unit
-        }
-    }
-
-    private fun transactAttributes(attributes: List<Attribute>) {
-        val data = attributes.map {
-            tagListOf(
-                it at Scheme.NAME,
-                it.valueType at Scheme.VALUETYPE,
-                it.cardinality at Scheme.CARDINALITY,
-                it.description at Scheme.DESCRIPTION
-            )
-        }
-        transactData(data)
+        spec?.let { transactData(it.map(Attribute::tagList)) }
     }
 
     private fun addFact(entity: Long, attr: Keyword, value: Value<*>, isAsserted: Boolean): Pair<Value<*>, Date> {

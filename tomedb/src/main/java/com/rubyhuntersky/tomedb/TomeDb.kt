@@ -1,14 +1,14 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.*
 import com.rubyhuntersky.tomedb.basics.Value.*
-import com.rubyhuntersky.tomedb.basics.ValueType
 
 sealed class Rule {
     data class EntityContainsAttr(val entityVar: String, val attr: Keyword) : Rule()
     data class EntityContainsExactValueAtAttr(val entityVar: String, val value: Value<*>, val attr: Keyword) : Rule()
-    data class EntityContainsAnyEntityAtAttr(val entityVar: String, val entityValueVar: String, val attr: Keyword) : Rule()
+    data class EntityContainsAnyEntityAtAttr(val entityVar: String, val entityValueVar: String, val attr: Keyword) :
+        Rule()
+
     data class EntityContainsAnyValueAtAttr(val entityVar: String, val valueVar: String, val attr: Keyword) : Rule()
 }
 
@@ -55,6 +55,14 @@ interface Attribute : Keyword {
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String
+
+    val tagList: TagList
+        get() = tagListOf(
+            Scheme.NAME..this,
+            valueType at Scheme.VALUETYPE,
+            cardinality at Scheme.CARDINALITY,
+            description at Scheme.DESCRIPTION
+        )
 }
 
 enum class Cardinality : Keyword {

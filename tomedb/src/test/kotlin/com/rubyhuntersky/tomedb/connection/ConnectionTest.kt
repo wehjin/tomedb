@@ -39,13 +39,13 @@ class ConnectionTest {
 
     @Test
     fun reconnectionLoadsDataFromLedger() {
-        Client().connect(dataDir, ConnectionStarter.Attributes(listOf(Movie.Title)))
+        Client().connect(dataDir, listOf(Movie.Title))
             .also { connection ->
                 connection.update(1, Movie.Title, Value.STRING("Return of the King"))
                 connection.commit()
             }
 
-        val reconn = Client().connect(dataDir, ConnectionStarter.None)
+        val reconn = Client().connect(dataDir)
         val query = Query.Find(
             rules = listOf(Rule.EntityContainsAnyValueAtAttr("movie", "title", Movie.Title)),
             outputs = listOf("movie", "title")
@@ -57,16 +57,8 @@ class ConnectionTest {
 
     @Test
     fun happy() {
-        val connection = Client().connect(
-            dataDir,
-            ConnectionStarter.Attributes(
-                listOf(
-                    Movie.Title,
-                    Movie.Genre,
-                    Movie.ReleaseYear
-                )
-            )
-        )
+        val spec = listOf(Movie.Title, Movie.Genre, Movie.ReleaseYear)
+        val conn = Client().connect(dataDir, spec)
         val firstMovies = listOf(
             tagListOf(
                 "The Goonies" at Movie.Title,
@@ -84,9 +76,9 @@ class ConnectionTest {
                 1984 at Movie.ReleaseYear
             )
         )
-        connection.transactData(firstMovies)
+        conn.transactData(firstMovies)
 
-        val db = connection.database
+        val db = conn.database
         val query = Query.Find(outputs = listOf("e"), rules = listOf(Rule.EntityContainsAttr("e", Movie.Title)))
         val allMovies = db(query)
         assertEquals(3, allMovies.size)

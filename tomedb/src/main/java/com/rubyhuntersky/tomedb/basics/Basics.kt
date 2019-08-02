@@ -38,6 +38,17 @@ infix fun Double.at(keyword: Keyword) = this() at keyword
 infix fun BigDecimal.at(keyword: Keyword) = this() at keyword
 infix fun TagList.at(keyword: Keyword) = this() at keyword
 
+operator fun <T : Any> Keyword.rangeTo(value: Value<T>) = tagOf(value, this)
+operator fun Keyword.rangeTo(v: Boolean) = tagOf(v(), this)
+operator fun Keyword.rangeTo(v: Long) = tagOf(v(), this)
+operator fun Keyword.rangeTo(v: Int) = tagOf(v(), this)
+operator fun Keyword.rangeTo(v: Keyword) = tagOf(v(), this)
+operator fun Keyword.rangeTo(v: String) = tagOf(v(), this)
+operator fun Keyword.rangeTo(v: Date) = tagOf(v(), this)
+operator fun Keyword.rangeTo(v: Double) = tagOf(v(), this)
+operator fun Keyword.rangeTo(v: BigDecimal) = tagOf(v(), this)
+operator fun Keyword.rangeTo(v: TagList) = tagOf(v(), this)
+
 data class TagList(val tags: List<Tag<*>>) : Iterable<Tag<*>> {
 
     override fun iterator(): Iterator<Tag<*>> = tags.iterator()
