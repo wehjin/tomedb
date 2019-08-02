@@ -1,15 +1,15 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.Attr
+import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.Value.*
 import com.rubyhuntersky.tomedb.basics.ValueType
 
 sealed class Rule {
-    data class EntityContainsAttr(val entityVar: String, val attr: Attr) : Rule()
-    data class EntityContainsExactValueAtAttr(val entityVar: String, val value: Value<*>, val attr: Attr) : Rule()
-    data class EntityContainsAnyEntityAtAttr(val entityVar: String, val entityValueVar: String, val attr: Attr) : Rule()
-    data class EntityContainsAnyValueAtAttr(val entityVar: String, val valueVar: String, val attr: Attr) : Rule()
+    data class EntityContainsAttr(val entityVar: String, val attr: Keyword) : Rule()
+    data class EntityContainsExactValueAtAttr(val entityVar: String, val value: Value<*>, val attr: Keyword) : Rule()
+    data class EntityContainsAnyEntityAtAttr(val entityVar: String, val entityValueVar: String, val attr: Keyword) : Rule()
+    data class EntityContainsAnyValueAtAttr(val entityVar: String, val valueVar: String, val attr: Keyword) : Rule()
 }
 
 data class Input(val label: String, val value: Value<*>)
@@ -51,13 +51,13 @@ sealed class Solutions<T> {
     }
 }
 
-interface Attribute : Attr {
+interface Attribute : Keyword {
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String
 }
 
-enum class Cardinality : Attr {
+enum class Cardinality : Keyword {
     ONE,
     MANY
 }

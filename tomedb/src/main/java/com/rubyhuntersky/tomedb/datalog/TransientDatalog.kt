@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.basics.Attr
+import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
 
@@ -11,11 +11,11 @@ class TransientDatalog(private val timeClock: TimeClock) :
         get() = eavt.keys.toList()
 
     private val eavt =
-        mutableMapOf<Long, MutableMap<Attr, MutableMap<Value<*>, MutableList<Txn>>>>()
+        mutableMapOf<Long, MutableMap<Keyword, MutableMap<Value<*>, MutableList<Txn>>>>()
 
     override val allAssertedValues: List<Value<*>>
         get() = eavt.values.asSequence()
-            .map(MutableMap<Attr, MutableMap<Value<*>, MutableList<Txn>>>::values).flatten()
+            .map(MutableMap<Keyword, MutableMap<Value<*>, MutableList<Txn>>>::values).flatten()
             .map(MutableMap<Value<*>, MutableList<Txn>>::entries).flatten()
             .filter { (_, txns) ->
                 val latest = txns[0]
@@ -24,24 +24,24 @@ class TransientDatalog(private val timeClock: TimeClock) :
             .map(MutableMap.MutableEntry<Value<*>, MutableList<Txn>>::key).distinct()
             .toList()
 
-    override fun entityAttrValues(entity: Long, attr: Attr): List<Value<*>> {
+    override fun entityAttrValues(entity: Long, attr: Keyword): List<Value<*>> {
         return eavt[entity]?.get(attr)?.keys?.toList() ?: emptyList()
     }
 
-    override fun isEntityAttrValueAsserted(entity: Long, attr: Attr, value: Value<*>): Boolean {
+    override fun isEntityAttrValueAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean {
         val txns = eavt[entity]?.get(attr)?.get(value)
         val firstTxn = txns?.get(0)
         return firstTxn?.isAsserted ?: false
     }
 
-    override fun isEntityAttrAsserted(entity: Long, attr: Attr): Boolean {
+    override fun isEntityAttrAsserted(entity: Long, attr: Keyword): Boolean {
         val mapValueToTxnList = eavt[entity]?.get(attr)
         val txnLists = mapValueToTxnList?.values
         val firstTxns = txnLists?.map { it[0] }
         return firstTxns?.map(Txn::isAsserted)?.fold(initial = false, operation = Boolean::or) ?: false
     }
 
-    override fun append(entity: Long, attr: Attr, value: Value<*>, standing: Fact.Standing): Fact {
+    override fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Fact.Standing): Fact {
         val instant = timeClock.now
         val txnId = nextTxnId++
         val txn = Txn(standing, instant, txnId)

@@ -1,18 +1,18 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.basics.Attr
+import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
 data class Fact(
     val entity: Long,
-    val attr: Attr,
+    val attr: Keyword,
     val value: Value<*>,
     val standing: Standing,
     val inst: Date,
     val txn: TxnId
 ) {
-    sealed class Standing : Attr {
+    sealed class Standing : Keyword {
 
         object Asserted : Standing()
         object Retracted : Standing()
@@ -20,6 +20,6 @@ data class Fact(
         val isAsserted: Boolean
             get() = this == Asserted
 
-        override fun toString(): String = toAttrString()
+        override fun toString(): String = toKeywordString()
     }
 }

@@ -16,7 +16,7 @@ private val b64Decoder = Base64.getDecoder()
 operator fun Boolean.invoke() = Value.BOOLEAN(this)
 operator fun Long.invoke() = Value.LONG(this)
 operator fun Int.invoke() = Value.LONG(this.toLong())
-operator fun Attr.invoke() = Value.ATTR(this)
+operator fun Keyword.invoke() = Value.ATTR(this)
 operator fun String.invoke() = Value.STRING(this)
 operator fun Date.invoke() = Value.INSTANT(this)
 operator fun Double.invoke() = Value.DOUBLE(this)
@@ -24,19 +24,19 @@ operator fun BigDecimal.invoke() = Value.BIGDEC(this)
 operator fun <T : Any> Value<T>.invoke() = Value.VALUE(AnyValue(this))
 operator fun TagList.invoke() = Value.DATA(this)
 
-data class Tag<T : Any>(val value: Value<T>, val attr: Attr)
+data class Tag<T : Any>(val value: Value<T>, val keyword: Keyword)
 
-fun <T : Any> tagOf(value: Value<T>, attr: Attr) = Tag(value, attr)
-infix fun <T : Any> Value<T>.at(attr: Attr) = tagOf(this, attr)
-infix fun Boolean.at(attr: Attr) = this() at attr
-infix fun Long.at(attr: Attr) = this() at attr
-infix fun Int.at(attr: Attr) = this() at attr
-infix fun Attr.at(attr: Attr) = this() at attr
-infix fun String.at(attr: Attr) = this() at attr
-infix fun Date.at(attr: Attr) = this() at attr
-infix fun Double.at(attr: Attr) = this() at attr
-infix fun BigDecimal.at(attr: Attr) = this() at attr
-infix fun TagList.at(attr: Attr) = this() at attr
+fun <T : Any> tagOf(value: Value<T>, keyword: Keyword) = Tag(value, keyword)
+infix fun <T : Any> Value<T>.at(keyword: Keyword) = tagOf(this, keyword)
+infix fun Boolean.at(keyword: Keyword) = this() at keyword
+infix fun Long.at(keyword: Keyword) = this() at keyword
+infix fun Int.at(keyword: Keyword) = this() at keyword
+infix fun Keyword.at(keyword: Keyword) = this() at keyword
+infix fun String.at(keyword: Keyword) = this() at keyword
+infix fun Date.at(keyword: Keyword) = this() at keyword
+infix fun Double.at(keyword: Keyword) = this() at keyword
+infix fun BigDecimal.at(keyword: Keyword) = this() at keyword
+infix fun TagList.at(keyword: Keyword) = this() at keyword
 
 data class TagList(val tags: List<Tag<*>>) : Iterable<Tag<*>> {
 
@@ -46,5 +46,7 @@ data class TagList(val tags: List<Tag<*>>) : Iterable<Tag<*>> {
 fun tagListOf(vararg tag: Tag<*>) = TagList(tag.toList())
 
 fun queryOf(init: Query.Find2.() -> Unit): Query.Find2 = Query.Find2(init)
+
+operator fun List<Map<String, Value<*>>>.invoke(slot: Query.Find2.Slot): List<Value<*>> = slot(this)
 
 

@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.basics.Attr
+import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.stringToFolderName
 import com.rubyhuntersky.tomedb.datalog.Fact.Standing.Asserted
@@ -26,7 +26,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
 
     private val eavtIndexDir = File(repoDir, "eavt").also { it.mkdirs() }
 
-    override fun append(entity: Long, attr: Attr, value: Value<*>, standing: Fact.Standing): Fact {
+    override fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Fact.Standing): Fact {
         val txnId = txnIdCounter.nextTxnId()
         val eDir = entityDir(eavtIndexDir, entity).also { it.mkdirs() }
         val eaDir = attrDir(eDir, attr).also { it.mkdirs() }
@@ -43,7 +43,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
     }
 
     private fun entityDirs() = subFiles(eavtIndexDir).asSequence()
-    private fun valueDirs(entity: Long, attr: Attr): List<File> {
+    private fun valueDirs(entity: Long, attr: Keyword): List<File> {
         return subFiles(specificAttrDir(entity, attr))
     }
 
@@ -58,23 +58,23 @@ class GitDatalog(private val repoPath: Path) : Datalog {
             .map(File::getName).map(::valueOfFolderName)
             .distinct().toList()
 
-    override fun entityAttrValues(entity: Long, attr: Attr): List<Value<*>> {
+    override fun entityAttrValues(entity: Long, attr: Keyword): List<Value<*>> {
         return valueDirs(entity, attr).map(::valueOfFile)
     }
 
-    override fun isEntityAttrValueAsserted(entity: Long, attr: Attr, value: Value<*>): Boolean {
+    override fun isEntityAttrValueAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean {
         val valueDir = specificValueDir(entity, attr, value)
         return isStandingAssertedInDir(valueDir)
     }
 
-    private fun specificValueDir(entity: Long, attr: Attr, value: Value<*>): File =
+    private fun specificValueDir(entity: Long, attr: Keyword, value: Value<*>): File =
         valueDir(specificAttrDir(entity, attr), value)
 
-    private fun specificAttrDir(entity: Long, attr: Attr): File = attrDir(specificEntityDir(entity), attr)
+    private fun specificAttrDir(entity: Long, attr: Keyword): File = attrDir(specificEntityDir(entity), attr)
 
     private fun specificEntityDir(entity: Long): File = entityDir(eavtIndexDir, entity)
 
-    override fun isEntityAttrAsserted(entity: Long, attr: Attr): Boolean =
+    override fun isEntityAttrAsserted(entity: Long, attr: Keyword): Boolean =
         valueDirs(entity, attr).map(Companion::isStandingAssertedInDir).fold(false, Boolean::or)
 
     private var nextTxnId = TxnId(1)
@@ -85,9 +85,9 @@ class GitDatalog(private val repoPath: Path) : Datalog {
 
         private fun subFiles(folder: File): List<File> = (folder.listFiles() ?: emptyArray()).toList()
 
-        private fun Attr.toFolderName(): String {
-            val first = stringToFolderName(attrName)
-            val last = stringToFolderName(attrGroup)
+        private fun Keyword.toFolderName(): String {
+            val first = stringToFolderName(keywordName)
+            val last = stringToFolderName(keywordGroup)
             return "$first,$last"
         }
 
@@ -118,7 +118,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
             return File(aDir, folderName)
         }
 
-        private fun attrDir(eDir: File, attr: Attr) = File(eDir, attr.toFolderName())
+        private fun attrDir(eDir: File, attr: Keyword) = File(eDir, attr.toFolderName())
         private fun entityDir(eavtDir: File, entity: Long) = File(eavtDir, entity.toString())
     }
 }

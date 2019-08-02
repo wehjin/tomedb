@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.quizzer
 
 import com.rubyhuntersky.tomedb.Client
+import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.*
 import com.rubyhuntersky.tomedb.connection.ConnectionStarter
@@ -20,28 +21,33 @@ class QuizzerTest {
         dataDir = TempDirFixture.initDir("quizzerTest")
     }
 
+    object SelectedLearnerSlot : Query.Find2.Slot
+
     @Test
     fun happy() {
         val specs = ConnectionStarter.Attributes(listOf(*Lesson.values(), *Quiz.values(), *Learner.values()))
 
         val conn = Client().connect(dataDir, specs)
+
         val findSelectedLearners = queryOf {
             rules = listOf(
-                "selectedLearners" capture Learner.Selected eq true(),
-                -"selectedLearners"
+                SelectedLearnerSlot capture Learner.Selected eq true(),
+                -SelectedLearnerSlot
             )
         }
         val selectedLearnersResult1 = conn.database(findSelectedLearners)
+        println("SELECTED LEARNERS 1: ${selectedLearnersResult1(SelectedLearnerSlot)}")
         assertEquals(0, selectedLearnersResult1.size)
 
         conn.transactData(listOf(learnerData))
         val selectedLearnersResult2 = conn.database(findSelectedLearners)
+        println("SELECTED LEARNERS 2: ${SelectedLearnerSlot(selectedLearnersResult2)}")
         assertEquals(1, selectedLearnersResult2.size)
 
         val quizResults = conn.database(queryOf {
             rules = listOf(
-                "selectedLearner" capture Learner.Selected eq true(),
-                "selectedLearner" capture Learner.Quiz eq !"quiz",
+                SelectedLearnerSlot capture Learner.Selected eq true(),
+                SelectedLearnerSlot capture Learner.Quiz eq !"quiz",
                 "quiz" capture Quiz.Name eq "name",
                 -"quiz" and "name"
             )

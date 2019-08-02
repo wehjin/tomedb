@@ -24,9 +24,9 @@ sealed class Value<T : Any> {
         override val valueClass = String::class.java
     }
 
-    data class ATTR(override val v: Attr) : Value<Attr>() {
+    data class ATTR(override val v: Keyword) : Value<Keyword>() {
         override val valueType = ValueType.ATTR
-        override val valueClass = Attr::class.java
+        override val valueClass = Keyword::class.java
     }
 
     data class INSTANT(override val v: Date) : Value<Date>() {

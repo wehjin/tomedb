@@ -9,7 +9,7 @@ class ValueTest {
 
     @Test
     fun symbol() {
-        assertEquals(CommonAttr("a", "b"), Value.ATTR(CommonAttr("a", "b")).v)
+        assertEquals(CommonKeyword("a", "b"), Value.ATTR(CommonKeyword("a", "b")).v)
     }
 
     @Test

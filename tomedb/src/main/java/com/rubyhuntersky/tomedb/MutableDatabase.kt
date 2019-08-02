@@ -55,17 +55,17 @@ class MutableDatabase(dataDir: Path) {
         val rules1: List<Rule> = rules.mapNotNull {
             when (it) {
                 is Query.Find2.Rule2.SlotAttrSlot ->
-                    Rule.EntityContainsAnyValueAtAttr(it.eSlot.name, it.vSlot.name, it.attr)
+                    Rule.EntityContainsAnyValueAtAttr(it.eSlot.keywordName, it.vSlot.keywordName, it.attr)
                 is Query.Find2.Rule2.SlotAttrValue ->
-                    Rule.EntityContainsExactValueAtAttr(it.eSlot.name, it.value, it.attr)
+                    Rule.EntityContainsExactValueAtAttr(it.eSlot.keywordName, it.value, it.attr)
                 is Query.Find2.Rule2.SlotAttrESlot ->
-                    Rule.EntityContainsAnyEntityAtAttr(it.eSlot.name, it.eSlot2.name, it.attr)
+                    Rule.EntityContainsAnyEntityAtAttr(it.eSlot.keywordName, it.eSlot2.keywordName, it.attr)
                 else -> null
             }
         }
         val outputs: List<String> = rules.mapNotNull {
             when (it) {
-                is Query.Find2.Rule2.Slide -> it.names
+                is Query.Find2.Rule2.Slide -> it.keywordNames
                 else -> null
             }
         }.flatten()

@@ -17,8 +17,8 @@ private fun <T : Any> Value<T>.toFolderNameUntyped(): String = when (this) {
     is Value.LONG -> v.toString()
     is Value.STRING -> stringToFolderName(v)
     is Value.ATTR -> {
-        val first = stringToFolderName(v.attrName)
-        val last = stringToFolderName(v.attrGroup)
+        val first = stringToFolderName(v.keywordName)
+        val last = stringToFolderName(v.keywordGroup)
         "$first,$last"
     }
     is Value.INSTANT -> v.time.toString()
@@ -37,7 +37,7 @@ private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Va
         }
         ValueType.ATTR -> {
             val (first, last) = content.split(',')
-            val itemName = CommonAttr(folderNameToString(first), folderNameToString(last))
+            val itemName = CommonKeyword(folderNameToString(first), folderNameToString(last))
             itemName()
         }
         ValueType.INSTANT -> Date(content.toLong())()

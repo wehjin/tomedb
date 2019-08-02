@@ -1,10 +1,10 @@
 package com.rubyhuntersky.tomedb.basics
 
-interface Attr {
-    val attrName: String
+interface Keyword {
+    val keywordName: String
         get() = (this as? Enum<*>)?.let { this.name } ?: this::class.java.simpleName
 
-    val attrGroup: String
+    val keywordGroup: String
         get() = (this as? Enum<*>)
             ?.let {
                 this::class.java.simpleName.let {
@@ -13,23 +13,22 @@ interface Attr {
             }
             ?: this::class.java.declaringClass?.simpleName ?: ""
 
-    fun toAttrString(): String = "$attrGroup/$attrName"
+    fun toKeywordString(): String = "$keywordGroup/$keywordName"
 
-    fun attrEquals(other: Any?): Boolean {
+    fun keywordEquals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Attr) return false
+        if (other !is Keyword) return false
 
-        if (attrName != other.attrName) return false
-        if (attrGroup != other.attrGroup) return false
+        if (keywordName != other.keywordName) return false
+        if (keywordGroup != other.keywordGroup) return false
 
         return true
     }
 
-    fun attrHashCode(): Int {
-        var result = attrName.hashCode()
-        result = 31 * result + attrGroup.hashCode()
+    fun keywordHashCode(): Int {
+        var result = keywordName.hashCode()
+        result = 31 * result + keywordGroup.hashCode()
         return result
     }
 
 }
-
