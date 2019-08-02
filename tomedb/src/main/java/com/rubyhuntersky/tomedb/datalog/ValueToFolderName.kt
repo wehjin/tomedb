@@ -37,7 +37,7 @@ private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Va
         }
         ValueType.ATTR -> {
             val (first, last) = content.split(',')
-            val itemName = BasicAttr(folderNameToString(first), folderNameToString(last))
+            val itemName = CommonAttr(folderNameToString(first), folderNameToString(last))
             itemName()
         }
         ValueType.INSTANT -> Date(content.toLong())()

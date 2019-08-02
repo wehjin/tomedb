@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.basics
 
-data class BasicAttr(override val attrName: String, override val attrGroup: String) :
+data class CommonAttr(override val attrName: String, override val attrGroup: String) :
     Attr {
 
     override fun equals(other: Any?): Boolean = this.attrEquals(other)
