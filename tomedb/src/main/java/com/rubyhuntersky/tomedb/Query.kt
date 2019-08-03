@@ -26,13 +26,15 @@ sealed class Query {
             data class SlotAttrESlot(val eSlot: Slot, val attr: Keyword, val eSlot2: ESlot) : Rule2()
             data class SlotAttr(val slot: Slot, val attr: Keyword) : Rule2() {
                 infix fun eq(value: Value<*>): SlotAttrValue = SlotAttrValue(this.slot, this.attr, value)
-                infix fun eq(slotName: String): SlotAttrSlot = SlotAttrSlot(this.slot, this.attr, CommonSlot(slotName))
+                infix fun eq(slotName: String): SlotAttrSlot = eq(CommonSlot(slotName))
+                infix fun eq(slot: Slot): SlotAttrSlot = SlotAttrSlot(this.slot, this.attr, slot)
                 infix fun eq(eSlot: ESlot): SlotAttrESlot = SlotAttrESlot(this.slot, this.attr, eSlot)
             }
 
             data class SlipValue(val slip: Slip, val value: Value<*>) : Rule2()
             data class Slide(val keywordNames: List<String>) : Rule2() {
                 infix fun and(keywordName: String): Slide = Slide(keywordNames + keywordName)
+                infix fun and(slot: Slot): Slide = Slide(keywordNames + slot.keywordName)
             }
         }
 
@@ -45,14 +47,21 @@ sealed class Query {
             operator fun invoke(results: List<Map<String, Value<*>>>): List<Value<*>> =
                 results.mapNotNull { it[keywordName] }
 
+            operator fun invoke(rows: FindResult): List<Value<*>> = rows(this)
+
             infix fun capture(attr: Keyword): Rule2.SlotAttr = Rule2.SlotAttr(this, attr)
             operator fun unaryMinus() = Rule2.Slide(listOf(this.keywordName))
         }
 
-        data class CommonSlot(override val keywordName: String) : Slot
-        data class ESlot(override val keywordName: String) : Slot
+        data class CommonSlot(override val keywordName: String) : Slot {
+            override fun toString(): String = "Slot/$keywordName"
+        }
 
-        infix fun String.capture(attr: Keyword): Rule2.SlotAttr = CommonSlot(this).capture(attr)
+        data class ESlot(override val keywordName: String) : Slot {
+            override fun toString(): String = "ESlot/$keywordName"
+        }
+
+        infix fun String.has(attr: Keyword): Rule2.SlotAttr = CommonSlot(this).capture(attr)
         operator fun String.unaryPlus() = Slip(this)
         operator fun String.unaryMinus() = Rule2.Slide(listOf(this))
         operator fun String.not() = ESlot(this)

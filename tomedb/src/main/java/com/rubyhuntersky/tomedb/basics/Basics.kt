@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.basics
 
 import com.rubyhuntersky.tomedb.Query
+import com.rubyhuntersky.tomedb.ResultRow
 import java.math.BigDecimal
 import java.util.*
 
@@ -60,5 +61,4 @@ fun tagListOf(vararg tag: Tag<*>) = TagList(tag.toList())
 fun queryOf(init: Query.Find2.() -> Unit): Query.Find2 = Query.Find2(init)
 
 operator fun List<Map<String, Value<*>>>.invoke(slot: Query.Find2.Slot): List<Value<*>> = slot(this)
-
-
+operator fun List<ResultRow>.get(slot: Query.Find2.Slot): List<Value<*>> = this.mapNotNull { it.row[slot] }

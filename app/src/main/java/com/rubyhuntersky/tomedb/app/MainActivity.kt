@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.app
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.rubyhuntersky.tomedb.connection.Connection
 import com.rubyhuntersky.tomedb.datascope.UpdateScope
@@ -15,14 +16,16 @@ class MainActivity : AppCompatActivity(), UpdateScope {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         checkoutLatest {
-            val results = find {
+            val count = slot("count")
+            val found = find {
                 rules = listOf(
-                    "counter" capture Counter.Count eq "count",
-                    -"counter" and "count"
+                    "counter" has Counter.Count eq count,
+                    -"counter" and count
                 )
             }
-            val count = slot("count")(results).firstOrNull()
-            this@MainActivity.textView.text = count?.v?.toString() ?: "Counter is missing"
+            Log.d(this@MainActivity::class.java.simpleName, "FOUND: $found")
+            val counterCount = found(count).firstOrNull()
+            this@MainActivity.textView.text = counterCount?.v?.toString() ?: "Counter is missing"
         }
     }
 }

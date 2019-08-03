@@ -47,7 +47,7 @@ class QuizzerTest {
             rules = listOf(
                 SelectedLearnerSlot capture Learner.Selected eq true(),
                 SelectedLearnerSlot capture Learner.Quiz eq !"quiz",
-                "quiz" capture Quiz.Name eq "name",
+                "quiz" has Quiz.Name eq "name",
                 -"quiz" and "name"
             )
         })
@@ -61,9 +61,9 @@ class QuizzerTest {
         val lessonResults = conn.mutDb(queryOf {
             rules = listOf(
                 +"selectedQuiz" put selectedQuizEntity(),
-                "selectedQuiz" capture Quiz.Lesson eq !"lesson",
-                "lesson" capture Lesson.Question eq "question",
-                "lesson" capture Lesson.Answer eq "answer",
+                "selectedQuiz" has Quiz.Lesson eq !"lesson",
+                "lesson" has Lesson.Question eq "question",
+                "lesson" has Lesson.Answer eq "answer",
                 -"lesson" and "question" and "answer"
             )
         })

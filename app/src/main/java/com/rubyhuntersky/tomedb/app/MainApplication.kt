@@ -23,12 +23,8 @@ class MainApplication : Application(), ConnectionScope {
         super.onCreate()
         conn = connect {
             checkoutLatest {
-                val counter = slot("counter")
-                    .let {
-                        val result = find { rules = listOf(-it, it capture Counter.Count) }
-                        it(result)
-                    }
-                    .firstOrNull()
+                val slot = slot("counter")
+                val counter = find { rules = listOf(-slot, slot capture Counter.Count) }().firstOrNull()
                 Log.i(this::class.java.simpleName, "COUNTER: $counter")
                 if (counter == null) {
                     transact(updates = setOf(Update(1000, Counter.Count, 33())))

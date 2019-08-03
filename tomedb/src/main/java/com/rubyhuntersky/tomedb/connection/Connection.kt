@@ -1,9 +1,6 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.Attribute
-import com.rubyhuntersky.tomedb.MutableDatabase
-import com.rubyhuntersky.tomedb.Query
-import com.rubyhuntersky.tomedb.Update
+import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.basics.Value
@@ -13,7 +10,7 @@ import java.io.File
 
 
 interface Database {
-    fun find2(query: Query.Find2): List<Map<String, Value<*>>>
+    fun find2(query: Query.Find2): FindResult
 }
 
 class Connection(dataDir: File, spec: List<Attribute>?) {

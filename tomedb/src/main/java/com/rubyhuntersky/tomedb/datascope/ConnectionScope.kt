@@ -1,10 +1,6 @@
 package com.rubyhuntersky.tomedb.datascope
 
-import com.rubyhuntersky.tomedb.Attribute
-import com.rubyhuntersky.tomedb.Client
-import com.rubyhuntersky.tomedb.Query
-import com.rubyhuntersky.tomedb.Update
-import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.connection.Connection
 import com.rubyhuntersky.tomedb.connection.Database
 import java.io.File
@@ -41,7 +37,7 @@ class QueryScope internal constructor(
 ) {
     fun transact(updates: Set<Update>) = sessionTransact(updates)
 
-    fun find(build: Query.Find2.() -> Unit): List<Map<String, Value<*>>> = db.find2(query(build))
+    fun find(build: Query.Find2.() -> Unit): FindResult = db.find2(query(build))
     fun query(build: Query.Find2.() -> Unit): Query.Find2 = Query.Find2(build)
 
     fun slot(name: String): Query.Find2.Slot = Query.Find2.CommonSlot(name)

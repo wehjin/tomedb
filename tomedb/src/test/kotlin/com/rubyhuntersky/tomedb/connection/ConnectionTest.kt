@@ -54,7 +54,7 @@ class ConnectionTest {
         val conn = Client().connect(dataDir)
         val result = conn.mutDb {
             rules = listOf(
-                "movie" capture Movie.Title eq "title",
+                "movie" has Movie.Title eq "title",
                 -"movie" and "title"
             )
         }
@@ -88,7 +88,7 @@ class ConnectionTest {
         val db = conn.mutDb
         val allMovies = db {
             rules = listOf(
-                "e" capture Movie.Title,
+                "e" has Movie.Title,
                 -"e"
             )
         }

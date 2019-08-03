@@ -33,7 +33,7 @@ class MutableDatabase(dataDir: File) : Database {
     operator fun invoke(query: Query): List<Map<String, Value<*>>> {
         return when (query) {
             is Query.Find -> find1(query)
-            is Query.Find2 -> find2(query)
+            is Query.Find2 -> find2(query).toLegacy()
         }
     }
 
@@ -49,7 +49,7 @@ class MutableDatabase(dataDir: File) : Database {
         return BinderRack(initBinders).stir(outputs, rules, datalog)
     }
 
-    override fun find2(query: Query.Find2): List<Map<String, Value<*>>> {
+    override fun find2(query: Query.Find2): FindResult {
         val rules = query.rules
         val inputs: List<Input<*>> = rules.mapNotNull {
             when (it) {
@@ -88,7 +88,8 @@ class MutableDatabase(dataDir: File) : Database {
                 else -> null
             }
         }.flatten()
-        return find(if (inputs.isEmpty()) null else inputs, outputs, rules1)
+        val found = find(if (inputs.isEmpty()) null else inputs, outputs, rules1)
+        return FindResult(found.map(ResultRow.Companion::valueOf))
     }
 
     override fun toString(): String {
