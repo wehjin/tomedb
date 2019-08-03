@@ -12,11 +12,26 @@ sealed class Rule {
     data class EntityContainsAnyValueAtAttr(val entityVar: String, val valueVar: String, val attr: Keyword) : Rule()
 }
 
-data class Input(val label: String, val value: Value<*>)
+data class Input(val label: String, val value: Value<*>) {
+    internal fun toBinder(): Solver<*> = when (value) {
+        is LONG -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+        is ATTR -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+        is INSTANT -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+        is BOOLEAN -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+        is STRING -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+        is DOUBLE -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+        is BIGDEC -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+        is VALUE -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+        is DATA -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
+    }
+}
 
-sealed class Solutions<T> {
-    class None<T> : Solutions<T>() {
-        override fun toList(): List<T> = emptyList()
+sealed class Solutions<out T> {
+
+    abstract fun toList(): List<T>
+
+    object None : Solutions<Nothing>() {
+        override fun toList(): List<Nothing> = emptyList()
     }
 
     data class One<T>(val item: T) : Solutions<T>() {
@@ -31,19 +46,11 @@ sealed class Solutions<T> {
         override fun toList(): List<T> = throw Exception("Solutions unknown")
     }
 
-    abstract fun toList(): List<T>
-
-    fun toList(allOptions: () -> List<T>): List<T> =
-        when {
-            this is Any -> allOptions.invoke()
-            else -> this.toList()
-        }.toSet().toList()
-
     companion object {
         fun <T> fromList(list: List<T>): Solutions<T> {
             val set = list.toSet()
             return when (set.size) {
-                0 -> None()
+                0 -> None
                 1 -> One(set.first())
                 else -> Some(set.toList())
             }
@@ -99,14 +106,3 @@ enum class Scheme : Attribute {
     override fun toString(): String = toKeywordString()
 }
 
-internal fun Input.toBinder(): Binder<*> = when (value) {
-    is LONG -> Binder(label, { listOf(value.v) }, ::LONG, Solutions.One(value.v))
-    is ATTR -> Binder(label, { listOf(value.v) }, ::ATTR, Solutions.One(value.v))
-    is INSTANT -> Binder(label, { listOf(value.v) }, ::INSTANT, Solutions.One(value.v))
-    is BOOLEAN -> Binder(label, { listOf(value.v) }, ::BOOLEAN, Solutions.One(value.v))
-    is STRING -> Binder(label, { listOf(value.v) }, ::STRING, Solutions.One(value.v))
-    is DOUBLE -> Binder(label, { listOf(value.v) }, ::DOUBLE, Solutions.One(value.v))
-    is BIGDEC -> Binder(label, { listOf(value.v) }, ::BIGDEC, Solutions.One(value.v))
-    is VALUE -> Binder(label, { listOf(value.v) }, ::VALUE, Solutions.One(value.v))
-    is DATA -> Binder(label, { listOf(value.v) }, ::DATA, Solutions.One(value.v))
-}

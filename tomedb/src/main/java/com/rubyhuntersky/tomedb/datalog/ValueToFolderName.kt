@@ -3,7 +3,9 @@ package com.rubyhuntersky.tomedb.datalog
 import com.rubyhuntersky.tomedb.basics.*
 import java.util.*
 
-internal fun <T : Any> Value<T>.toFolderName(): String = valueType.typeCode + toFolderNameUntyped()
+internal fun <T : Any> Value<T>.toFolderName(): String {
+    return valueType.typeCode + toFolderNameUntyped()
+}
 
 internal fun valueOfFolderName(folderName: String): Value<*> {
     val typeCode = folderName.substring(0, 1)
