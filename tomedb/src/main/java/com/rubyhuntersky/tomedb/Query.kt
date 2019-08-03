@@ -5,7 +5,7 @@ import com.rubyhuntersky.tomedb.basics.Value
 
 sealed class Query {
     data class Find(
-        val inputs: List<Input>? = null,
+        val inputs: List<Input<*>>? = null,
         val rules: List<Rule>,
         val outputs: List<String>
     ) : Query()

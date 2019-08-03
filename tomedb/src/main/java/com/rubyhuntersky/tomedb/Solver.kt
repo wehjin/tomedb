@@ -1,14 +1,15 @@
 package com.rubyhuntersky.tomedb
 
-data class Solver<T : Any>(
-    val name: String,
-    val valueClass: Class<T>,
-    val allSolutions: () -> List<T>,
-    var solutions: Solutions<T> = Solutions.Any()
-) {
+import com.rubyhuntersky.tomedb.basics.Value
 
-    fun <U : Any> acceptSolutions(solutions: Solutions.One<U>) {
-        this.solutions = solutions as Solutions.One<T>
+data class Solver<out T : Any>(
+    val name: String,
+    val valueClass: Class<out T>,
+    val allSolutions: () -> List<Value<T>>,
+    val solutions: Solutions<T> = Solutions.All
+) {
+    fun setSolutions(solutions: Solutions<*>): Solver<T> {
+        return copy(solutions = solutions as Solutions<T>)
     }
 
     override fun toString(): String {

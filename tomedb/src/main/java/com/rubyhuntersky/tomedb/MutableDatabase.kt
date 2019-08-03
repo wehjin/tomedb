@@ -43,14 +43,14 @@ class MutableDatabase(dataDir: Path) {
         return find(inputs, outputs, rules)
     }
 
-    private fun find(inputs: List<Input>?, outputs: List<String>, rules: List<Rule>): List<Map<String, Value<*>>> {
-        val initBinders = inputs?.map(Input::toBinder)
+    private fun find(inputs: List<Input<*>>?, outputs: List<String>, rules: List<Rule>): List<Map<String, Value<*>>> {
+        val initBinders = inputs?.map(Input<*>::toBinder)
         return BinderRack(initBinders).stir(outputs, rules, datalog)
     }
 
     private fun find2(query: Query.Find2): List<Map<String, Value<*>>> {
         val rules = query.rules
-        val inputs: List<Input> = rules.mapNotNull {
+        val inputs: List<Input<*>> = rules.mapNotNull {
             when (it) {
                 is Query.Find2.Rule2.SlipValue -> Input(it.slip.name, it.value)
                 else -> null

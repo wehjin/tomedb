@@ -1,7 +1,6 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.*
-import com.rubyhuntersky.tomedb.basics.Value.*
 
 sealed class Rule {
     data class EntityContainsAttr(val entityVar: String, val attr: Keyword) : Rule()
@@ -12,42 +11,33 @@ sealed class Rule {
     data class EntityContainsAnyValueAtAttr(val entityVar: String, val valueVar: String, val attr: Keyword) : Rule()
 }
 
-data class Input(val label: String, val value: Value<*>) {
-    internal fun toBinder(): Solver<*> = when (value) {
-        is LONG -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-        is ATTR -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-        is INSTANT -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-        is BOOLEAN -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-        is STRING -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-        is DOUBLE -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-        is BIGDEC -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-        is VALUE -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-        is DATA -> Solver(label, value.valueClass, { listOf(value.v) }, Solutions.One(value.v))
-    }
+data class Input<T : Any>(val label: String, val value: Value<T>) {
+
+    internal fun toBinder(): Solver<T> = Solver(label, value.valueClass, { listOf(value) }, Solutions.One(value))
 }
 
-sealed class Solutions<out T> {
+sealed class Solutions<out T : Any> {
 
-    abstract fun toList(): List<T>
+    abstract fun toList(): List<Value<T>>
 
     object None : Solutions<Nothing>() {
         override fun toList(): List<Nothing> = emptyList()
     }
 
-    data class One<T>(val item: T) : Solutions<T>() {
-        override fun toList(): List<T> = listOf(item)
+    data class One<T : Any>(val item: Value<T>) : Solutions<T>() {
+        override fun toList(): List<Value<T>> = listOf(item)
     }
 
-    data class Some<T>(val items: List<T>) : Solutions<T>() {
-        override fun toList(): List<T> = items
+    data class Some<T : Any>(val items: List<Value<T>>) : Solutions<T>() {
+        override fun toList(): List<Value<T>> = items
     }
 
-    class Any<T> : Solutions<T>() {
-        override fun toList(): List<T> = throw Exception("Solutions unknown")
+    object All : Solutions<Nothing>() {
+        override fun toList(): List<Nothing> = error("Solutions unknown")
     }
 
     companion object {
-        fun <T> fromList(list: List<T>): Solutions<T> {
+        fun <T : Any> fromList(list: List<Value<T>>): Solutions<T> {
             val set = list.toSet()
             return when (set.size) {
                 0 -> None

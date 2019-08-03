@@ -3,9 +3,9 @@ package com.rubyhuntersky.tomedb.basics
 import java.math.BigDecimal
 import java.util.*
 
-sealed class Value<T : Any>(val valueType: ValueType) {
+sealed class Value<out T : Any>(val valueType: ValueType) {
 
-    val valueClass: Class<T>
+    val valueClass: Class<out T>
         get() = valueType.toValueClass()
 
     abstract val v: T
