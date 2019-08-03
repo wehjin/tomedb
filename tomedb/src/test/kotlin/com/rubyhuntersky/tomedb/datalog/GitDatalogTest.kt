@@ -10,7 +10,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
-import java.nio.file.Path
+import java.io.File
 
 class GitDatalogTest {
 
@@ -30,12 +30,12 @@ class GitDatalogTest {
         override fun toString(): String = toKeywordString()
     }
 
-    private lateinit var folderPath: Path
+    private lateinit var folderPath: File
 
 
     @Before
     fun setUp() {
-        folderPath = TempDirFixture.initDir("gitDatalogTest")
+        folderPath = TempDirFixture.initDir("gitDatalogTest").toFile()
     }
 
     @Test

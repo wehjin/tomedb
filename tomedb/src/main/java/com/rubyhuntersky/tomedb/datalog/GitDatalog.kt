@@ -9,12 +9,13 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 import java.io.File
 import java.io.FileNotFoundException
-import java.nio.file.Path
 import java.util.*
 
-class GitDatalog(private val repoPath: Path) : Datalog {
+class GitDatalog(private val repoDir: File) : Datalog {
 
-    private val repoDir = repoPath.toFile().also { it.mkdirs() }
+    init {
+        repoDir.mkdirs()
+    }
 
     private val git = try {
         Git.open(repoDir).also { println("REPO FOUND: OPENING") }
@@ -89,7 +90,7 @@ class GitDatalog(private val repoPath: Path) : Datalog {
 
     private var nextTxnId = TxnId(1)
 
-    override fun toString(): String = "Datalog(nextTxnId=$nextTxnId, repoPath=$repoPath)"
+    override fun toString(): String = "Datalog(nextTxnId=$nextTxnId, repoDir=$repoDir)"
 
     companion object {
 

@@ -9,16 +9,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
-import java.nio.file.Path
+import java.io.File
 
 
 class QuizzerTest {
 
-    private lateinit var dataDir: Path
+    private lateinit var dataDir: File
 
     @Before
     fun setUp() {
-        dataDir = TempDirFixture.initDir("quizzerTest")
+        dataDir = TempDirFixture.initDir("quizzerTest").toFile()
     }
 
     object SelectedLearnerSlot : Query.Find2.Slot
@@ -34,16 +34,16 @@ class QuizzerTest {
                 -SelectedLearnerSlot
             )
         }
-        val selectedLearnersResult1 = conn.database(findSelectedLearners)
+        val selectedLearnersResult1 = conn.mutDb(findSelectedLearners)
         println("SELECTED LEARNERS 1: ${selectedLearnersResult1(SelectedLearnerSlot)}")
         assertEquals(0, selectedLearnersResult1.size)
 
         conn.transactData(listOf(learnerData))
-        val selectedLearnersResult2 = conn.database(findSelectedLearners)
+        val selectedLearnersResult2 = conn.mutDb(findSelectedLearners)
         println("SELECTED LEARNERS 2: ${SelectedLearnerSlot(selectedLearnersResult2)}")
         assertEquals(1, selectedLearnersResult2.size)
 
-        val quizResults = conn.database(queryOf {
+        val quizResults = conn.mutDb(queryOf {
             rules = listOf(
                 SelectedLearnerSlot capture Learner.Selected eq true(),
                 SelectedLearnerSlot capture Learner.Quiz eq !"quiz",
@@ -58,7 +58,7 @@ class QuizzerTest {
         val selectedQuizEntity = quizResults.first { it["name"].asString() == "Basics" }["quiz"].asLong()
         assertNotNull(selectedQuizEntity)
 
-        val lessonResults = conn.database(queryOf {
+        val lessonResults = conn.mutDb(queryOf {
             rules = listOf(
                 +"selectedQuiz" put selectedQuizEntity(),
                 "selectedQuiz" capture Quiz.Lesson eq !"lesson",

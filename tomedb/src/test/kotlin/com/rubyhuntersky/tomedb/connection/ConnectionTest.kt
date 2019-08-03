@@ -8,7 +8,7 @@ import com.rubyhuntersky.tomedb.basics.*
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import java.nio.file.Path
+import java.io.File
 
 class ConnectionTest {
 
@@ -36,11 +36,11 @@ class ConnectionTest {
         }
     }
 
-    private lateinit var dataDir: Path
+    private lateinit var dataDir: File
 
     @Before
     fun setUp() {
-        dataDir = TempDirFixture.initDir("connectionTest")
+        dataDir = TempDirFixture.initDir("connectionTest").toFile()
     }
 
     @Test
@@ -52,7 +52,7 @@ class ConnectionTest {
             }
 
         val conn = Client().connect(dataDir)
-        val result = conn.database {
+        val result = conn.mutDb {
             rules = listOf(
                 "movie" capture Movie.Title eq "title",
                 -"movie" and "title"
@@ -85,7 +85,7 @@ class ConnectionTest {
         )
         conn.transactData(firstMovies)
 
-        val db = conn.database
+        val db = conn.mutDb
         val allMovies = db {
             rules = listOf(
                 "e" capture Movie.Title,

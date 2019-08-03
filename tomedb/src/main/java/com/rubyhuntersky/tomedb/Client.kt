@@ -1,8 +1,8 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.connection.Connection
-import java.nio.file.Path
+import java.io.File
 
 class Client {
-    fun connect(dataDir: Path, spec: List<Attribute>? = null) = Connection(dataDir, spec)
+    fun connect(dataDir: File, spec: List<Attribute>? = null) = Connection(dataDir, spec)
 }

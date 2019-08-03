@@ -7,16 +7,16 @@ data class Update(
     val entity: Long,
     val attr: Keyword,
     val value: Value<*>,
-    val type: Type
+    val action: Action = Action.Declare
 ) {
-    sealed class Type : Keyword {
-        companion object {
-            fun valueOf(assert: Boolean) = if (assert) Assert else Retract
-        }
-
-        object Assert : Type()
-        object Retract : Type()
+    sealed class Action : Keyword {
+        object Declare : Action()
+        object Retract : Action()
 
         override fun toString(): String = toKeywordString()
+
+        companion object {
+            fun valueOf(assert: Boolean) = if (assert) Declare else Retract
+        }
     }
 }

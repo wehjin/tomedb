@@ -1,12 +1,13 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.connection.Database
 import com.rubyhuntersky.tomedb.datalog.Datalog
 import com.rubyhuntersky.tomedb.datalog.Fact
 import com.rubyhuntersky.tomedb.datalog.GitDatalog
-import java.nio.file.Path
+import java.io.File
 
-class MutableDatabase(dataDir: Path) {
+class MutableDatabase(dataDir: File) : Database {
     private var nextEntity: Long = 1
     internal fun nextEntity(): Long = nextEntity++
 
@@ -22,9 +23,9 @@ class MutableDatabase(dataDir: Path) {
 
     private val datalog: Datalog = GitDatalog(dataDir)
 
-    private fun Update.Type.toStanding(): Fact.Standing = when (this) {
-        Update.Type.Assert -> Fact.Standing.Asserted
-        Update.Type.Retract -> Fact.Standing.Retracted
+    private fun Update.Action.toStanding(): Fact.Standing = when (this) {
+        Update.Action.Declare -> Fact.Standing.Asserted
+        Update.Action.Retract -> Fact.Standing.Retracted
     }
 
     internal fun commit() = datalog.commit()
@@ -48,7 +49,7 @@ class MutableDatabase(dataDir: Path) {
         return BinderRack(initBinders).stir(outputs, rules, datalog)
     }
 
-    private fun find2(query: Query.Find2): List<Map<String, Value<*>>> {
+    override fun find2(query: Query.Find2): List<Map<String, Value<*>>> {
         val rules = query.rules
         val inputs: List<Input<*>> = rules.mapNotNull {
             when (it) {

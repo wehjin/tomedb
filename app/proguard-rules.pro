@@ -19,3 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class androidx.core.app.CoreComponentFactory { *; }
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.SerializationKt
+-keep,includedescriptorclasses class com.rubyhuntersky.**$$serializer { *; }
+-keepclassmembers class com.rubyhuntersky.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.rubyhuntersky.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
