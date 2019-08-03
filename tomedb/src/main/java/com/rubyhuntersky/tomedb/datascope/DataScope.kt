@@ -20,16 +20,20 @@ interface DataScope {
 @TomeTagMarker
 class DataSession internal constructor(private val conn: Connection) {
 
-    fun send(updates: Set<Update>) = conn.send(updates)
+    fun sendUpdate(updates: Set<Update>) = conn.send(updates)
 
-    fun refreshDb(run: DataReader.() -> Unit) {
+    fun checkoutLatest(run: DataReader.() -> Unit) {
         val db = conn.checkout()
-        DataReader(db).apply(run)
+        DataReader(db, ::sendUpdate).apply(run)
     }
 }
 
 @TomeTagMarker
-class DataReader internal constructor(private val db: Database) {
+class DataReader internal constructor(
+    private val db: Database,
+    private val sessionSend: (Set<Update>) -> Unit
+) {
+    fun sendUpdate(updates: Set<Update>) = sessionSend(updates)
 
     fun slot(name: String): Query.Find2.Slot = Query.Find2.CommonSlot(name)
 

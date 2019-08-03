@@ -30,7 +30,7 @@ class Connection(dataDir: File, spec: List<Attribute>?) {
     }
 
     fun checkout(): Database {
-        TODO()
+        return mutDb
     }
 
     fun transactData(tagLists: List<TagList>): List<Long> {

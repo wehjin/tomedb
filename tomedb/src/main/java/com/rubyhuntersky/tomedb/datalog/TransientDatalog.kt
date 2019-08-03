@@ -4,11 +4,9 @@ import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TimeClock
 import com.rubyhuntersky.tomedb.basics.Value
 
-class TransientDatalog(private val timeClock: TimeClock) :
-    Datalog {
-    override fun commit() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : Datalog {
+
+    override fun commit() = Unit
 
     override val allEntities: List<Long>
         get() = eavt.keys.toList()
