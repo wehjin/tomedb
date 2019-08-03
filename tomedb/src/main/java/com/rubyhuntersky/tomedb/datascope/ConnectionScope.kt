@@ -10,42 +10,40 @@ import com.rubyhuntersky.tomedb.connection.Database
 import java.io.File
 
 @TomeTagMarker
-interface DataScope {
+interface ConnectionScope {
 
     val dbDir: File
     val dbSpec: List<Attribute>
-    fun connect(run: DataSession.() -> Unit)
+
+    fun connect(run: DataSession.() -> Unit) {
+        val conn = Client().connect(dbDir, dbSpec)
+        DataSession(conn).apply(run)
+    }
 }
 
 @TomeTagMarker
 class DataSession internal constructor(private val conn: Connection) {
 
-    fun sendUpdate(updates: Set<Update>) = conn.send(updates)
+    fun transact(updates: Set<Update>) = conn.send(updates)
 
-    fun checkoutLatest(run: DataReader.() -> Unit) {
+    fun latest(run: DataReader.() -> Unit) {
         val db = conn.checkout()
-        DataReader(db, ::sendUpdate).apply(run)
+        DataReader(db, ::transact).apply(run)
     }
 }
 
 @TomeTagMarker
 class DataReader internal constructor(
     private val db: Database,
-    private val sessionSend: (Set<Update>) -> Unit
+    private val sessionTransact: (Set<Update>) -> Unit
 ) {
-    fun sendUpdate(updates: Set<Update>) = sessionSend(updates)
+    fun transact(updates: Set<Update>) = sessionTransact(updates)
 
     fun slot(name: String): Query.Find2.Slot = Query.Find2.CommonSlot(name)
 
     fun find(build: Query.Find2.() -> Unit): List<Map<String, Value<*>>> = db.find2(Query.Find2(build))
 }
 
-private class CommonDataScope(override val dbDir: File, override val dbSpec: List<Attribute>) : DataScope {
+private class CommonConnectionScope(override val dbDir: File, override val dbSpec: List<Attribute>) : ConnectionScope
 
-    override fun connect(run: DataSession.() -> Unit) {
-        val conn = Client().connect(dbDir, dbSpec)
-        DataSession(conn).apply(run)
-    }
-}
-
-fun dataScope(dbDir: File, dbSpec: List<Attribute>): DataScope = CommonDataScope(dbDir, dbSpec)
+fun dataScope(dbDir: File, dbSpec: List<Attribute>): ConnectionScope = CommonConnectionScope(dbDir, dbSpec)
