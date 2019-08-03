@@ -15,35 +15,39 @@ interface ConnectionScope {
     val dbDir: File
     val dbSpec: List<Attribute>
 
-    fun connect(run: DataSession.() -> Unit) {
-        val conn = Client().connect(dbDir, dbSpec)
-        DataSession(conn).apply(run)
-    }
+    fun connect(run: UpdateScope.() -> Unit): Connection =
+        Client().connect(dbDir, dbSpec).also { CommonUpdateScope(it).apply(run) }
 }
 
 @TomeTagMarker
-class DataSession internal constructor(private val conn: Connection) {
+interface UpdateScope {
+
+    val conn: Connection
 
     fun transact(updates: Set<Update>) = conn.send(updates)
 
-    fun latest(run: DataReader.() -> Unit) {
+    fun checkoutLatest(run: QueryScope.() -> Unit) {
         val db = conn.checkout()
-        DataReader(db, ::transact).apply(run)
+        QueryScope(db, ::transact).apply(run)
     }
 }
 
+private class CommonUpdateScope internal constructor(override val conn: Connection) : UpdateScope
+
 @TomeTagMarker
-class DataReader internal constructor(
+class QueryScope internal constructor(
     private val db: Database,
     private val sessionTransact: (Set<Update>) -> Unit
 ) {
     fun transact(updates: Set<Update>) = sessionTransact(updates)
 
-    fun slot(name: String): Query.Find2.Slot = Query.Find2.CommonSlot(name)
+    fun find(build: Query.Find2.() -> Unit): List<Map<String, Value<*>>> = db.find2(query(build))
+    fun query(build: Query.Find2.() -> Unit): Query.Find2 = Query.Find2(build)
 
-    fun find(build: Query.Find2.() -> Unit): List<Map<String, Value<*>>> = db.find2(Query.Find2(build))
+    fun slot(name: String): Query.Find2.Slot = Query.Find2.CommonSlot(name)
+    operator fun String.unaryMinus(): Query.Find2.Slot = slot(this)
 }
 
-private class CommonConnectionScope(override val dbDir: File, override val dbSpec: List<Attribute>) : ConnectionScope
-
 fun dataScope(dbDir: File, dbSpec: List<Attribute>): ConnectionScope = CommonConnectionScope(dbDir, dbSpec)
+
+private class CommonConnectionScope(override val dbDir: File, override val dbSpec: List<Attribute>) : ConnectionScope
