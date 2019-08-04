@@ -1,7 +1,7 @@
-package com.rubyhuntersky.tomedb
+package com.rubyhuntersky.tomedb.database
 
+import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.basics.Value
-import com.rubyhuntersky.tomedb.connection.Database
 import com.rubyhuntersky.tomedb.datalog.Datalog
 import com.rubyhuntersky.tomedb.datalog.Fact
 import com.rubyhuntersky.tomedb.datalog.GitDatalog
@@ -37,7 +37,11 @@ class MutableDatabase(dataDir: File) : Database {
         }
     }
 
-    operator fun invoke(init: Query.Find2.() -> Unit): List<Map<String, Value<*>>> = this(Query.Find2(init))
+    operator fun invoke(init: Query.Find2.() -> Unit): List<Map<String, Value<*>>> = this(
+        Query.Find2(
+            init
+        )
+    )
 
     private fun find1(query: Query.Find): List<Map<String, Value<*>>> {
         val (inputs, rules, outputs) = query
@@ -53,7 +57,10 @@ class MutableDatabase(dataDir: File) : Database {
         val rules = query.rules
         val inputs: List<Input<*>> = rules.mapNotNull {
             when (it) {
-                is Query.Find2.Rule2.SlipValue -> Input(it.slip.name, it.value)
+                is Query.Find2.Rule2.SlipValue -> Input(
+                    it.slip.name,
+                    it.value
+                )
                 else -> null
             }
         }

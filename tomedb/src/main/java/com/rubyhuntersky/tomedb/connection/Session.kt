@@ -1,19 +1,18 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.*
+import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.invoke
+import com.rubyhuntersky.tomedb.database.Database
+import com.rubyhuntersky.tomedb.database.MutableDatabase
 import com.rubyhuntersky.tomedb.datalog.Fact
 import java.io.File
 
 
-interface Database {
-    fun find2(query: Query.Find2): FindResult
-}
-
-class Connection(dataDir: File, spec: List<Attribute>?) {
+class Session(dataDir: File, spec: List<Attribute>?) {
 
     val mutDb = MutableDatabase(dataDir)
 

@@ -10,7 +10,7 @@ import org.junit.Before
 import org.junit.Test
 import java.io.File
 
-class ConnectionTest {
+class SessionTest {
 
     object Movie {
 

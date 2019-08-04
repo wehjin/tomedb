@@ -5,11 +5,15 @@ import android.util.Log
 import com.rubyhuntersky.tomedb.Attribute
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.basics.invoke
-import com.rubyhuntersky.tomedb.connection.Connection
-import com.rubyhuntersky.tomedb.datascope.ConnectionScope
+import com.rubyhuntersky.tomedb.scopes.client.ClientScope
+import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import java.io.File
+import kotlin.coroutines.CoroutineContext
 
-class MainApplication : Application(), ConnectionScope {
+class CounterApplication : Application(), ClientScope, CoroutineScope {
 
     override val dbDir: File
         get() = File(filesDir, "tome")
@@ -17,12 +21,17 @@ class MainApplication : Application(), ConnectionScope {
     override val dbSpec: List<Attribute>
         get() = Counter.values().toList()
 
-    lateinit var conn: Connection
+    lateinit var conn: SessionChannel
+
+    private var job = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     override fun onCreate() {
         super.onCreate()
         conn = connect {
-            checkoutLatest {
+            checkoutMutable {
                 val slot = slot("counter")
                 val counter = find { rules = listOf(-slot, slot capture Counter.Count) }().firstOrNull()
                 Log.i(this::class.java.simpleName, "COUNTER: $counter")
@@ -31,5 +40,10 @@ class MainApplication : Application(), ConnectionScope {
                 }
             }
         }
+    }
+
+    override fun onTerminate() {
+        conn.close()
+        super.onTerminate()
     }
 }

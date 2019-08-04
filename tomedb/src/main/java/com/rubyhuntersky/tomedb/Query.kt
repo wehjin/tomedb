@@ -2,7 +2,7 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
-import com.rubyhuntersky.tomedb.datascope.TomeTagMarker
+import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
 
 sealed class Query {
     data class Find(
@@ -11,7 +11,7 @@ sealed class Query {
         val outputs: List<String>
     ) : Query()
 
-    @TomeTagMarker
+    @ScopeTagMarker
     class Find2(init: Find2.() -> Unit) : Query() {
 
         lateinit var rules: List<Rule2>
