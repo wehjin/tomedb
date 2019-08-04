@@ -58,7 +58,7 @@ data class TagList(val tags: List<Tag<*>>) : Iterable<Tag<*>> {
 
 fun tagListOf(vararg tag: Tag<*>) = TagList(tag.toList())
 
-fun queryOf(init: Query.Find2.() -> Unit): Query.Find2 = Query.Find2(init)
+fun queryOf(init: Query.Find.() -> Unit): Query.Find = Query.Find(init)
 
-operator fun List<Map<String, Value<*>>>.invoke(slot: Query.Find2.Slot): List<Value<*>> = slot(this)
-operator fun List<ResultRow>.get(slot: Query.Find2.Slot): List<Value<*>> = this.mapNotNull { it.row[slot] }
+operator fun List<Map<String, Value<*>>>.invoke(slot: Query.Find.Slot): List<Value<*>> = slot(this)
+operator fun List<ResultRow>.get(slot: Query.Find.Slot): List<Value<*>> = this.mapNotNull { it.row[slot] }

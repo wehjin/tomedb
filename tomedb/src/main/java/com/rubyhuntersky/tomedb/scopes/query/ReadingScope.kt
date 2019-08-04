@@ -26,12 +26,12 @@ interface ReadingScope {
         return find(query).toProjections(eSlot, attr, vSlot)
     }
 
-    suspend fun find(query: Query.Find2): FindResult = databaseChannel.find2(query)
+    suspend fun find(query: Query.Find): FindResult = databaseChannel.find2(query)
 
-    fun query(build: Query.Find2.() -> Unit): Query.Find2 =
-        Query.Find2(build)
+    fun query(build: Query.Find.() -> Unit): Query.Find =
+        Query.Find(build)
 
-    fun slot(name: String): Query.Find2.Slot = Query.CommonSlot(name)
+    fun slot(name: String): Query.Find.Slot = Query.CommonSlot(name)
 
-    operator fun String.unaryMinus(): Query.Find2.Slot = slot(this)
+    operator fun String.unaryMinus(): Query.Find.Slot = slot(this)
 }

@@ -5,19 +5,14 @@ import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
 
 sealed class Query {
-    data class Find(
-        val inputs: List<Input<*>>? = null,
-        val rules: List<Rule>,
-        val outputs: List<String>
-    ) : Query()
 
     @ScopeTagMarker
-    class Find2(init: Find2.() -> Unit) : Query() {
+    class Find(block: Find.() -> Unit) : Query() {
 
         lateinit var rules: List<Rule2>
 
         init {
-            this.init()
+            block(this)
         }
 
         sealed class Rule2 {
@@ -63,11 +58,11 @@ sealed class Query {
 
     }
 
-    data class CommonSlot(override val keywordName: String) : Find2.Slot {
+    data class CommonSlot(override val keywordName: String) : Find.Slot {
         override fun toString(): String = "Slot/$keywordName"
     }
 
     companion object {
-        fun build(init: Find2.() -> Unit): Find2 = Find2(init)
+        fun build(init: Find.() -> Unit): Find = Find(init)
     }
 }

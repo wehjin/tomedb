@@ -21,7 +21,7 @@ class QuizzerTest {
         dataDir = TempDirFixture.initDir("quizzerTest").toFile()
     }
 
-    object SelectedLearnerSlot : Query.Find2.Slot
+    object SelectedLearnerSlot : Query.Find.Slot
 
     @Test
     fun happy() {

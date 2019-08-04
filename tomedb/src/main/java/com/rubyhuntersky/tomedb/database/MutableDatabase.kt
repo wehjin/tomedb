@@ -30,34 +30,14 @@ class MutableDatabase(dataDir: File) : Database {
 
     internal fun commit() = datalog.commit()
 
-    operator fun invoke(query: Query): List<Map<String, Value<*>>> {
-        return when (query) {
-            is Query.Find -> find1(query)
-            is Query.Find2 -> find2(query).toLegacy()
-        }
-    }
+    operator fun invoke(init: Query.Find.() -> Unit): List<Map<String, Value<*>>> = this(Query.build(init))
+    operator fun invoke(query: Query): List<Map<String, Value<*>>> = find(query as Query.Find).toLegacy()
 
-    operator fun invoke(init: Query.Find2.() -> Unit): List<Map<String, Value<*>>> = this(
-        Query.Find2(
-            init
-        )
-    )
-
-    private fun find1(query: Query.Find): List<Map<String, Value<*>>> {
-        val (inputs, rules, outputs) = query
-        return find(inputs, outputs, rules)
-    }
-
-    private fun find(inputs: List<Input<*>>?, outputs: List<String>, rules: List<Rule>): List<Map<String, Value<*>>> {
-        val initBinders = inputs?.map(Input<*>::toBinder)
-        return BinderRack(initBinders).stir(outputs, rules, datalog)
-    }
-
-    override fun find2(query: Query.Find2): FindResult {
+    override fun find(query: Query.Find): FindResult {
         val rules = query.rules
         val inputs: List<Input<*>> = rules.mapNotNull {
             when (it) {
-                is Query.Find2.Rule2.SlipValue -> Input(
+                is Query.Find.Rule2.SlipValue -> Input(
                     it.slip.name,
                     it.value
                 )
@@ -66,36 +46,37 @@ class MutableDatabase(dataDir: File) : Database {
         }
         val rules1: List<Rule> = rules.mapNotNull {
             when (it) {
-                is Query.Find2.Rule2.SlotAttrSlot -> Rule.EntityContainsAnyValueAtAttr(
+                is Query.Find.Rule2.SlotAttrSlot -> Rule.EntityContainsAnyValueAtAttr(
                     entityVar = it.eSlot.keywordName,
                     valueVar = it.vSlot.keywordName,
                     attr = it.attr
                 )
-                is Query.Find2.Rule2.SlotAttrValue -> Rule.EntityContainsExactValueAtAttr(
+                is Query.Find.Rule2.SlotAttrValue -> Rule.EntityContainsExactValueAtAttr(
                     entityVar = it.eSlot.keywordName,
                     value = it.value,
                     attr = it.attr
                 )
-                is Query.Find2.Rule2.SlotAttrESlot -> Rule.EntityContainsAnyEntityAtAttr(
+                is Query.Find.Rule2.SlotAttrESlot -> Rule.EntityContainsAnyEntityAtAttr(
                     entityVar = it.eSlot.keywordName,
                     entityValueVar = it.eSlot2.keywordName,
                     attr = it.attr
                 )
-                is Query.Find2.Rule2.SlotAttr -> Rule.EntityContainsAttr(
+                is Query.Find.Rule2.SlotAttr -> Rule.EntityContainsAttr(
                     entityVar = it.slot.keywordName,
                     attr = it.attr
                 )
-                is Query.Find2.Rule2.SlipValue -> null
-                is Query.Find2.Rule2.Slide -> null
+                is Query.Find.Rule2.SlipValue -> null
+                is Query.Find.Rule2.Slide -> null
             }
         }
         val outputs: List<String> = rules.mapNotNull {
             when (it) {
-                is Query.Find2.Rule2.Slide -> it.keywordNames
+                is Query.Find.Rule2.Slide -> it.keywordNames
                 else -> null
             }
         }.flatten()
-        val found = find(if (inputs.isEmpty()) null else inputs, outputs, rules1)
+        val fixedSolvers = (if (inputs.isEmpty()) null else inputs)?.map(Input<*>::toSolver)
+        val found = BinderRack(fixedSolvers).stir(outputs, rules1, datalog)
         return FindResult(found.map(ResultRow.Companion::valueOf))
     }
 

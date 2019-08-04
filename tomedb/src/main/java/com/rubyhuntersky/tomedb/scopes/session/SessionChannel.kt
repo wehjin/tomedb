@@ -25,7 +25,7 @@ data class SessionChannel(
         return resultChannel.receive()
     }
 
-    suspend fun find(query: Query.Find2): FindResult {
+    suspend fun find(query: Query.Find): FindResult {
         val resultChannel = Channel<FindResult>()
         channel.send(SessionMsg.FIND(query, resultChannel))
         return resultChannel.receive()

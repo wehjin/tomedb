@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.Value
 
 sealed class Rule {
     data class EntityContainsAttr(val entityVar: String, val attr: Keyword) : Rule()
@@ -13,7 +14,7 @@ sealed class Rule {
 
 data class Input<T : Any>(val label: String, val value: Value<T>) {
 
-    internal fun toBinder(): Solver<T> = Solver(label, value.valueClass, { listOf(value) }, Solutions.One(value))
+    internal fun toSolver(): Solver<T> = Solver(label, value.valueClass, { listOf(value) }, Solutions.One(value))
 }
 
 sealed class Solutions<out T : Any> {

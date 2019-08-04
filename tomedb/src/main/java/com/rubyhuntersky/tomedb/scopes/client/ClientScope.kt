@@ -32,7 +32,7 @@ interface ClientScope : CoroutineScope {
                     }
                     is SessionMsg.FIND -> {
                         val db = session.checkout()
-                        val result = db.find2(msg.query)
+                        val result = db.find(msg.query)
                         msg.backChannel.send(result)
                         msg.backChannel.close()
                     }

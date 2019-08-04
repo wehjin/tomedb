@@ -18,7 +18,7 @@ sealed class SessionMsg {
     ) : SessionMsg()
 
     data class FIND(
-        val query: Query.Find2,
+        val query: Query.Find,
         val backChannel: Channel<FindResult>
     ) : SessionMsg()
 }
