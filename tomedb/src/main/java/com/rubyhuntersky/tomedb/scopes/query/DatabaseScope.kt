@@ -16,7 +16,7 @@ class DatabaseScope internal constructor(
         Query.Find2(build)
 
     fun slot(name: String): Query.Find2.Slot =
-        Query.Find2.CommonSlot(name)
+        Query.CommonSlot(name)
 
     suspend fun transact(updates: Set<Update>) = sessionTransact(updates)
 

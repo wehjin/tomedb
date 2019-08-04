@@ -13,7 +13,12 @@ import kotlinx.coroutines.Job
 import java.io.File
 import kotlin.coroutines.CoroutineContext
 
-class CounterApplication : Application(), ClientScope, CoroutineScope {
+class CounterApplication : Application(), CoroutineScope, ClientScope {
+
+    private var job = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     override val dbDir: File
         get() = File(filesDir, "tome")
@@ -21,29 +26,27 @@ class CounterApplication : Application(), ClientScope, CoroutineScope {
     override val dbSpec: List<Attribute>
         get() = Counter.values().toList()
 
-    lateinit var conn: SessionChannel
-
-    private var job = Job()
-
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main + job
+    lateinit var sessionChan: SessionChannel
 
     override fun onCreate() {
         super.onCreate()
-        conn = connect {
-            checkoutMutable {
-                val slot = slot("counter")
-                val counter = find { rules = listOf(-slot, slot capture Counter.Count) }().firstOrNull()
-                Log.i(this::class.java.simpleName, "COUNTER: $counter")
-                if (counter == null) {
-                    transact(updates = setOf(Update(1000, Counter.Count, 33())))
-                }
+        sessionChan = clientConnect {
+            val counterCount = Counter.Count().firstOrNull()
+            if (counterCount == null) {
+                Log.i(TAG, "NO COUNTER: Add root instance.")
+                transact(updates = setOf(Update(1000, Counter.Count, 33())))
+            } else {
+                Log.i(TAG, "EXISTING COUNTER: ${counterCount.ent}, COUNT: ${counterCount.valueAsLong()}")
             }
         }
     }
 
     override fun onTerminate() {
-        conn.close()
+        sessionChan.close()
         super.onTerminate()
+    }
+
+    companion object {
+        val TAG: String = CounterApplication::class.java.simpleName
     }
 }

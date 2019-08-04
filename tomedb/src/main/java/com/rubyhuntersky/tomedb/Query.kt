@@ -48,23 +48,26 @@ sealed class Query {
                 results.mapNotNull { it[keywordName] }
 
             operator fun invoke(rows: FindResult): List<Value<*>> = rows(this)
-
-            infix fun capture(attr: Keyword): Rule2.SlotAttr = Rule2.SlotAttr(this, attr)
+            infix fun has(attr: Keyword): Rule2.SlotAttr = Rule2.SlotAttr(this, attr)
             operator fun unaryMinus() = Rule2.Slide(listOf(this.keywordName))
-        }
-
-        data class CommonSlot(override val keywordName: String) : Slot {
-            override fun toString(): String = "Slot/$keywordName"
         }
 
         data class ESlot(override val keywordName: String) : Slot {
             override fun toString(): String = "ESlot/$keywordName"
         }
 
-        infix fun String.has(attr: Keyword): Rule2.SlotAttr = CommonSlot(this).capture(attr)
+        infix fun String.has(attr: Keyword): Rule2.SlotAttr = CommonSlot(this).has(attr)
         operator fun String.unaryPlus() = Slip(this)
         operator fun String.unaryMinus() = Rule2.Slide(listOf(this))
         operator fun String.not() = ESlot(this)
 
+    }
+
+    data class CommonSlot(override val keywordName: String) : Find2.Slot {
+        override fun toString(): String = "Slot/$keywordName"
+    }
+
+    companion object {
+        fun build(init: Find2.() -> Unit): Find2 = Find2(init)
     }
 }

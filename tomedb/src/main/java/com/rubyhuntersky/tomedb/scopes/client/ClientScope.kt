@@ -18,9 +18,9 @@ interface ClientScope : CoroutineScope {
     val dbDir: File
     val dbSpec: List<Attribute>
 
-    fun connect(init: suspend SessionScope.() -> Unit): SessionChannel {
+    fun clientConnect(init: suspend SessionScope.() -> Unit): SessionChannel {
         val channel = Channel<SessionMsg>(10)
-        val job = launch(Dispatchers.IO) {
+        return launch(Dispatchers.IO) {
             val session = Session(dbDir, dbSpec)
             while (true) {
                 when (val msg = channel.receive()) {
@@ -38,9 +38,13 @@ interface ClientScope : CoroutineScope {
                     }
                 }
             }
-        }
-        return SessionChannel(job, channel).also { sessionChannel ->
-            launch(Dispatchers.Main) { init(CommonSessionScope(sessionChannel)) }
+        }.let { job ->
+            SessionChannel(job, channel)
+                .also { sessionChannel ->
+                    launch(Dispatchers.Main) {
+                        init(CommonSessionScope(sessionChannel))
+                    }
+                }
         }
     }
 
