@@ -2,7 +2,7 @@ package com.rubyhuntersky.tomedb.app
 
 import android.app.Application
 import android.util.Log
-import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.basics.invoke
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope

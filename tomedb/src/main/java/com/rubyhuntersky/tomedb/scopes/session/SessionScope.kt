@@ -9,6 +9,13 @@ import com.rubyhuntersky.tomedb.scopes.query.ReadingScope
 @ScopeTagMarker
 interface SessionScope : ReadingScope, WritingScope {
 
+    val sessionChannel: SessionChannel
+
+    override val databaseChannel: DatabaseChannel
+        get() = DatabaseChannel(sessionChannel)
+
+    override suspend fun transact(updates: Set<Update>) = sessionChannel.send(updates)
+
     suspend fun withLiveDb(block: suspend DatabaseScope.() -> Unit) {
         block(DatabaseScope(databaseChannel, ::transact))
     }
@@ -17,12 +24,5 @@ interface SessionScope : ReadingScope, WritingScope {
         val dbScope = DatabaseScope(sessionChannel.checkout(), ::transact)
         block(dbScope)
     }
-
-    override suspend fun transact(updates: Set<Update>) = sessionChannel.send(updates)
-
-    val sessionChannel: SessionChannel
-
-    override val databaseChannel: DatabaseChannel
-        get() = DatabaseChannel(sessionChannel)
 }
 

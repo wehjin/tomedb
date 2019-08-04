@@ -1,10 +1,10 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.Attribute
-import com.rubyhuntersky.tomedb.Cardinality
+import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.Value.LONG
-import com.rubyhuntersky.tomedb.basics.ValueType
+import com.rubyhuntersky.tomedb.attributes.ValueType
 import com.rubyhuntersky.tomedb.basics.invoke
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

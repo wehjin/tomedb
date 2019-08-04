@@ -1,10 +1,11 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.Attribute
-import com.rubyhuntersky.tomedb.Cardinality
+import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.Client
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.attributes.ValueType
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test

@@ -1,7 +1,7 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.Value
-import com.rubyhuntersky.tomedb.basics.ValueType
+import com.rubyhuntersky.tomedb.attributes.ValueType
 import com.rubyhuntersky.tomedb.datalog.Datalog
 
 class BinderRack(initSolvers: List<Solver<*>>?) {

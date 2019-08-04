@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.connection.Session
 import java.io.File
 

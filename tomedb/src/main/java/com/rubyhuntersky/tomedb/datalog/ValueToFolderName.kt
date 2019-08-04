@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.attributes.ValueType
 import java.util.*
 
 internal fun <T : Any> Value<T>.toFolderName(): String {

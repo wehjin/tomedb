@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.quizzer
 
-import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.Client
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.TempDirFixture

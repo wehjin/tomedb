@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.scopes.client
 
-import com.rubyhuntersky.tomedb.Attribute
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.connection.Session
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel

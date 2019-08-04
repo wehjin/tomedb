@@ -1,5 +1,8 @@
-package com.rubyhuntersky.tomedb.basics
+package com.rubyhuntersky.tomedb.attributes
 
+import com.rubyhuntersky.tomedb.basics.AnyValue
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.TagList
 import java.math.BigDecimal
 import java.util.*
 

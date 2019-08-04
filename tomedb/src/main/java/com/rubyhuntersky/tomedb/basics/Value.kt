@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb.basics
 
+import com.rubyhuntersky.tomedb.attributes.ValueType
 import java.math.BigDecimal
 import java.util.*
 
