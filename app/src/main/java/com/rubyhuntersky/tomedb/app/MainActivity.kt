@@ -40,10 +40,9 @@ class MainActivity : AppCompatActivity(), SessionScope, CoroutineScope {
                 var count = counterCount.valueAsLong()!!
                 renderCount(count)
                 for (msg in channel) {
-                    val previous = count
                     when (msg) {
-                        is CounterMsg.Incr -> updateRenderCount(ent, ++count, previous)
-                        is CounterMsg.Decr -> updateRenderCount(ent, --count, previous)
+                        is CounterMsg.Incr -> updateRenderCount(ent, ++count)
+                        is CounterMsg.Decr -> updateRenderCount(ent, --count)
                     }
                 }
             }
@@ -52,8 +51,8 @@ class MainActivity : AppCompatActivity(), SessionScope, CoroutineScope {
         minusButton.setOnClickListener { _ -> counter.offer(CounterMsg.Decr) }
     }
 
-    private suspend fun updateRenderCount(counter: Long, count: Long, previous: Long) {
-        replaceFact(counter, Counter.Count, count, previous)
+    private suspend fun updateRenderCount(counter: Long, count: Long) {
+        assertFact(counter, Counter.Count, count)
         renderCount(count)
     }
 

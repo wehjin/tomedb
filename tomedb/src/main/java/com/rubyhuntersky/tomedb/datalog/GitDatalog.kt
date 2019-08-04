@@ -1,5 +1,7 @@
 package com.rubyhuntersky.tomedb.datalog
 
+import com.rubyhuntersky.tomedb.attributes.Cardinality
+import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.basics.stringToFolderName
@@ -27,10 +29,17 @@ class GitDatalog(private val repoDir: File) : Datalog {
     private val eavtIndexDir = File(repoDir, "eavt").also { it.mkdirs() }
     private var lastAppended: TxnId? = null
 
+    private val cardinalityMap = CardinalityMap()
+
     override fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Fact.Standing): Fact {
+        if (attr.keywordEquals(Scheme.CARDINALITY)) {
+            cardinalityMap[attr] = (standing as? Asserted)
+                ?.let { Cardinality.valueOf(value.toType<Keyword>()) }
+        }
         val txnId = txnIdCounter.txnId
         val eDir = entityDir(eavtIndexDir, entity).also { it.mkdirs() }
         val eaDir = attrDir(eDir, attr).also { it.mkdirs() }
+        if (cardinalityMap[attr] == Cardinality.ONE) eaDir.deleteRecursively()
         val eavDir = valueDir(eaDir, value).also { it.mkdirs() }
         val eavtFile = standingFile(eavDir).apply { writeText("${standing.toContent()}\n") }
         val txnTime = Date(eavtFile.lastModified())
@@ -124,6 +133,7 @@ class GitDatalog(private val repoDir: File) : Datalog {
         }
 
         private fun standingFile(vDir: File) = File(vDir, "standing")
+
         private fun valueDir(aDir: File, value: Value<*>): File {
             val folderName = value.toFolderName()
             return File(aDir, folderName)

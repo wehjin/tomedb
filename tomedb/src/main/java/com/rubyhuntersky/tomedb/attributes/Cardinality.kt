@@ -7,4 +7,8 @@ enum class Cardinality : Keyword {
     MANY;
 
     override fun toString(): String = toKeywordString()
+
+    companion object {
+        fun valueOf(keyword: Keyword): Cardinality = if (keyword.keywordEquals(ONE)) ONE else MANY
+    }
 }

@@ -1,5 +1,7 @@
 package com.rubyhuntersky.tomedb.attributes
 
+import com.rubyhuntersky.tomedb.basics.Keyword
+
 enum class Scheme : Attribute {
 
     NAME {
@@ -25,4 +27,10 @@ enum class Scheme : Attribute {
     };
 
     override fun toString(): String = toKeywordString()
+
+    companion object {
+        val cardinalities: Map<Keyword, Cardinality> = values().associateBy({ it }, { it.cardinality })
+    }
 }
+
+
