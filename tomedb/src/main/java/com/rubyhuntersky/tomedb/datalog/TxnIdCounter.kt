@@ -27,4 +27,8 @@ internal class TxnIdCounter(folder: File) {
         nextHeight++
         file.writeText("$nextHeight\n")
     }
+
+    override fun toString(): String {
+        return "TxnIdCounter(file=$file, nextHeight=$nextHeight)"
+    }
 }

@@ -88,9 +88,9 @@ class GitDatalog(private val repoDir: File) : Datalog {
     override fun isEntityAttrAsserted(entity: Long, attr: Keyword): Boolean =
         valueDirs(entity, attr).map(Companion::isStandingAssertedInDir).fold(false, Boolean::or)
 
-    private var nextTxnId = TxnId(1)
-
-    override fun toString(): String = "Datalog(nextTxnId=$nextTxnId, repoDir=$repoDir)"
+    override fun toString(): String {
+        return "GitDatalog(repoDir=$repoDir, txnIdCounter=$txnIdCounter)"
+    }
 
     companion object {
 
