@@ -1,38 +1,28 @@
 package com.rubyhuntersky.tomedb.scopes.session
 
-import com.rubyhuntersky.tomedb.EntValue
-import com.rubyhuntersky.tomedb.Projection
-import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.Update
-import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
+import com.rubyhuntersky.tomedb.scopes.query.DatabaseChannel
 import com.rubyhuntersky.tomedb.scopes.query.DatabaseScope
+import com.rubyhuntersky.tomedb.scopes.query.ReadingScope
 
 @ScopeTagMarker
-interface SessionScope {
+interface SessionScope : ReadingScope, WritingScope {
 
-    val session: SessionChannel
-
-    suspend fun transact(updates: Set<Update>) = session.send(updates)
-
-    suspend fun withLiveDb(init: suspend DatabaseScope.() -> Unit) {
-        val dbScope = DatabaseScope(session.checkout(), ::transact)
-        init(dbScope)
+    suspend fun withLiveDb(block: suspend DatabaseScope.() -> Unit) {
+        block(DatabaseScope(databaseChannel, ::transact))
     }
 
-    suspend operator fun Keyword.invoke(): Sequence<EntValue<*>> = findAttr(this)
-
-    suspend fun findAttr(attr: Keyword): Sequence<EntValue<*>> {
-        return projectAttr(attr).map(Projection<*>::toEntValue)
+    suspend fun checkoutLatest(block: suspend DatabaseScope.() -> Unit) {
+        val dbScope = DatabaseScope(sessionChannel.checkout(), ::transact)
+        block(dbScope)
     }
 
-    suspend fun projectAttr(attr: Keyword): Sequence<Projection<*>> {
-        val eSlot = Query.CommonSlot("e")
-        val vSlot = Query.CommonSlot("v")
-        val query = Query.build {
-            rules = listOf(-eSlot and vSlot, eSlot has attr eq vSlot)
-        }
-        return session.find(query).toProjections(eSlot, attr, vSlot)
-    }
+    override suspend fun transact(updates: Set<Update>) = sessionChannel.send(updates)
+
+    val sessionChannel: SessionChannel
+
+    override val databaseChannel: DatabaseChannel
+        get() = DatabaseChannel(sessionChannel)
 }
 

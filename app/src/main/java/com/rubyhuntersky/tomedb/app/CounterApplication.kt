@@ -6,10 +6,11 @@ import com.rubyhuntersky.tomedb.Attribute
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.basics.invoke
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
-import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
+import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.coroutines.CoroutineContext
 
@@ -26,23 +27,26 @@ class CounterApplication : Application(), CoroutineScope, ClientScope {
     override val dbSpec: List<Attribute>
         get() = Counter.values().toList()
 
-    lateinit var sessionChan: SessionChannel
+    lateinit var sessionScope: SessionScope
 
     override fun onCreate() {
         super.onCreate()
-        sessionChan = clientConnect {
-            val counterCount = Counter.Count().firstOrNull()
-            if (counterCount == null) {
-                Log.i(TAG, "NO COUNTER: Add root instance.")
-                transact(updates = setOf(Update(1000, Counter.Count, 33())))
-            } else {
-                Log.i(TAG, "EXISTING COUNTER: ${counterCount.ent}, COUNT: ${counterCount.valueAsLong()}")
+        sessionScope = clientConnect()
+        launch {
+            sessionScope.withLiveDb {
+                val counterCount = Counter.Count().firstOrNull()
+                if (counterCount == null) {
+                    Log.i(TAG, "NO COUNTER: Add root instance.")
+                    transact(updates = setOf(Update(1000, Counter.Count, 33())))
+                } else {
+                    Log.i(TAG, "EXISTING COUNTER: ${counterCount.ent}, COUNT: ${counterCount.valueAsLong()}")
+                }
             }
         }
     }
 
     override fun onTerminate() {
-        sessionChan.close()
+        sessionScope.sessionChannel.close()
         super.onTerminate()
     }
 

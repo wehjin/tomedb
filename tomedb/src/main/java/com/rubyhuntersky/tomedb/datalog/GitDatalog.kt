@@ -10,7 +10,6 @@ import org.eclipse.jgit.errors.RepositoryNotFoundException
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
-import kotlin.concurrent.thread
 
 class GitDatalog(private val repoDir: File) : Datalog {
 
@@ -46,11 +45,9 @@ class GitDatalog(private val repoDir: File) : Datalog {
         lastAppended?.let {
             git.add().addFilepattern(".").call()
             val message = "COMMIT: $it"
+            git.commit().setMessage(message).call()
+            git.tag().setName("h${it.height}").call()
             println(message)
-            thread {
-                git.commit().setMessage(message).call()
-                git.tag().setName("h${it.height}").call()
-            }
             lastAppended = null
         }
     }

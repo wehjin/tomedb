@@ -8,7 +8,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.actor
 import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), SessionScope, CoroutineScope {
@@ -18,18 +18,50 @@ class MainActivity : AppCompatActivity(), SessionScope, CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = Main + job
 
-    override val session: SessionChannel
-        get() = (this.application as CounterApplication).sessionChan
+    override val sessionChannel: SessionChannel
+        get() = (application as CounterApplication).sessionScope.sessionChannel
+
+    sealed class CounterMsg {
+        object Incr : CounterMsg()
+        object Decr : CounterMsg()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         this@MainActivity.textView.text = getString(R.string.loading)
-        launch {
+
+        val counter = actor<CounterMsg> {
             val counterCount = Counter.Count().firstOrNull()
-            val count = counterCount?.valueAsLong()
-            val text = count?.let { "$it" } ?: "No counter."
-            this@MainActivity.textView.text = text
+            if (counterCount == null) {
+                renderNoCount()
+            } else {
+                val ent = counterCount.ent
+                var count = counterCount.valueAsLong()!!
+                renderCount(count)
+                for (msg in channel) {
+                    val previous = count
+                    when (msg) {
+                        is CounterMsg.Incr -> updateRenderCount(ent, ++count, previous)
+                        is CounterMsg.Decr -> updateRenderCount(ent, --count, previous)
+                    }
+                }
+            }
         }
+        plusButton.setOnClickListener { _ -> counter.offer(CounterMsg.Incr) }
+        minusButton.setOnClickListener { _ -> counter.offer(CounterMsg.Decr) }
+    }
+
+    private suspend fun updateRenderCount(counter: Long, count: Long, previous: Long) {
+        replaceFact(counter, Counter.Count, count, previous)
+        renderCount(count)
+    }
+
+    private fun renderCount(count: Long) {
+        this@MainActivity.textView.text = "$count"
+    }
+
+    private fun renderNoCount() {
+        this@MainActivity.textView.text = getString(R.string.no_counter)
     }
 }

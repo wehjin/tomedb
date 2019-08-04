@@ -18,12 +18,12 @@ interface ClientScope : CoroutineScope {
     val dbDir: File
     val dbSpec: List<Attribute>
 
-    fun clientConnect(init: suspend SessionScope.() -> Unit): SessionChannel {
+    fun clientConnect(): SessionScope {
         val channel = Channel<SessionMsg>(10)
-        return launch(Dispatchers.IO) {
+        val job = launch(Dispatchers.IO) {
             val session = Session(dbDir, dbSpec)
-            while (true) {
-                when (val msg = channel.receive()) {
+            for (msg in channel) {
+                when (msg) {
                     is SessionMsg.UPDATE -> session.send(msg.updates)
                     is SessionMsg.BATCH -> {
                         val ents = session.transactData(msg.tagLists)
@@ -38,17 +38,11 @@ interface ClientScope : CoroutineScope {
                     }
                 }
             }
-        }.let { job ->
-            SessionChannel(job, channel)
-                .also { sessionChannel ->
-                    launch(Dispatchers.Main) {
-                        init(CommonSessionScope(sessionChannel))
-                    }
-                }
         }
+        return CommonSessionScope(SessionChannel(job, channel))
     }
 
-    private class CommonSessionScope(override val session: SessionChannel) : SessionScope
+    private class CommonSessionScope(override val sessionChannel: SessionChannel) : SessionScope
 }
 
 
