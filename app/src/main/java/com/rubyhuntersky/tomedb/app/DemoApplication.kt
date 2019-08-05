@@ -1,20 +1,16 @@
 package com.rubyhuntersky.tomedb.app
 
 import android.app.Application
-import android.util.Log
-import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.basics.invoke
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.coroutines.CoroutineContext
 
-class CounterApplication : Application(), CoroutineScope, ClientScope {
+class DemoApplication : Application(), CoroutineScope, ClientScope {
 
     private var job = Job()
 
@@ -32,17 +28,6 @@ class CounterApplication : Application(), CoroutineScope, ClientScope {
     override fun onCreate() {
         super.onCreate()
         sessionScope = clientConnect()
-        launch {
-            sessionScope.enter {
-                val counterCount = Counter.Count().firstOrNull()
-                if (counterCount == null) {
-                    Log.i(TAG, "NO COUNTER: Add root instance.")
-                    transact(updates = setOf(Update(1000, Counter.Count, 33())))
-                } else {
-                    Log.i(TAG, "EXISTING COUNTER: ${counterCount.ent}, COUNT: ${counterCount.valueAsLong()}")
-                }
-            }
-        }
     }
 
     override fun onTerminate() {
@@ -51,6 +36,6 @@ class CounterApplication : Application(), CoroutineScope, ClientScope {
     }
 
     companion object {
-        val TAG: String = CounterApplication::class.java.simpleName
+        val TAG: String = DemoApplication::class.java.simpleName
     }
 }
