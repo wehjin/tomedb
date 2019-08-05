@@ -19,7 +19,7 @@ class Session(dataDir: File, spec: List<Attribute>?) {
 
     init {
         spec?.let {
-            val data = it.toNewAttributes().map(Attribute::toTagList)
+            val data = it.toNewAttributes().map(Attribute::toSchemeData)
             transactData(data)
         }
     }

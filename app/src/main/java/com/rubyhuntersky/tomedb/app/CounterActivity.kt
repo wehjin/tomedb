@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.rubyhuntersky.tomedb.basics.Ident
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
-import com.rubyhuntersky.tomedb.scopes.session.SessionScope
+import com.rubyhuntersky.tomedb.scopes.session.ConnectionScope
 import kotlinx.android.synthetic.main.activity_counter.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
@@ -13,7 +13,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.actor
 import kotlin.coroutines.CoroutineContext
 
-class CounterActivity : AppCompatActivity(), SessionScope, CoroutineScope {
+class CounterActivity : AppCompatActivity(), ConnectionScope, CoroutineScope {
 
     private var job: Job = Job()
 
@@ -21,7 +21,7 @@ class CounterActivity : AppCompatActivity(), SessionScope, CoroutineScope {
         get() = Main + job
 
     override val dbSessionChannel: SessionChannel
-        get() = (application as DemoApplication).sessionScope.dbSessionChannel
+        get() = (application as DemoApplication).connectionScope.dbSessionChannel
 
     sealed class ActorMsg {
         object Incr : ActorMsg()

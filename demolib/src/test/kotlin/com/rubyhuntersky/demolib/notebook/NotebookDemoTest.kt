@@ -1,12 +1,12 @@
 package com.rubyhuntersky.demolib.notebook
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-internal class NotebookAppTest {
+internal class NotebookDemoTest {
 
     @Test
     fun demo() {
-        assertTrue(true)
+        val demo = NotebookDemo()
+        demo.run()
     }
 }

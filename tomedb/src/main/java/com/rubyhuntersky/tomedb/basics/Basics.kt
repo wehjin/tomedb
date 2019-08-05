@@ -14,7 +14,9 @@ fun folderNameToString(folderName: String): String = String(b64Decoder.decode(fo
 private val b64Encoder = Base64.getEncoder()
 private val b64Decoder = Base64.getDecoder()
 
+// TODO Remove these?
 operator fun Boolean.invoke(): Value<Boolean> = Value.of(this)
+
 operator fun Long.invoke(): Value<Long> = Value.of(this)
 operator fun Int.invoke(): Value<Long> = Value.of(this.toLong())
 operator fun Keyword.invoke(): Value<Keyword> = Value.of(this)
@@ -40,7 +42,9 @@ infix fun Double.at(keyword: Keyword) = this() at keyword
 infix fun BigDecimal.at(keyword: Keyword) = this() at keyword
 infix fun TagList.at(keyword: Keyword) = this() at keyword
 
+// TODO Remove these too?
 operator fun <T : Any> Keyword.rangeTo(value: Value<T>) = tagOf(value, this)
+
 operator fun Keyword.rangeTo(v: Boolean) = tagOf(v(), this)
 operator fun Keyword.rangeTo(v: Long) = tagOf(v(), this)
 operator fun Keyword.rangeTo(v: Int) = tagOf(v(), this)

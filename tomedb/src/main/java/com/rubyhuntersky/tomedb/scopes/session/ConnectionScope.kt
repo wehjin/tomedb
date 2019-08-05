@@ -7,7 +7,7 @@ import com.rubyhuntersky.tomedb.scopes.query.DatabaseScope
 import com.rubyhuntersky.tomedb.scopes.query.ReadingScope
 
 @ScopeTagMarker
-interface SessionScope : ReadingScope, WritingScope {
+interface ConnectionScope : ReadingScope, WritingScope {
 
     val dbSessionChannel: SessionChannel
 

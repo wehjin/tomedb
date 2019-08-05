@@ -63,7 +63,7 @@ class GitDatalogTest {
     @Test
     fun findMultipleValuesAfterAsserting() {
         val datalog = GitDatalog(folderPath)
-        Counter.COUNTSET.toTagList().forEach { (value, keyword) ->
+        Counter.COUNTSET.toSchemeData().forEach { (value, keyword) ->
             datalog.append(2000, keyword, value)
         }
         datalog.append(1, Counter.COUNTSET, 3())

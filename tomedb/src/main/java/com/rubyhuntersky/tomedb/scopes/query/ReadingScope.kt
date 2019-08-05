@@ -18,8 +18,6 @@ interface ReadingScope {
         return findAttr(attr).filter { it.ent == end }.map(EntValue<*>::value)
     }
 
-    suspend operator fun Keyword.invoke(): Sequence<EntValue<*>> = findAttr(this)
-
     suspend fun findAttr(attr: Keyword): Sequence<EntValue<*>> {
         return projectAttr(attr).map(Projection<*>::toEntValue)
     }

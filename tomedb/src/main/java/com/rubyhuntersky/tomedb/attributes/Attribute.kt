@@ -13,7 +13,7 @@ interface Attribute : Keyword {
     val cardinality: Cardinality
     val description: String
 
-    fun toTagList(): TagList = tagListOf(
+    fun toSchemeData(): TagList = tagListOf(
         Scheme.NAME..this,
         valueType at Scheme.VALUETYPE,
         cardinality at Scheme.CARDINALITY,

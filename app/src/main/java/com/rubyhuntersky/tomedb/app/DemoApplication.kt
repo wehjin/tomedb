@@ -3,7 +3,7 @@ package com.rubyhuntersky.tomedb.app
 import android.app.Application
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
-import com.rubyhuntersky.tomedb.scopes.session.SessionScope
+import com.rubyhuntersky.tomedb.scopes.session.ConnectionScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -23,15 +23,15 @@ class DemoApplication : Application(), CoroutineScope, ClientScope {
     override val dbSpec: List<Attribute>
         get() = Counter.values().toList()
 
-    lateinit var sessionScope: SessionScope
+    lateinit var connectionScope: ConnectionScope
 
     override fun onCreate() {
         super.onCreate()
-        sessionScope = clientConnect()
+        connectionScope = connectToDatabase()
     }
 
     override fun onTerminate() {
-        sessionScope.dbSessionChannel.close()
+        connectionScope.dbSessionChannel.close()
         super.onTerminate()
     }
 
