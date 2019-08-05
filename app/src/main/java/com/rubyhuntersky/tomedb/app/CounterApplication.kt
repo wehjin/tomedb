@@ -2,8 +2,8 @@ package com.rubyhuntersky.tomedb.app
 
 import android.app.Application
 import android.util.Log
-import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.Update
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.invoke
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
@@ -33,7 +33,7 @@ class CounterApplication : Application(), CoroutineScope, ClientScope {
         super.onCreate()
         sessionScope = clientConnect()
         launch {
-            sessionScope.withLiveDb {
+            sessionScope.enter {
                 val counterCount = Counter.Count().firstOrNull()
                 if (counterCount == null) {
                     Log.i(TAG, "NO COUNTER: Add root instance.")

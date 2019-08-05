@@ -16,7 +16,7 @@ interface SessionScope : ReadingScope, WritingScope {
 
     override suspend fun transact(updates: Set<Update>) = sessionChannel.send(updates)
 
-    suspend fun withLiveDb(block: suspend DatabaseScope.() -> Unit) {
+    suspend fun enter(block: suspend DatabaseScope.() -> Unit) {
         block(DatabaseScope(databaseChannel, ::transact))
     }
 

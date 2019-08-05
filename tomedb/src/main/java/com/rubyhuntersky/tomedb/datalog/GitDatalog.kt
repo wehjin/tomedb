@@ -94,9 +94,6 @@ class GitDatalog(private val repoDir: File) : Datalog {
             .map(File::getName).map(::valueOfFolderName)
             .distinct().toList()
 
-    private fun assertedValueAtEntityAttr(entity: Long, attr: Keyword): Value<*>? =
-        entityAttrValues(entity, attr).asSequence().firstOrNull { isEntityAttrValueAsserted(entity, attr, it) }
-
     override fun entityAttrValues(entity: Long, attr: Keyword): List<Value<*>> {
         return valueDirs(entity, attr).map(::valueOfFile)
     }

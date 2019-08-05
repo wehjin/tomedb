@@ -30,9 +30,6 @@ class MutableDatabase(dataDir: File) : Database {
 
     internal fun commit() = datalog.commit()
 
-    operator fun invoke(init: Query.Find.() -> Unit): List<Map<String, Value<*>>> = this(Query.build(init))
-    operator fun invoke(query: Query): List<Map<String, Value<*>>> = find(query as Query.Find).toLegacy()
-
     override fun find(query: Query.Find): FindResult {
         val rules = query.rules
         val inputs: List<Input<*>> = rules.mapNotNull {

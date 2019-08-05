@@ -1,7 +1,8 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.Update
+import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.basics.Value
@@ -17,7 +18,20 @@ class Session(dataDir: File, spec: List<Attribute>?) {
     val mutDb = MutableDatabase(dataDir)
 
     init {
-        spec?.let { transactData(it.map(Attribute::toTagList)) }
+        spec?.let {
+            val data = it.toNewAttributes().map(Attribute::toTagList)
+            transactData(data)
+        }
+    }
+
+    private fun List<Attribute>.toNewAttributes(): List<Attribute> = mapNotNull { attribute ->
+        val nameValue = attribute()
+        if (mutDb.entityExistsWithAttrValue(Scheme.NAME, nameValue)) {
+            attribute
+        } else {
+            println("SKIPPED: Existing attribute: ${attribute.toKeywordString()}")
+            null
+        }
     }
 
     fun send(updates: Set<Update>) {
