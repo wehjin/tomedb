@@ -22,32 +22,32 @@ class IdentTest {
 
     @Test
     fun createFromAttribute() {
-        val ident = Ident.fromAttribute(Counter.COUNT, 0)
+        val ident = Ident.of(Counter.COUNT, 0)
         assertEquals(Ident.Local(Counter.groupName, 0), ident)
     }
 
     @Test
     fun createFromGroup() {
-        val ident = Ident.fromGroup(Counter, 0)
+        val ident = Ident.of(Counter, 0)
         assertEquals(Ident.Local("Counter", 0), ident)
     }
 
     @Test
     fun differentIndexProducesDifferentEnts() {
-        val ident1 = Ident.fromGroup(Counter, 0)
-        val ident2 = Ident.fromGroup(Counter, 1)
+        val ident1 = Ident.of(Counter, 0)
+        val ident2 = Ident.of(Counter, 1)
         assertNotEquals(ident1.toEnt(), ident2.toEnt())
     }
 
     @Test
     fun localProducesDashString() {
-        val ident = Ident.fromGroup(Counter, 0)
+        val ident = Ident.of(Counter, 0)
         assertEquals("Counter-0", ident.toString())
     }
 
     @Test
     fun compositeProducesDotString() {
-        val ident = Ident.fromGroup(Counter, 0).addParent("Parent", 0)
+        val ident = Ident.of(Counter, 0).addParent("Parent", 0)
         assertEquals("Parent-0.Counter-0", ident.toString())
     }
 

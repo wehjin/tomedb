@@ -31,7 +31,7 @@ class DemoApplication : Application(), CoroutineScope, ClientScope {
     }
 
     override fun onTerminate() {
-        sessionScope.sessionChannel.close()
+        sessionScope.dbSessionChannel.close()
         super.onTerminate()
     }
 

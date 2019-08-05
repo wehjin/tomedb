@@ -42,7 +42,7 @@ interface ClientScope : CoroutineScope {
         return CommonSessionScope(SessionChannel(job, channel))
     }
 
-    private class CommonSessionScope(override val sessionChannel: SessionChannel) : SessionScope
+    private class CommonSessionScope(override val dbSessionChannel: SessionChannel) : SessionScope
 }
 
 

@@ -4,11 +4,19 @@ import com.rubyhuntersky.tomedb.EntValue
 import com.rubyhuntersky.tomedb.FindResult
 import com.rubyhuntersky.tomedb.Projection
 import com.rubyhuntersky.tomedb.Query
+import com.rubyhuntersky.tomedb.basics.Ident
 import com.rubyhuntersky.tomedb.basics.Keyword
 
 interface ReadingScope {
 
     val databaseChannel: DatabaseChannel
+
+    suspend operator fun Keyword.invoke(ident: Ident): Any? = findValues(ident, this).firstOrNull()
+
+    suspend fun findValues(ident: Ident, attr: Keyword): Sequence<Any> {
+        val end = ident.toEnt().long
+        return findAttr(attr).filter { it.ent == end }.map(EntValue<*>::value)
+    }
 
     suspend operator fun Keyword.invoke(): Sequence<EntValue<*>> = findAttr(this)
 

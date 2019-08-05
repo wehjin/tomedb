@@ -40,11 +40,11 @@ sealed class Ident {
     }
 
     companion object {
-        fun fromAttribute(attribute: Attribute, index: Long, label: String? = null): Local {
+        fun of(attribute: Attribute, index: Long, label: String? = null): Local {
             return Local(attribute.groupName, index, label)
         }
 
-        fun fromGroup(group: AttributeGroup, index: Long, label: String? = null): Local {
+        fun of(group: AttributeGroup, index: Long, label: String? = null): Local {
             return Local(group.groupName, index, label)
         }
     }

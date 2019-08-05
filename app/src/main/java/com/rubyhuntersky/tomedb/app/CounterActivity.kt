@@ -2,13 +2,14 @@ package com.rubyhuntersky.tomedb.app
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.rubyhuntersky.tomedb.basics.invoke
+import com.rubyhuntersky.tomedb.basics.Ident
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import kotlinx.android.synthetic.main.activity_counter.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.actor
 import kotlin.coroutines.CoroutineContext
 
@@ -19,47 +20,45 @@ class CounterActivity : AppCompatActivity(), SessionScope, CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = Main + job
 
-    override val sessionChannel: SessionChannel
-        get() = (application as DemoApplication).sessionScope.sessionChannel
+    override val dbSessionChannel: SessionChannel
+        get() = (application as DemoApplication).sessionScope.dbSessionChannel
 
-    sealed class CounterMsg {
-        object Incr : CounterMsg()
-        object Decr : CounterMsg()
+    sealed class ActorMsg {
+        object Incr : ActorMsg()
+        object Decr : ActorMsg()
     }
 
+    @ObsoleteCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_counter)
         this@CounterActivity.textView.text = getString(R.string.loading)
 
-        val counter = actor<CounterMsg> {
-            var ent: Long = 1000
-            var count: Long = 33
-            val counterCount = Counter.Count().firstOrNull()
-            if (counterCount == null) {
-                setFact(ent, Counter.Count, count())
-            } else {
-                ent = counterCount.ent
-                count = counterCount.valueAsLong()!!
-            }
-            renderCount(count)
+        val counterIdent = Ident.of(Counter, 0)
+        val actor = actor<ActorMsg> {
+            var count: Long = init(counterIdent)
             for (msg in channel) {
                 when (msg) {
-                    is CounterMsg.Incr -> updateRenderCount(ent, ++count)
-                    is CounterMsg.Decr -> updateRenderCount(ent, --count)
+                    is ActorMsg.Incr -> update(counterIdent, ++count)
+                    is ActorMsg.Decr -> update(counterIdent, --count)
                 }
             }
         }
-        plusButton.setOnClickListener { _ -> counter.offer(CounterMsg.Incr) }
-        minusButton.setOnClickListener { _ -> counter.offer(CounterMsg.Decr) }
+        plusButton.setOnClickListener { _ -> actor.offer(ActorMsg.Incr) }
+        minusButton.setOnClickListener { _ -> actor.offer(ActorMsg.Decr) }
     }
 
-    private suspend fun updateRenderCount(counter: Long, count: Long) {
-        setFact(counter, Counter.Count, count)
-        renderCount(count)
+    private suspend fun init(counterIdent: Ident.Local): Long {
+        val count = Counter.Count(counterIdent) as? Long ?: 42
+        return count.also { render(it) }
     }
 
-    private fun renderCount(count: Long) {
+    private suspend fun update(counterIdent: Ident, newCount: Long) {
+        dbWriteFact(counterIdent, Counter.Count, newCount)
+        render(newCount)
+    }
+
+    private fun render(count: Long) {
         this@CounterActivity.textView.text = "$count"
     }
 }
