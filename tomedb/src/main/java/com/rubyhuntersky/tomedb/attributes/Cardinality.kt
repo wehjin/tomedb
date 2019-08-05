@@ -9,6 +9,6 @@ enum class Cardinality : Keyword {
     override fun toString(): String = toKeywordString()
 
     companion object {
-        fun valueOf(keyword: Keyword): Cardinality = if (keyword.keywordEquals(ONE)) ONE else MANY
+        fun valueOf(keyword: Keyword?): Cardinality = if (MANY.keywordEquals(keyword)) MANY else ONE
     }
 }

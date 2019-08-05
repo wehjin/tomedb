@@ -7,11 +7,10 @@ interface Attribute : Keyword {
     val cardinality: Cardinality
     val description: String
 
-    val tagList: TagList
-        get() = tagListOf(
-            Scheme.NAME..this,
-            valueType at Scheme.VALUETYPE,
-            cardinality at Scheme.CARDINALITY,
-            description at Scheme.DESCRIPTION
-        )
+    fun toTagList(): TagList = tagListOf(
+        Scheme.NAME..this,
+        valueType at Scheme.VALUETYPE,
+        cardinality at Scheme.CARDINALITY,
+        description at Scheme.DESCRIPTION
+    )
 }

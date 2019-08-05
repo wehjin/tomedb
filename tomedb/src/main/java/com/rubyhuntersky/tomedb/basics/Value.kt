@@ -22,6 +22,7 @@ sealed class Value<out T : Any>(val valueType: ValueType) {
     data class DATA(override val v: TagList) : Value<TagList>(ValueType.DATA)
 
     inline fun <reified U : Any> toType(): U = v as U
+    inline fun <reified U : Any> toTypeP(): U? = v as? U
 
     companion object {
         fun <T : Any> of(v: T): Value<T> {

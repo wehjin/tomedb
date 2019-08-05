@@ -17,7 +17,7 @@ class Session(dataDir: File, spec: List<Attribute>?) {
     val mutDb = MutableDatabase(dataDir)
 
     init {
-        spec?.let { transactData(it.map(Attribute::tagList)) }
+        spec?.let { transactData(it.map(Attribute::toTagList)) }
     }
 
     fun send(updates: Set<Update>) {

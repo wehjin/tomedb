@@ -1,7 +1,7 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.basics.*
 import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.basics.*
 import java.util.*
 
 internal fun <T : Any> Value<T>.toFolderName(): String {
@@ -11,7 +11,12 @@ internal fun <T : Any> Value<T>.toFolderName(): String {
 internal fun valueOfFolderName(folderName: String): Value<*> {
     val typeCode = folderName.substring(0, 1)
     val content = folderName.substring(1)
-    val valueType = valueTypeOfTypeCode(typeCode)
+    val valueType =
+        try {
+            valueTypeOfTypeCode(typeCode)
+        } catch (e: Throwable) {
+            error("Bad type code for folder name: $folderName")
+        }
     return valueOfFolderNameWithType(valueType, content)
 }
 

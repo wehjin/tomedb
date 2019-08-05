@@ -1,10 +1,10 @@
 package com.rubyhuntersky.tomedb.datalog
 
+import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
-import com.rubyhuntersky.tomedb.TempDirFixture
-import com.rubyhuntersky.tomedb.basics.Value.LONG
 import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.basics.Value.LONG
 import com.rubyhuntersky.tomedb.basics.invoke
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -25,6 +25,12 @@ class GitDatalogTest {
             override val valueType: ValueType = ValueType.LONG
             override val cardinality: Cardinality = Cardinality.ONE
             override val description: String = "The maximum value of the counter."
+        },
+
+        COUNTSET {
+            override val valueType: ValueType = ValueType.LONG
+            override val cardinality: Cardinality = Cardinality.MANY
+            override val description: String = "A count that accumulates values."
         };
 
         override fun toString(): String = toKeywordString()
@@ -57,8 +63,11 @@ class GitDatalogTest {
     @Test
     fun findMultipleValuesAfterAsserting() {
         val datalog = GitDatalog(folderPath)
-        datalog.append(1, Counter.COUNT, 3())
-        datalog.append(1, Counter.COUNT, 4())
-        assertEquals(2, datalog.entityAttrValues(1, Counter.COUNT).size)
+        Counter.COUNTSET.toTagList().forEach { (value, keyword) ->
+            datalog.append(2000, keyword, value)
+        }
+        datalog.append(1, Counter.COUNTSET, 3())
+        datalog.append(1, Counter.COUNTSET, 4())
+        assertEquals(2, datalog.entityAttrValues(1, Counter.COUNTSET).size)
     }
 }

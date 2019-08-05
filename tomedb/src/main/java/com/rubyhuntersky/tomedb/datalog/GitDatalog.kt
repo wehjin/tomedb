@@ -29,12 +29,37 @@ class GitDatalog(private val repoDir: File) : Datalog {
     private val eavtIndexDir = File(repoDir, "eavt").also { it.mkdirs() }
     private var lastAppended: TxnId? = null
 
-    private val cardinalityMap = CardinalityMap()
+    private val cardinalityMap = CardinalityMap().also { cardMap ->
+        entityDirs().forEach { eDir ->
+            val ent = eDir.name.toLong()
+            val cardinalityValue = entityAttrValues(ent, Scheme.CARDINALITY).firstOrNull()
+            val nameValue = entityAttrValues(ent, Scheme.NAME).firstOrNull()
+            loadCardMap(nameValue, cardinalityValue, cardMap)
+        }
+    }
+
+    private fun loadCardMap(
+        nameValue: Value<*>?,
+        cardinalityValue: Value<*>?,
+        cardMap: CardinalityMap
+    ) {
+        if (cardinalityValue != null && nameValue != null) {
+            val cardKeyword = cardinalityValue.toTypeP<Keyword>()
+            val nameKeyword = nameValue.toTypeP<Keyword>()
+            nameKeyword?.let { cardMap[it] = Cardinality.valueOf(cardKeyword) }
+        }
+    }
 
     override fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Fact.Standing): Fact {
         if (attr.keywordEquals(Scheme.CARDINALITY)) {
-            cardinalityMap[attr] = (standing as? Asserted)
-                ?.let { Cardinality.valueOf(value.toType<Keyword>()) }
+            val nameValue = entityAttrValues(entity, Scheme.NAME).firstOrNull()
+            loadCardMap(nameValue, value, cardinalityMap)
+            println(cardinalityMap.toString())
+        }
+        if (attr.keywordEquals(Scheme.NAME)) {
+            val cardinalityValue = entityAttrValues(entity, Scheme.CARDINALITY).firstOrNull()
+            loadCardMap(value, cardinalityValue, cardinalityMap)
+            println(cardinalityMap.toString())
         }
         val txnId = txnIdCounter.txnId
         val eDir = entityDir(eavtIndexDir, entity).also { it.mkdirs() }
