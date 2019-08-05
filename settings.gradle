@@ -1,1 +1,1 @@
-include ':app', ':tomedb'
+include ':app', ':tomedb', ':demolib'
