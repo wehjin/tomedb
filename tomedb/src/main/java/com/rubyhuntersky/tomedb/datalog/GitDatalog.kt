@@ -29,38 +29,17 @@ class GitDatalog(private val repoDir: File) : Datalog {
     private val eavtIndexDir = File(repoDir, "eavt").also { it.mkdirs() }
     private var lastAppended: TxnId? = null
 
-    private val cardinalityMap = CardinalityMap().also { cardMap ->
+    private val cardinalityMap = CardinalityMap().also {
         entityDirs().forEach { eDir ->
             val ent = eDir.name.toLong()
-            val cardinalityValue = entityAttrValues(ent, Scheme.CARDINALITY).firstOrNull()
-            val nameValue = entityAttrValues(ent, Scheme.NAME).firstOrNull()
-            loadCardMap(nameValue, cardinalityValue, cardMap)
-        }
-    }
-
-    private fun loadCardMap(
-        nameValue: Value<*>?,
-        cardinalityValue: Value<*>?,
-        cardMap: CardinalityMap
-    ) {
-        if (cardinalityValue != null && nameValue != null) {
-            val cardKeyword = cardinalityValue.toTypeP<Keyword>()
-            val nameKeyword = nameValue.toTypeP<Keyword>()
-            nameKeyword?.let { cardMap[it] = Cardinality.valueOf(cardKeyword) }
+            val nameValue = assertedValueAtEntityAttr(ent, Scheme.NAME)
+            val cardinalityValue = assertedValueAtEntityAttr(ent, Scheme.CARDINALITY)
+            it[nameValue] = cardinalityValue
         }
     }
 
     override fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Fact.Standing): Fact {
-        if (attr.keywordEquals(Scheme.CARDINALITY)) {
-            val nameValue = entityAttrValues(entity, Scheme.NAME).firstOrNull()
-            loadCardMap(nameValue, value, cardinalityMap)
-            println(cardinalityMap.toString())
-        }
-        if (attr.keywordEquals(Scheme.NAME)) {
-            val cardinalityValue = entityAttrValues(entity, Scheme.CARDINALITY).firstOrNull()
-            loadCardMap(value, cardinalityValue, cardinalityMap)
-            println(cardinalityMap.toString())
-        }
+        updateCardMap(entity, attr, value, cardinalityMap)
         val txnId = txnIdCounter.txnId
         val eDir = entityDir(eavtIndexDir, entity).also { it.mkdirs() }
         val eaDir = attrDir(eDir, attr).also { it.mkdirs() }
@@ -75,6 +54,7 @@ class GitDatalog(private val repoDir: File) : Datalog {
         }
     }
 
+
     override fun commit() {
         lastAppended?.let {
             git.add().addFilepattern(".").call()
@@ -83,6 +63,17 @@ class GitDatalog(private val repoDir: File) : Datalog {
             git.tag().setName("h${it.height}").call()
             println(message)
             lastAppended = null
+        }
+    }
+
+    private fun updateCardMap(entity: Long, attr: Keyword, value: Value<*>, cardMap: CardinalityMap) {
+        if (attr.keywordEquals(Scheme.CARDINALITY)) {
+            val nameValue = assertedValueAtEntityAttr(entity, Scheme.NAME)
+            cardMap[nameValue] = value
+        }
+        if (attr.keywordEquals(Scheme.NAME)) {
+            val cardinalityValue = assertedValueAtEntityAttr(entity, Scheme.CARDINALITY)
+            cardMap[value] = cardinalityValue
         }
     }
 
@@ -102,6 +93,9 @@ class GitDatalog(private val repoDir: File) : Datalog {
             .filter(Companion::isStandingAssertedInDir)
             .map(File::getName).map(::valueOfFolderName)
             .distinct().toList()
+
+    private fun assertedValueAtEntityAttr(entity: Long, attr: Keyword): Value<*>? =
+        entityAttrValues(entity, attr).asSequence().firstOrNull { isEntityAttrValueAsserted(entity, attr, it) }
 
     override fun entityAttrValues(entity: Long, attr: Keyword): List<Value<*>> {
         return valueDirs(entity, attr).map(::valueOfFile)
