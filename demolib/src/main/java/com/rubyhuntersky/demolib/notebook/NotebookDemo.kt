@@ -5,8 +5,6 @@ import com.rubyhuntersky.tomedb.attributes.AttributeGroup
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
 import com.rubyhuntersky.tomedb.basics.AttrValue
-import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.queryOf
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -57,15 +55,7 @@ class NotebookDemo(
         println("Running with data in: ${dbDir.absoluteFile}")
         val actor = actor<Msg> {
             connScope.enter {
-                val attr: Keyword = Note.CREATED
-                val eSlot = slot("e")
-                val aSlot = slot("a")
-                val vSlot = slot("v")
-                val query = queryOf {
-                    rules = listOf(eSlot has attr, eSlot has aSlot eq vSlot, -eSlot and aSlot and vSlot)
-                }
-                val result = find(query)
-                val notes = result.toProjections(eSlot, aSlot, vSlot)
+                val notes = findFactsByAttrKey(Note.CREATED)
                 println("NOTES: ${notes.toList()}")
             }
             loop@ for (msg in channel) {

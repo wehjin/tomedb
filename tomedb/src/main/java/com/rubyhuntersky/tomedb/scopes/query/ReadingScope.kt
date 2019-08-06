@@ -6,10 +6,22 @@ import com.rubyhuntersky.tomedb.Projection
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.basics.Ident
 import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.queryOf
 
 interface ReadingScope {
 
     val databaseChannel: DatabaseChannel
+
+    suspend fun findFactsByAttrKey(attr: Keyword): Sequence<Projection<Any>> {
+        val eSlot = slot("e")
+        val aSlot = slot("a")
+        val vSlot = slot("v")
+        val query = queryOf {
+            rules = listOf(eSlot has attr, eSlot has aSlot eq vSlot, -eSlot and aSlot and vSlot)
+        }
+        val result = find(query)
+        return result.toProjections(eSlot, aSlot, vSlot)
+    }
 
     suspend operator fun Keyword.invoke(ident: Ident): Any? = findValues(ident, this).firstOrNull()
 
