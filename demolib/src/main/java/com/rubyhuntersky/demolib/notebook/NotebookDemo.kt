@@ -6,10 +6,8 @@ import com.rubyhuntersky.tomedb.attributes.ValueType
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
 import java.io.File
 import java.util.*
@@ -46,6 +44,7 @@ class NotebookDemo(
 
     }
 
+    data class Mdl(val notes: List<Ent>)
 
     sealed class Msg {
         object LIST : Msg()
@@ -56,38 +55,54 @@ class NotebookDemo(
     @ObsoleteCoroutinesApi
     fun run() {
         println("Running with data in: ${dbDir.absoluteFile}")
+        val mdlChan = Channel<Mdl>(10)
         val actor = actor<Msg> {
             connScope.enter {
-                val notes = entsWithAttr(Note.CREATED).toMutableList()
-                this@NotebookDemo.render(notes)
+                var mdl = Mdl(notes = entsWithAttr(Note.CREATED).toList())
+                mdlChan.send(mdl)
                 loop@ for (msg in channel) {
                     when (msg) {
                         Msg.LIST -> Unit
                         is Msg.ADD -> {
                             val date = Date()
                             val text = if (msg.text.isBlank()) "Today is $date" else msg.text
+                            val ent = Ent.of(Note.CREATED, date)
                             val data = mapOf<Keyword, Any>(Note.CREATED to date, Note.TEXT to text)
-                            val facts = data.bindTo(Ent.of(Note.CREATED, date))
+                            val facts = data.bindTo(ent)
                             dbWrite(facts)
-                            notes.add(Ent.of(Note.CREATED, date))
+                            mdl = mdl.copy(notes = mdl.notes + ent)
                         }
                     }
-                    this@NotebookDemo.render(notes)
+                    mdlChan.send(mdl)
                 }
             }
         }
-        while (!actor.isClosedForSend) {
-            val userLine = readLine()!!
-            when {
-                userLine == "list" -> actor.offer(Msg.LIST)
-                userLine.startsWith("add", true) -> actor.offer(Msg.ADD(userLine.substring("add".length).trim()))
-                userLine == "done" -> actor.close()
-                else -> print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
+        runBlocking(coroutineContext) {
+            loop@ while (!mdlChan.isClosedForReceive) {
+                val mdl = mdlChan.receive()
+                print("NOTES: ${mdl.notes}\n> ")
+                tailrec fun readUserAndContinue(): Boolean {
+                    val userLine = readLine()!!
+                    when {
+                        userLine == "done" -> {
+                            actor.close()
+                            return false
+                        }
+                        userLine == "list" -> actor.offer(Msg.LIST)
+                        userLine.startsWith("add", true) -> {
+                            val text = userLine.substring("add".length).trim()
+                            actor.offer(Msg.ADD(text))
+                        }
+                        else -> {
+                            print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
+                            return readUserAndContinue()
+                        }
+                    }
+                    return true
+                }
+                if (!readUserAndContinue()) break@loop
             }
+            println("\nUser has left the building.")
         }
-    }
-
-    private fun render(notes: List<Ent>) {
-        print("NOTES: $notes\n> ")
     }
 }
