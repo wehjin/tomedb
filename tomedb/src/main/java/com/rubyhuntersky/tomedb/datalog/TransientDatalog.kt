@@ -14,6 +14,12 @@ class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : 
     private val eavt =
         mutableMapOf<Long, MutableMap<Keyword, MutableMap<Value<*>, MutableList<Txn>>>>()
 
+    override val ents: Sequence<Long>
+        get() = allEntities.asSequence()
+
+    override val attrs: Sequence<Keyword>
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+
     override val allAssertedValues: List<Value<*>>
         get() = eavt.values.asSequence()
             .map(MutableMap<Keyword, MutableMap<Value<*>, MutableList<Txn>>>::values).flatten()
@@ -25,17 +31,21 @@ class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : 
             .map(MutableMap.MutableEntry<Value<*>, MutableList<Txn>>::key).distinct()
             .toList()
 
-    override fun entityAttrValues(entity: Long, attr: Keyword): List<Value<*>> {
-        return eavt[entity]?.get(attr)?.keys?.toList() ?: emptyList()
+    override fun attrs(entity: Long): Sequence<Value<Keyword>> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun isEntityAttrValueAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean {
+    override fun values(entity: Long, attr: Keyword): Sequence<Value<*>> {
+        return (eavt[entity]?.get(attr)?.keys?.asSequence() ?: emptySequence())
+    }
+
+    override fun isAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean {
         val txns = eavt[entity]?.get(attr)?.get(value)
         val firstTxn = txns?.get(0)
         return firstTxn?.isAsserted ?: false
     }
 
-    override fun isEntityAttrAsserted(entity: Long, attr: Keyword): Boolean {
+    override fun isAsserted(entity: Long, attr: Keyword): Boolean {
         val mapValueToTxnList = eavt[entity]?.get(attr)
         val txnLists = mapValueToTxnList?.values
         val firstTxns = txnLists?.map { it[0] }

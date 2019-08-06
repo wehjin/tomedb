@@ -16,6 +16,7 @@ sealed class Query {
         }
 
         sealed class Rule2 {
+            data class SlotSlotSlot(val eSlot: Slot, val aSlot: Slot, val vSlot: Slot) : Rule2()
             data class SlotAttrValue(val eSlot: Slot, val attr: Keyword, val value: Value<*>) : Rule2()
             data class SlotAttrSlot(val eSlot: Slot, val attr: Keyword, val vSlot: Slot) : Rule2()
             data class SlotAttrESlot(val eSlot: Slot, val attr: Keyword, val eSlot2: ESlot) : Rule2()
@@ -26,6 +27,7 @@ sealed class Query {
                 infix fun eq(eSlot: ESlot): SlotAttrESlot = SlotAttrESlot(this.slot, this.attr, eSlot)
             }
 
+
             data class SlipValue(val slip: Slip, val value: Value<*>) : Rule2()
             data class Slide(val keywordNames: List<String>) : Rule2() {
                 infix fun and(keywordName: String): Slide = Slide(keywordNames + keywordName)
@@ -33,6 +35,9 @@ sealed class Query {
             }
         }
 
+        data class SlotSlot(val eSlot: Slot, val aSlot: Slot) {
+            infix fun eq(vSlot: Slot): Rule2.SlotSlotSlot = Rule2.SlotSlotSlot(eSlot, aSlot, vSlot)
+        }
 
         data class Slip(val name: String) {
             infix fun put(value: Value<*>): Rule2.SlipValue = Rule2.SlipValue(this, value)
@@ -44,6 +49,7 @@ sealed class Query {
 
             operator fun invoke(rows: FindResult): List<Value<*>> = rows(this)
             infix fun has(attr: Keyword): Rule2.SlotAttr = Rule2.SlotAttr(this, attr)
+            infix fun has(aSlot: Slot): SlotSlot = SlotSlot(this, aSlot)
             operator fun unaryMinus() = Rule2.Slide(listOf(this.keywordName))
         }
 

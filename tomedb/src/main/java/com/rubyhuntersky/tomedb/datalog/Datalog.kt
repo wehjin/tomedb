@@ -7,12 +7,17 @@ import com.rubyhuntersky.tomedb.datalog.Fact.Standing
 interface Datalog {
     fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Standing = Standing.Asserted): Fact
     val allEntities: List<Long>
+    val ents: Sequence<Long>
+    val attrs: Sequence<Keyword>
+    val values: Sequence<Value<*>>
+        get() = allAssertedValues.asSequence()
     val allAssertedValues: List<Value<*>>
-    fun entityAttrValues(entity: Long, attr: Keyword): List<Value<*>>
-    fun isEntityAttrValueAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean
-    fun isEntityAttrAsserted(entity: Long, attr: Keyword): Boolean
+    fun values(entity: Long, attr: Keyword): Sequence<Value<*>>
+    fun attrs(entity: Long): Sequence<Value<Keyword>>
+    fun isAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean
+    fun isAsserted(entity: Long, attr: Keyword): Boolean
     fun commit()
 
     fun assertedValueAtEntityAttr(entity: Long, attr: Keyword): Value<*>? =
-        entityAttrValues(entity, attr).asSequence().firstOrNull { isEntityAttrValueAsserted(entity, attr, it) }
+        values(entity, attr).asSequence().firstOrNull { isAsserted(entity, attr, it) }
 }

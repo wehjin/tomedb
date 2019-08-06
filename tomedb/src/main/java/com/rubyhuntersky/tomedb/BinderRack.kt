@@ -1,7 +1,8 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.datalog.Datalog
 
 class BinderRack(initSolvers: List<Solver<*>>?) {
@@ -9,7 +10,7 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
     private val solvers = initSolvers?.associateBy { it.name }?.toMutableMap() ?: mutableMapOf()
 
     fun stir(outputs: List<String>, rules: List<Rule>, datalog: Datalog): List<Map<String, Value<*>>> {
-        shake(rules, datalog, solvers)
+        squeeze(rules, datalog, solvers)
         println("SOLVERS after shake: $solvers")
         val outputSolvers = outputs.map { solvers[it] ?: error("No binder for output $it") }
         val outputBindings = outputSolvers.join(emptyList())
@@ -17,10 +18,10 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
         val checkedOutputBindings = outputBindings
             .filter { outputBinding ->
                 val constrainedBinders = solvers.constrainSolutions(outputBinding)
-                shake(rules, datalog, constrainedBinders)
+                squeeze(rules, datalog, constrainedBinders)
                 val hasSingleSolutionPerOutput = outputBinding.map { (name, _) -> name }
                     .fold(true) { allPreviousBindersHaveOneSolution, name ->
-                        allPreviousBindersHaveOneSolution && constrainedBinders[name]!!.solutions is Solutions.One<*>
+                        allPreviousBindersHaveOneSolution && constrainedBinders[name]!!.possible is Possible.One<*>
                     }
                 hasSingleSolutionPerOutput
             }
@@ -38,7 +39,7 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
             .also {
                 bindings.forEach { (name, value) ->
                     val solver = it[name] ?: error("No binder with name $name.")
-                    it[name] = solver.setSolutions(Solutions.One(value))
+                    it[name] = solver.setPossible(Possible.One(value))
                 }
             }
     }
@@ -62,118 +63,130 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
         }
     }
 
-    private fun shake(rules: List<Rule>, datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
+    private fun squeeze(rules: List<Rule>, datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
         rules.forEach {
             when (it) {
-                is Rule.EntityContainsAttr -> it.shake(datalog, binders)
-                is Rule.EntityContainsExactValueAtAttr -> it.shake(datalog, binders)
-                is Rule.EntityContainsAnyEntityAtAttr -> it.shake(datalog, binders)
-                is Rule.EntityContainsAnyValueAtAttr -> it.shake(datalog, binders)
+                is Rule.SlotAttr -> it.squeeze(datalog, binders)
+                is Rule.SlotAttrValue -> it.squeeze(datalog, binders)
+                is Rule.SlotAttrESlot -> it.squeeze(datalog, binders)
+                is Rule.SlotAttrSlot -> it.squeeze(datalog, binders)
+                is Rule.SlotSlotSlot -> it.squeeze(datalog, binders)
             }
         }
     }
 
-    private fun Rule.EntityContainsAnyValueAtAttr.shake(datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
-        val entityBinder = binders.addSolver(
-            name = entityVar,
-            valueClass = ValueType.LONG.toValueClass(),
-            allSolutions = { datalog.allEntities.map { Value.of(it) } }
-        )
-        val valueBinder = binders.addSolver(
-            name = valueVar,
-            valueClass = ValueType.VALUE.toValueClass(),
-            allSolutions = datalog::allAssertedValues
-        )
-
-        val substitutions = listValuesInSolution(
-            solutions = entityBinder.solutions,
-            allValues = { datalog.allEntities.map { Value.of(it) } }
-        ).map { entity ->
-            listValuesInSolution(
-                solutions = valueBinder.solutions,
-                allValues = {
-                    datalog.entityAttrValues(entity.v, attr)
-                }
-            ).map { value -> Pair(entity, value) }
-        }.flatten()
-            .filter { (entity, value) ->
-                datalog.isEntityAttrValueAsserted(entity.v, attr, value)
+    private fun Rule.SlotSlotSlot.squeeze(datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
+        val entityBinder = addOrFindEntitySolver(this.entityVar, binders, datalog)
+        val attrBinder = addOrFindAttrSolver(attrVar, binders, datalog)
+        val valueBinder = addOrFindValueSolver(this.valueVar, binders, datalog)
+        val ents = listPossible(entityBinder.possible, entityBinder.listAll)
+        val entAttrs = ents.flatMap { entity ->
+            listPossible(attrBinder.possible, listAll = { datalog.attrs(entity.v) }).map { Pair(entity, it) }
+        }
+        val entAttrValues = entAttrs
+            .flatMap { (entity, attr) ->
+                listPossible(valueBinder.possible, listAll = { datalog.values(entity.v, attr.v) })
+                    .map { Triple(entity, attr, it) }
             }
-
+            .filter { (e, a, v) -> datalog.isAsserted(e.v, a.v, v) }
         binders[entityVar] =
-            entityBinder.setSolutions(Solutions.fromList(substitutions.map(Pair<Value<Long>, Value<*>>::first)))
+            entityBinder.setPossible(Possible.fromList(entAttrValues.map(Triple<Value<Long>, Value<Keyword>, Value<Any>>::first)))
+        binders[attrVar] =
+            attrBinder.setPossible(Possible.fromList(entAttrValues.map(Triple<Value<Long>, Value<Keyword>, Value<Any>>::second)))
         binders[valueVar] =
-            valueBinder.setSolutions(Solutions.fromList(substitutions.map(Pair<Value<Long>, Value<*>>::second)))
+            valueBinder.setPossible(Possible.fromList(entAttrValues.map(Triple<Value<Long>, Value<Keyword>, Value<Any>>::third)))
     }
 
-    private fun Rule.EntityContainsAnyEntityAtAttr.shake(
+    private fun Rule.SlotAttrSlot.squeeze(datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
+        val entityBinder = addOrFindEntitySolver(entityVar, binders, datalog)
+        val valueBinder = addOrFindValueSolver(valueVar, binders, datalog)
+        val ents = listPossible(entityBinder.possible, listAll = { datalog.ents.map { Value.of(it) } })
+        val entValues = ents
+            .flatMap { ent ->
+                listPossible(valueBinder.possible, listAll = { datalog.values(ent.v, attr) }).map { Pair(ent, it) }
+            }
+            .filter { (entity, value) -> datalog.isAsserted(entity.v, attr, value) }
+
+        binders[entityVar] =
+            entityBinder.setPossible(Possible.fromList(entValues.map(Pair<Value<Long>, Value<*>>::first)))
+        binders[valueVar] =
+            valueBinder.setPossible(Possible.fromList(entValues.map(Pair<Value<Long>, Value<*>>::second)))
+    }
+
+    private fun Rule.SlotAttrESlot.squeeze(
         datalog: Datalog,
         binders: MutableMap<String, Solver<*>>
     ) {
-        val startBinder = binders.addSolver(
-            name = entityVar,
-            valueClass = ValueType.LONG.toValueClass(),
-            allSolutions = { datalog.allEntities.map { Value.of(it) } }
-        )
-        val endBinder = binders.addSolver(
-            name = entityValueVar,
-            valueClass = ValueType.LONG.toValueClass(),
-            allSolutions = { datalog.allEntities.map { Value.of(it) } }
-        )
+        val startBinder = addOrFindEntitySolver(entityVar, binders, datalog)
+        val endBinder = addOrFindEntitySolver(entityValueVar, binders, datalog)
         val substitutions =
-            listValuesInSolution(
-                solutions = startBinder.solutions,
-                allValues = { datalog.allEntities.map { Value.of(it) } }
-            ).map { start: Value<Long> ->
-                listValuesInSolution(
-                    solutions = endBinder.solutions,
-                    allValues = { datalog.allEntities.map { Value.of(it) } }
-                ).map { end: Value<Long> -> Pair(start, end) }
-            }.flatten()
-                .filter {
-                    datalog.isEntityAttrValueAsserted(it.first.v, attr, it.second)
+            listPossible(startBinder.possible, listAll = { datalog.ents.map { Value.of(it) } })
+                .flatMap { start: Value<Long> ->
+                    listPossible(
+                        possible = endBinder.possible,
+                        listAll = { datalog.ents.map { Value.of(it) } }
+                    ).map { end: Value<Long> -> Pair(start, end) }
                 }
+                .filter { datalog.isAsserted(it.first.v, attr, it.second) }
 
         binders[entityVar] =
-            startBinder.setSolutions(Solutions.fromList(substitutions.map(Pair<Value<Long>, Value<*>>::first)))
+            startBinder.setPossible(Possible.fromList(substitutions.map(Pair<Value<Long>, Value<*>>::first)))
         binders[entityValueVar] =
-            endBinder.setSolutions(Solutions.fromList(substitutions.map(Pair<Value<Long>, Value<*>>::second)))
+            endBinder.setPossible(Possible.fromList(substitutions.map(Pair<Value<Long>, Value<*>>::second)))
     }
 
-    private fun Rule.EntityContainsExactValueAtAttr.shake(datalog: Datalog, solvers: MutableMap<String, Solver<*>>) {
-        val entityBinder = solvers.addSolver(
-            name = entityVar,
-            valueClass = ValueType.LONG.toValueClass(),
-            allSolutions = { datalog.allEntities.map { Value.of(it) } }
+    private fun Rule.SlotAttrValue.squeeze(datalog: Datalog, solvers: MutableMap<String, Solver<*>>) {
+        val entityBinder = addOrFindEntitySolver(entityVar, solvers, datalog)
+        val matches = listPossible(entityBinder.possible, listAll = { datalog.ents.map { Value.of(it) } })
+            .filter { datalog.isAsserted(it.v, attr, this.value) }
+
+        solvers[entityVar] = entityBinder.setPossible(Possible.fromList(matches))
+    }
+
+    private fun Rule.SlotAttr.squeeze(datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
+        val entityBinder = addOrFindEntitySolver(entityVar, binders, datalog)
+        val matches = listPossible(entityBinder.possible, listAll = { datalog.ents.map { Value.of(it) } })
+            .filter { datalog.isAsserted(it.v, attr) }
+
+        solvers[entityVar] = entityBinder.setPossible(Possible.fromList(matches))
+    }
+
+    private fun addOrFindEntitySolver(
+        entityVar: String,
+        binders: MutableMap<String, Solver<*>>,
+        datalog: Datalog
+    ): Solver<Long> = binders.addOrFindSolver(
+        name = entityVar,
+        valueClass = ValueType.LONG.toValueClass(),
+        allSolutions = { datalog.ents.map { Value.of(it) } }
+    )
+
+    private fun addOrFindAttrSolver(
+        attrVar: String,
+        binders: MutableMap<String, Solver<*>>,
+        datalog: Datalog
+    ): Solver<Keyword> = binders.addOrFindSolver(
+        name = attrVar,
+        valueClass = ValueType.ATTR.toValueClass(),
+        allSolutions = { datalog.attrs.map { Value.of(it) } }
+    )
+
+    private fun addOrFindValueSolver(
+        valueVar: String,
+        binders: MutableMap<String, Solver<*>>,
+        datalog: Datalog
+    ): Solver<Any> {
+        return binders.addOrFindSolver(
+            name = valueVar,
+            valueClass = ValueType.VALUE.toValueClass(),
+            allSolutions = datalog::values
         )
-        val matches = listValuesInSolution(
-            solutions = entityBinder.solutions,
-            allValues = { datalog.allEntities.map { Value.of(it) } }
-        ).filter {
-            datalog.isEntityAttrValueAsserted(it.v, attr, this.value)
-        }
-        solvers[entityVar] = entityBinder.setSolutions(Solutions.fromList(matches))
     }
 
-    private fun Rule.EntityContainsAttr.shake(datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
-        val entityBinder = binders.addSolver(
-            name = entityVar,
-            valueClass = ValueType.LONG.toValueClass(),
-            allSolutions = { datalog.allEntities.map { Value.of(it) } }
-        )
-        val matches = listValuesInSolution(
-            solutions = entityBinder.solutions,
-            allValues = { datalog.allEntities.map { Value.of(it) } }
-        ).filter {
-            datalog.isEntityAttrAsserted(it.v, attr)
-        }
-        solvers[entityVar] = entityBinder.setSolutions(Solutions.fromList(matches))
-    }
-
-    private fun <T : Any> MutableMap<String, Solver<*>>.addSolver(
+    private fun <T : Any> MutableMap<String, Solver<*>>.addOrFindSolver(
         name: String,
         valueClass: Class<T>,
-        allSolutions: () -> List<Value<T>>
+        allSolutions: () -> Sequence<Value<T>>
     ): Solver<T> = this[name]
         ?.let {
             check(it.valueClass == valueClass)
@@ -185,12 +198,12 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
         }
 
     private fun <T : Any> listValuesInSolver(solver: Solver<T>) =
-        listValuesInSolution(solver.solutions, allValues = { solver.allSolutions.invoke() })
+        listPossible(solver.possible, listAll = { solver.listAll() })
 
-    private fun <T : Any> listValuesInSolution(
-        solutions: Solutions<T>,
-        allValues: () -> List<Value<T>>
+    private fun <T : Any> listPossible(
+        possible: Possible<T>,
+        listAll: () -> Sequence<Value<T>>
     ): List<Value<T>> {
-        return (if (solutions is Solutions.All) allValues.invoke() else solutions.toList()).distinct()
+        return (if (possible is Possible.All) listAll().toList() else possible.toList()).distinct()
     }
 }

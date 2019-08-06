@@ -26,10 +26,24 @@ data class FindResult(val rows: List<ResultRow>) {
 
     fun toLegacy() = rows.map(ResultRow::toLegacy)
 
-    fun toProjections(eSlot: Query.Find.Slot, attr: Keyword, vSlot: Query.Find.Slot): Sequence<Projection<Any>> =
-        rows.asSequence().map {
-            val ent = it(eSlot).toType<Long>()
-            val value = it(vSlot).v
-            Projection(ent, attr, value)
-        }
+    fun toProjections(
+        eSlot: Query.Find.Slot,
+        attr: Keyword,
+        vSlot: Query.Find.Slot
+    ): Sequence<Projection<Any>> = rows.asSequence().map {
+        val ent = it(eSlot).toType<Long>()
+        val value = it(vSlot).v
+        Projection(ent, attr, value)
+    }
+
+    fun toProjections(
+        eSlot: Query.Find.Slot,
+        aSlot: Query.Find.Slot,
+        vSlot: Query.Find.Slot
+    ): Sequence<Projection<Any>> = rows.asSequence().map {
+        val ent = it(eSlot).toType<Long>()
+        val attr = it(aSlot).toType<Keyword>()
+        val value = it(vSlot).v
+        Projection(ent, attr, value)
+    }
 }

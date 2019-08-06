@@ -57,7 +57,7 @@ class GitDatalogTest {
     @Test
     fun neverAssertedValuesReturnFalseForIsAsserted() {
         val datalog = GitDatalog(folderPath)
-        assertFalse(datalog.isEntityAttrValueAsserted(3, Counter.MAXCOUNT, "Hello"()))
+        assertFalse(datalog.isAsserted(3, Counter.MAXCOUNT, "Hello"()))
     }
 
     @Test
@@ -68,6 +68,6 @@ class GitDatalogTest {
         }
         datalog.append(1, Counter.COUNTSET, 3())
         datalog.append(1, Counter.COUNTSET, 4())
-        assertEquals(2, datalog.entityAttrValues(1, Counter.COUNTSET).size)
+        assertEquals(2, datalog.values(1, Counter.COUNTSET).toList().size)
     }
 }
