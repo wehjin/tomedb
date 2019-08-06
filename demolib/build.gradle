@@ -1,5 +1,9 @@
-apply plugin: 'java-library'
+apply plugin: 'application'
 apply plugin: 'kotlin'
+
+mainClassName = 'com.rubyhuntersky.demolib.notebook.NotebookDemoKt'
+
+defaultTasks 'run'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

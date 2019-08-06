@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
 
@@ -46,4 +47,6 @@ data class FindResult(val rows: List<ResultRow>) {
         val value = it(vSlot).v
         Projection(ent, attr, value)
     }
+
+    fun toEnts(eSlot: Query.Find.Slot): Sequence<Ent> = rows.asSequence().map { it(eSlot).toType<Long>() }.map(::Ent)
 }
