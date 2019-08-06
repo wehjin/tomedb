@@ -51,6 +51,7 @@ sealed class Query {
             infix fun has(attr: Keyword): Rule2.SlotAttr = Rule2.SlotAttr(this, attr)
             infix fun has(aSlot: Slot): SlotSlot = SlotSlot(this, aSlot)
             operator fun unaryMinus() = Rule2.Slide(listOf(this.keywordName))
+            operator fun unaryPlus() = Slip(this.keywordName)
         }
 
         data class ESlot(override val keywordName: String) : Slot {

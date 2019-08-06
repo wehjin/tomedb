@@ -4,10 +4,7 @@ import com.rubyhuntersky.tomedb.EntValue
 import com.rubyhuntersky.tomedb.FindResult
 import com.rubyhuntersky.tomedb.Projection
 import com.rubyhuntersky.tomedb.Query
-import com.rubyhuntersky.tomedb.basics.Ent
-import com.rubyhuntersky.tomedb.basics.Ident
-import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.queryOf
+import com.rubyhuntersky.tomedb.basics.*
 
 interface ReadingScope {
 
@@ -18,17 +15,6 @@ interface ReadingScope {
         val query = queryOf { rules = listOf(-eSlot, eSlot has attr) }
         val result = find(query)
         return result.toEnts(eSlot)
-    }
-
-    suspend fun findFactsByAttrKey(attr: Keyword): Sequence<Projection<Any>> {
-        val eSlot = slot("e")
-        val aSlot = slot("a")
-        val vSlot = slot("v")
-        val query = queryOf {
-            rules = listOf(eSlot has attr, eSlot has aSlot eq vSlot, -eSlot and aSlot and vSlot)
-        }
-        val result = find(query)
-        return result.toProjections(eSlot, aSlot, vSlot)
     }
 
     suspend operator fun Keyword.invoke(ident: Ident): Any? = findValues(ident, this).firstOrNull()
@@ -52,12 +38,27 @@ interface ReadingScope {
         return find(query).toProjections(eSlot, attr, vSlot)
     }
 
+    suspend fun dbRead(ent: Ent): Map<Keyword, *> {
+        val eSlot = slot("e")
+        val aSlot = slot("a")
+        val vSlot = slot("v")
+        val query = queryOf {
+            rules = listOf(
+                +eSlot put Value.of(ent.long),
+                eSlot has aSlot eq vSlot,
+                -aSlot and vSlot
+            )
+        }
+        return find(query).toProjections(ent, aSlot, vSlot).associateBy { it.attr }.mapValues { it.value.value }
+    }
+
     suspend fun find(query: Query.Find): FindResult = databaseChannel.find2(query)
 
     fun query(build: Query.Find.() -> Unit): Query.Find =
         Query.Find(build)
 
     fun slot(name: String): Query.Find.Slot = Query.CommonSlot(name)
+    fun slip(name: String): Query.Find.Slip = Query.Find.Slip(name)
 
     operator fun String.unaryMinus(): Query.Find.Slot = slot(this)
 }

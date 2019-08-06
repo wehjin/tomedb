@@ -3,6 +3,7 @@ package com.rubyhuntersky.demolib.notebook
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.basics.CommonKeyword
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
@@ -62,14 +63,13 @@ class NotebookDemo(
                 mdlChan.send(mdl)
                 loop@ for (msg in channel) {
                     when (msg) {
-                        Msg.LIST -> Unit
+                        is Msg.LIST -> Unit
                         is Msg.ADD -> {
                             val date = Date()
                             val text = if (msg.text.isBlank()) "Today is $date" else msg.text
                             val ent = Ent.of(Note.CREATED, date)
                             val data = mapOf<Keyword, Any>(Note.CREATED to date, Note.TEXT to text)
-                            val facts = data.bindTo(ent)
-                            dbWrite(facts)
+                            dbWrite(data.bindTo(ent))
                             mdl = mdl.copy(notes = mdl.notes + ent)
                         }
                     }
@@ -78,31 +78,47 @@ class NotebookDemo(
             }
         }
         runBlocking(coroutineContext) {
-            loop@ while (!mdlChan.isClosedForReceive) {
-                val mdl = mdlChan.receive()
-                print("NOTES: ${mdl.notes}\n> ")
-                tailrec fun readUserAndContinue(): Boolean {
-                    val userLine = readLine()!!
-                    when {
-                        userLine == "done" -> {
-                            actor.close()
-                            return false
-                        }
-                        userLine == "list" -> actor.offer(Msg.LIST)
-                        userLine.startsWith("add", true) -> {
-                            val text = userLine.substring("add".length).trim()
-                            actor.offer(Msg.ADD(text))
-                        }
-                        else -> {
-                            print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
-                            return readUserAndContinue()
-                        }
+            println("Notebook!")
+            println("=========")
+
+            connScope.enter {
+                loop@ while (!mdlChan.isClosedForReceive) {
+                    val mdl = mdlChan.receive()
+
+                    mdl.notes.forEachIndexed { index, ent ->
+                        val data = dbRead(ent).mapKeys { CommonKeyword(it.key) }
+                        println("----------")
+                        println(index + 1)
+                        val date = data[CommonKeyword(Note.CREATED)]
+                        val text = data[CommonKeyword(Note.TEXT)]
+                        println("Created: $date")
+                        println("Note: $text")
                     }
-                    return true
+                    print("----------\n> ")
+
+                    tailrec fun readUserAndContinue(): Boolean {
+                        val userLine = readLine()!!
+                        when {
+                            userLine == "done" -> {
+                                actor.close()
+                                return false
+                            }
+                            userLine == "list" -> actor.offer(Msg.LIST)
+                            userLine.startsWith("add", true) -> {
+                                val text = userLine.substring("add".length).trim()
+                                actor.offer(Msg.ADD(text))
+                            }
+                            else -> {
+                                print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
+                                return readUserAndContinue()
+                            }
+                        }
+                        return true
+                    }
+                    if (!readUserAndContinue()) break@loop
                 }
-                if (!readUserAndContinue()) break@loop
+                println("\nUser has left the building.")
             }
-            println("\nUser has left the building.")
         }
     }
 }

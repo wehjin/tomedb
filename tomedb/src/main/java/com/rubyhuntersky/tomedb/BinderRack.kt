@@ -11,7 +11,6 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
 
     fun stir(outputs: List<String>, rules: List<Rule>, datalog: Datalog): List<Map<String, Value<*>>> {
         squeeze(rules, datalog, solvers)
-        println("SOLVERS after shake: $solvers")
         val outputSolvers = outputs.map { solvers[it] ?: error("No binder for output $it") }
         val outputBindings = outputSolvers.join(emptyList())
 
