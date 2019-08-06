@@ -89,8 +89,8 @@ class NotebookDemo(
                         val data = dbRead(ent).mapKeys { CommonKeyword(it.key) }
                         println("----------")
                         println(index + 1)
-                        val date = data[CommonKeyword(Note.CREATED)]
-                        val text = data[CommonKeyword(Note.TEXT)]
+                        val date = data[CommonKeyword(Note.CREATED)] as Date
+                        val text = data[CommonKeyword(Note.TEXT)] as String
                         println("Created: $date")
                         println("Note: $text")
                     }
