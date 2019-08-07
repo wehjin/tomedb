@@ -6,8 +6,9 @@ import com.rubyhuntersky.tomedb.Projection
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.scopes.client.DestructuringScope
 
-interface ReadingScope {
+interface ReadingScope : DestructuringScope {
 
     val databaseChannel: DatabaseChannel
 
@@ -40,7 +41,7 @@ interface ReadingScope {
         return find(query).toProjections(eSlot, attr, vSlot)
     }
 
-    suspend fun dbRead(ent: Ent): Map<Keyword, *> {
+    suspend fun dbRead(ent: Ent): Map<Keyword, Any> {
         val eSlot = slot("e")
         val aSlot = slot("a")
         val vSlot = slot("v")
@@ -63,5 +64,4 @@ interface ReadingScope {
     fun slip(name: String): Query.Find.Slip = Query.Find.Slip(name)
 
     operator fun String.unaryMinus(): Query.Find.Slot = slot(this)
-    operator fun Map<Keyword, *>.get(attr: Attribute) = this[attr.attrName]
 }

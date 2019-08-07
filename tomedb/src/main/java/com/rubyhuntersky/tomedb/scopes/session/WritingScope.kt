@@ -26,6 +26,6 @@ interface WritingScope {
 
     suspend fun transact(updates: Set<Update>)
 
-    fun Map<Keyword, Any>.bindTo(ent: Ent): List<Projection<Any>> =
+    fun Map<Keyword, Any>.bind(ent: Ent): List<Projection<Any>> =
         this.entries.map { (attr, value) -> Projection(ent.long, attr, value) }
 }

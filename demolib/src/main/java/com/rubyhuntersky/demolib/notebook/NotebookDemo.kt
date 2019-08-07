@@ -29,7 +29,7 @@ class NotebookDemo(
     override val dbSpec: List<Attribute> = emptyList()
 ) : ClientScope {
 
-    private val connScope = connectToDatabase()
+    private val connectionScope = connectToDatabase()
 
     object Note : AttributeGroup {
 
@@ -46,7 +46,10 @@ class NotebookDemo(
         }
     }
 
-    data class Mdl(val notes: List<Ent>)
+    data class Mdl(
+        val notes: List<Ent>,
+        val details: Map<Ent, Map<Keyword, Any>>
+    )
 
     sealed class Msg {
         object LIST : Msg()
@@ -59,19 +62,22 @@ class NotebookDemo(
         println("Running with data in: ${dbDir.absoluteFile}")
         val mdlChan = Channel<Mdl>(10)
         val actor = actor<Msg> {
-            connScope.enter {
-                var mdl = Mdl(notes = entsWithAttr(Note.CREATED).toList())
+            connectionScope {
+                val notes = entsWithAttr(Note.CREATED).toList()
+                var mdl = Mdl(notes, notes.associateWith { dbRead(it) })
                 mdlChan.send(mdl)
                 loop@ for (msg in channel) {
                     when (msg) {
                         is Msg.LIST -> Unit
                         is Msg.ADD -> {
                             val date = Date()
-                            val text = if (msg.text.isBlank()) "Today is $date" else msg.text
                             val ent = Ent.of(Note.CREATED, date)
-                            val data = mapOf<Keyword, Any>(Note.CREATED to date, Note.TEXT to text)
-                            dbWrite(data.bindTo(ent))
-                            mdl = mdl.copy(notes = mdl.notes + ent)
+                            val data = mapOf<Keyword, Any>(
+                                Note.CREATED to date,
+                                Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
+                            )
+                            dbWrite(data.bind(ent))
+                            mdl = mdl.copy(notes = mdl.notes + ent, details = mdl.details + mapOf(ent to data))
                         }
                     }
                     mdlChan.send(mdl)
@@ -81,45 +87,40 @@ class NotebookDemo(
         runBlocking(coroutineContext) {
             println("Notebook!")
             println("=========")
-
-            connScope.enter {
-                loop@ while (!mdlChan.isClosedForReceive) {
-                    val mdl = mdlChan.receive()
-
-                    mdl.notes.forEachIndexed { index, ent ->
-                        val data = dbRead(ent)
-                        println("----------")
-                        println(index + 1)
-                        val date = data[Note.CREATED] as Date
-                        val text = data[Note.TEXT] as String
-                        println("Created: $date")
-                        println("Note: $text")
-                    }
-                    print("----------\n> ")
-
-                    tailrec fun readUserAndContinue(): Boolean {
-                        val userLine = readLine()!!
-                        when {
-                            userLine == "done" -> {
-                                actor.close()
-                                return false
-                            }
-                            userLine == "list" -> actor.offer(Msg.LIST)
-                            userLine.startsWith("add", true) -> {
-                                val text = userLine.substring("add".length).trim()
-                                actor.offer(Msg.ADD(text))
-                            }
-                            else -> {
-                                print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
-                                return readUserAndContinue()
-                            }
-                        }
-                        return true
-                    }
-                    if (!readUserAndContinue()) break@loop
+            loop@ while (!mdlChan.isClosedForReceive) {
+                val mdl = mdlChan.receive()
+                mdl.notes.forEachIndexed { index, ent ->
+                    println("----------")
+                    println(index + 1)
+                    val data = mdl.details[ent] ?: error("No details for $ent")
+                    val date = data[Note.CREATED] as Date
+                    val text = data[Note.TEXT] as String
+                    println("Created: $date")
+                    println("Note: $text")
                 }
-                println("\nUser has left the building.")
+                print("----------\n> ")
+                tailrec fun readUserAndContinue(): Boolean {
+                    val userLine = readLine()!!
+                    when {
+                        userLine == "done" -> {
+                            actor.close()
+                            return false
+                        }
+                        userLine == "list" -> actor.offer(Msg.LIST)
+                        userLine.startsWith("add", true) -> {
+                            val text = userLine.substring("add".length).trim()
+                            actor.offer(Msg.ADD(text))
+                        }
+                        else -> {
+                            print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
+                            return readUserAndContinue()
+                        }
+                    }
+                    return true
+                }
+                if (!readUserAndContinue()) break@loop
             }
+            println("\nUser has left the building.")
         }
     }
 }
