@@ -16,8 +16,8 @@ interface ConnectionScope : ReadingScope, WritingScope {
 
     override suspend fun transact(updates: Set<Update>) = dbSessionChannel.send(updates)
 
-    suspend operator fun invoke(block: suspend DatabaseScope.() -> Unit) {
-        block(DatabaseScope(databaseChannel, ::transact))
+    suspend operator fun <T> invoke(block: suspend DatabaseScope.() -> T): T {
+        return block(DatabaseScope(databaseChannel, ::transact))
     }
 
     suspend fun checkoutLatest(block: suspend DatabaseScope.() -> Unit) {

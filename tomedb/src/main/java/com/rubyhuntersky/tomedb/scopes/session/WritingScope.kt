@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb.scopes.session
 
 import com.rubyhuntersky.tomedb.Projection
 import com.rubyhuntersky.tomedb.Update
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Ident
 import com.rubyhuntersky.tomedb.basics.Keyword
@@ -9,8 +10,14 @@ import com.rubyhuntersky.tomedb.basics.Value
 
 interface WritingScope {
 
-    suspend fun <T : Any> dbSetFact(ent: Long, attr: Keyword, v: T) {
-        val update = Update(ent, attr, Value.of(v))
+    suspend fun <T : Any> dbClear(ent: Long, attr: Attribute, v: T) = dbSet(ent, attr, v, false)
+    suspend fun <T : Any> dbClear(ent: Long, attr: Keyword, v: T) = dbSet(ent, attr, v, false)
+
+    suspend fun <T : Any> dbSet(ent: Long, attr: Attribute, v: T, assert: Boolean = true) =
+        dbSet(ent, attr.attrName, v, assert)
+
+    suspend fun <T : Any> dbSet(ent: Long, attr: Keyword, v: T, assert: Boolean = true) {
+        val update = Update(ent, attr, Value.of(v), Update.Action.valueOf(assert))
         transact(setOf(update))
     }
 

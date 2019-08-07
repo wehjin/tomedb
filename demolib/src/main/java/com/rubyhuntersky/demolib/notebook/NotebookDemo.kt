@@ -9,6 +9,7 @@ import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
 import java.io.File
 import java.util.*
@@ -54,6 +55,7 @@ class NotebookDemo(
     sealed class Msg {
         object LIST : Msg()
         data class ADD(val text: String) : Msg()
+        data class DROP(val index: Int) : Msg()
     }
 
     @ExperimentalCoroutinesApi
@@ -62,65 +64,95 @@ class NotebookDemo(
         println("Running with data in: ${dbDir.absoluteFile}")
         val mdlChan = Channel<Mdl>(10)
         val actor = actor<Msg> {
-            connectionScope {
-                val notes = entsWithAttr(Note.CREATED).toList()
-                var mdl = Mdl(notes, notes.associateWith { dbRead(it) })
+            var mdl = initMdl()
+            mdlChan.send(mdl)
+            loop@ for (msg in channel) {
+                updateMdl(mdl, msg)?.let { mdl = it }
                 mdlChan.send(mdl)
-                loop@ for (msg in channel) {
-                    when (msg) {
-                        is Msg.LIST -> Unit
-                        is Msg.ADD -> {
-                            val date = Date()
-                            val ent = Ent.of(Note.CREATED, date)
-                            val data = mapOf<Keyword, Any>(
-                                Note.CREATED to date,
-                                Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
-                            )
-                            dbWrite(data.bind(ent))
-                            mdl = mdl.copy(notes = mdl.notes + ent, details = mdl.details + mapOf(ent to data))
-                        }
-                    }
-                    mdlChan.send(mdl)
-                }
             }
         }
         runBlocking(coroutineContext) {
-            println("Notebook!")
-            println("=========")
-            loop@ while (!mdlChan.isClosedForReceive) {
-                val mdl = mdlChan.receive()
-                mdl.notes.forEachIndexed { index, ent ->
-                    println("----------")
-                    println(index + 1)
-                    val data = mdl.details[ent] ?: error("No details for $ent")
-                    val date = data[Note.CREATED] as Date
-                    val text = data[Note.TEXT] as String
-                    println("Created: $date")
-                    println("Note: $text")
-                }
-                print("----------\n> ")
-                tailrec fun readUserAndContinue(): Boolean {
-                    val userLine = readLine()!!
-                    when {
-                        userLine == "done" -> {
-                            actor.close()
-                            return false
-                        }
-                        userLine == "list" -> actor.offer(Msg.LIST)
-                        userLine.startsWith("add", true) -> {
-                            val text = userLine.substring("add".length).trim()
-                            actor.offer(Msg.ADD(text))
-                        }
-                        else -> {
-                            print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
-                            return readUserAndContinue()
-                        }
-                    }
-                    return true
-                }
-                if (!readUserAndContinue()) break@loop
-            }
-            println("\nUser has left the building.")
+            renderMdl(mdlChan, actor)
         }
+    }
+
+    private suspend fun initMdl(): Mdl {
+        val notes = connectionScope { entsWithAttr(Note.CREATED).toList() }
+        return Mdl(notes, connectionScope { notes.associateWith { dbRead(it) } })
+    }
+
+    private suspend fun updateMdl(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
+        is Msg.LIST -> null
+        is Msg.ADD -> {
+            val date = Date()
+            val ent = Ent.of(Note.CREATED, date)
+            val data = mapOf<Keyword, Any>(
+                Note.CREATED to date,
+                Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
+            )
+            connectionScope { dbWrite(data.bind(ent)) }
+            val newNotes = mdl.notes + ent
+            val newDetails = mdl.details + mapOf(ent to data)
+            mdl.copy(notes = newNotes, details = newDetails)
+        }
+        is Msg.DROP -> {
+            if (msg.index >= 0 && msg.index < mdl.notes.size) {
+                val ent = mdl.notes[msg.index]
+                val date = mdl.details[ent]?.get(Note.CREATED) as Date
+                connectionScope { dbClear(ent.long, Note.CREATED.attrName, date) }
+                val newNotes = mdl.notes - ent
+                val newDetails = mdl.details.minus(ent)
+                mdl.copy(notes = newNotes, details = newDetails)
+            } else null
+        }
+    }
+
+    @ExperimentalCoroutinesApi
+    private suspend fun renderMdl(mdlChan: Channel<Mdl>, actor: SendChannel<Msg>) {
+        println("Notebook!")
+        println("=========")
+        loop@ while (!mdlChan.isClosedForReceive) {
+            val mdl = mdlChan.receive()
+            mdl.notes.forEachIndexed { index, ent ->
+                println("----------")
+                println(index + 1)
+                val data = mdl.details[ent] ?: error("No details for $ent")
+                val date = data[Note.CREATED] as Date
+                val text = data[Note.TEXT] as String
+                println("Created: $date")
+                println("Note: $text")
+            }
+            if (mdl.notes.isNotEmpty()) {
+                print("----------\n> ")
+            } else {
+                print("--- EMPTY ---\n> ")
+            }
+            tailrec fun readUserAndContinue(): Boolean {
+                val userLine = readLine()!!
+                when {
+                    userLine == "list" -> actor.offer(Msg.LIST)
+                    userLine.startsWith("add", true) -> {
+                        val text = userLine.substring("add".length).trim()
+                        actor.offer(Msg.ADD(text))
+                    }
+                    userLine.startsWith("drop", true) -> {
+                        val number = userLine.substring("drop".length).trim().toIntOrNull()
+                        val index = number?.let { it - 1 } ?: 0
+                        actor.offer(Msg.DROP(index))
+                    }
+                    userLine == "done" -> {
+                        actor.close()
+                        return false
+                    }
+                    else -> {
+                        print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
+                        return readUserAndContinue()
+                    }
+                }
+                return true
+            }
+            if (!readUserAndContinue()) break@loop
+        }
+        println("\nUser has left the building.")
     }
 }
