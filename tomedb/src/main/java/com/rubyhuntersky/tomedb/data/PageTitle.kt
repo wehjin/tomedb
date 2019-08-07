@@ -7,4 +7,4 @@ import com.rubyhuntersky.tomedb.basics.Ent
  * found to be described by the topic. When a tome is created from
  * a topic, the pages in the tome are indexed by title.
  */
-data class Title(val ent: Ent, val topic: Topic)
+data class PageTitle(val ent: Ent, val tomeTopic: TomeTopic)

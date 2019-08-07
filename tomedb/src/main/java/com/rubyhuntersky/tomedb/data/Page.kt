@@ -11,13 +11,13 @@ import com.rubyhuntersky.tomedb.basics.Keyword
  */
 typealias Page = Map<Keyword, Any>
 
-val Page.pageTitle: Title
-    get() = this[pageTitleKeyword] as Title
+val Page.pageTitle: PageTitle
+    get() = this[pageTitleKeyword] as PageTitle
 
 inline operator fun <reified T : Any> Page.invoke(attr: Attribute): T = this[attr.attrName] as T
 
-fun pageOf(title: Title, lines: List<Line<Any>>): Page {
-    return lines.associate { it } + mapOf(pageTitleKeyword to title)
+fun pageOf(pageTitle: PageTitle, lines: Set<Line<Any>>): Page {
+    return lines.associate { it } + mapOf(pageTitleKeyword to pageTitle)
 }
 
 private val pageTitleKeyword = Keyword("Db.Page", "Title")

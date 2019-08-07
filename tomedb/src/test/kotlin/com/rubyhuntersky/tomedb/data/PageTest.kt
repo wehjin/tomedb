@@ -11,14 +11,14 @@ class PageTest {
         val citizen17 = Citizen.toEnt(17)
 
         val citizen17Page = pageOf(
-            Title(citizen17, Topic.Parent(norway, Citizen.Country)),
-            listOf(
+            PageTitle(citizen17, TomeTopic.Parent(norway, Citizen.Country)),
+            setOf(
                 Citizen.Country to norway,
                 Citizen.FullName to "Benjy"
             )
         )
         assertEquals(
-            Title(citizen17, Topic.Parent(norway, Citizen.Country)),
+            PageTitle(citizen17, TomeTopic.Parent(norway, Citizen.Country)),
             citizen17Page.pageTitle
         )
         assertEquals(
