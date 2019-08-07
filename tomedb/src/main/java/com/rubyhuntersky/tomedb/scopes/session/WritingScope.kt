@@ -1,6 +1,6 @@
 package com.rubyhuntersky.tomedb.scopes.session
 
-import com.rubyhuntersky.tomedb.Projection
+import com.rubyhuntersky.tomedb.data.Projection
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Ent

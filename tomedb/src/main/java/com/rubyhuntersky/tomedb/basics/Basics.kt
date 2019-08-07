@@ -29,8 +29,6 @@ operator fun AnyValue.invoke(): Value<AnyValue> = Value.of(this)
 operator fun <T : Any> Value<T>.invoke(): Value<AnyValue> = Value.of(AnyValue(this))
 operator fun TagList.invoke(): Value<TagList> = Value.of(this)
 
-data class AttrValue<T : Any>(val attr: Keyword, val value: T)
-
 data class Tag<T : Any>(val value: Value<T>, val keyword: Keyword)
 
 fun <T : Any> tagOf(value: Value<T>, keyword: Keyword) = Tag(value, keyword)

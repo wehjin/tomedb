@@ -3,6 +3,7 @@ package com.rubyhuntersky.tomedb
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.data.Projection
 
 data class ResultRow(val row: Map<Query.Find.Slot, Value<*>>) {
 

@@ -2,7 +2,7 @@ package com.rubyhuntersky.tomedb.scopes.query
 
 import com.rubyhuntersky.tomedb.EntValue
 import com.rubyhuntersky.tomedb.FindResult
-import com.rubyhuntersky.tomedb.Projection
+import com.rubyhuntersky.tomedb.data.Projection
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.*
