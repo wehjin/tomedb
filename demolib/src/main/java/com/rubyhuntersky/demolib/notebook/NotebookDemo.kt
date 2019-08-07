@@ -62,17 +62,17 @@ class NotebookDemo(
     @ObsoleteCoroutinesApi
     fun run() {
         println("Running with data in: ${dbDir.absoluteFile}")
-        val mdlChan = Channel<Mdl>(10)
+        val mdls = Channel<Mdl>(10)
         val actor = actor<Msg> {
             var mdl = initMdl()
-            mdlChan.send(mdl)
+            mdls.send(mdl)
             loop@ for (msg in channel) {
                 updateMdl(mdl, msg)?.let { mdl = it }
-                mdlChan.send(mdl)
+                mdls.send(mdl)
             }
         }
         runBlocking(coroutineContext) {
-            renderMdl(mdlChan, actor)
+            renderMdl(mdls, actor)
         }
     }
 
@@ -108,11 +108,11 @@ class NotebookDemo(
     }
 
     @ExperimentalCoroutinesApi
-    private suspend fun renderMdl(mdlChan: Channel<Mdl>, actor: SendChannel<Msg>) {
+    private suspend fun renderMdl(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
         println("Notebook!")
         println("=========")
-        loop@ while (!mdlChan.isClosedForReceive) {
-            val mdl = mdlChan.receive()
+        loop@ while (!mdls.isClosedForReceive) {
+            val mdl = mdls.receive()
             mdl.notes.forEachIndexed { index, ent ->
                 println("----------")
                 println(index + 1)
