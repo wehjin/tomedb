@@ -5,26 +5,21 @@ import org.junit.Test
 
 class PageTest {
 
+    private val norway = Norway.toEnt(0)
+    private val citizen17 = Citizen.toEnt(17)
+
     @Test
     fun composeFromTitleAndLines() {
-        val norway = Norway.toEnt(0)
-        val citizen17 = Citizen.toEnt(17)
-
-        val citizen17Page = pageOf(
-            PageTitle(citizen17, TomeTopic.Parent(norway, Citizen.Country)),
-            setOf(
+        val topic = TomeTopic.Parent(norway, Citizen.Country)
+        val page = pageOf(
+            title = PageTitle.Child(citizen17, topic),
+            lines = setOf(
                 Citizen.Country to norway,
                 Citizen.FullName to "Benjy"
             )
         )
-        assertEquals(
-            PageTitle(citizen17, TomeTopic.Parent(norway, Citizen.Country)),
-            citizen17Page.pageTitle
-        )
-        assertEquals(
-            norway,
-            citizen17Page(Citizen.Country)
-        )
-        assertEquals("Benjy", citizen17Page(Citizen.FullName))
+        assertEquals(PageTitle.Child(citizen17, topic), page.pageTitle)
+        assertEquals(norway, page(Citizen.Country))
+        assertEquals("Benjy", page(Citizen.FullName))
     }
 }

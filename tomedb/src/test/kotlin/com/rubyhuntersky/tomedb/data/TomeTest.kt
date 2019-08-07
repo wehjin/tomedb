@@ -11,15 +11,15 @@ class TomeTest {
         val citizen17 = Citizen.toEnt(17)
 
         val topic = TomeTopic.Parent(norway, Citizen.Country)
-        val page = pageOf(
-            PageTitle(citizen17, topic),
-            setOf(
+        val page1 = pageOf(
+            title = PageTitle.Child(citizen17, topic),
+            lines = setOf(
                 Citizen.Country to norway,
                 Citizen.FullName to "Benjy"
             )
         )
-        val tome = tomeOf(setOf(page))
+        val tome = tomeOf(setOf(page1))
         assertEquals(topic, tome.tomeTopic)
-        assertEquals(page, tome(tome.pageTitles.first()))
+        assertEquals(page1, tome(tome.pageTitles.first()))
     }
 }

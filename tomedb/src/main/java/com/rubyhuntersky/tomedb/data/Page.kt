@@ -16,8 +16,8 @@ val Page.pageTitle: PageTitle
 
 inline operator fun <reified T : Any> Page.invoke(attr: Attribute): T = this[attr.attrName] as T
 
-fun pageOf(pageTitle: PageTitle, lines: Set<Line<Any>>): Page {
-    return lines.associate { it } + mapOf(pageTitleKeyword to pageTitle)
+fun pageOf(title: PageTitle, lines: Set<Line<Any>>): Page {
+    return lines.associate { it } + mapOf(pageTitleKeyword to title)
 }
 
 private val pageTitleKeyword = Keyword("Db.Page", "Title")

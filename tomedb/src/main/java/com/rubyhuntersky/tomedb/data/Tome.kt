@@ -10,7 +10,7 @@ val Tome.pageTitles
     get() = this.keys.asSequence()
 
 val Tome.tomeTopic: TomeTopic?
-    get() = this.pageTitles.firstOrNull()?.tomeTopic
+    get() = this.pageTitles.firstOrNull()?.topic
 
 operator fun Tome.invoke(pageTitle: PageTitle): Page = this[pageTitle] ?: error("No title in tome: $pageTitle")
 
