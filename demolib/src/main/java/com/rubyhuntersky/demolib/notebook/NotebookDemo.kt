@@ -1,9 +1,9 @@
 package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.AttributeGroup
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.basics.CommonKeyword
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
@@ -31,18 +31,19 @@ class NotebookDemo(
 
     private val connScope = connectToDatabase()
 
-    enum class Note : Attribute {
-        CREATED {
+    object Note : AttributeGroup {
+
+        object CREATED : Attribute {
             override val valueType: ValueType = ValueType.INSTANT
             override val cardinality: Cardinality = Cardinality.ONE
             override val description: String = "The instant a note was created."
-        },
-        TEXT {
+        }
+
+        object TEXT : Attribute {
             override val valueType: ValueType = ValueType.STRING
             override val cardinality: Cardinality = Cardinality.ONE
             override val description: String = "The text of the note."
-        };
-
+        }
     }
 
     data class Mdl(val notes: List<Ent>)
@@ -86,11 +87,11 @@ class NotebookDemo(
                     val mdl = mdlChan.receive()
 
                     mdl.notes.forEachIndexed { index, ent ->
-                        val data = dbRead(ent).mapKeys { CommonKeyword(it.key) }
+                        val data = dbRead(ent)
                         println("----------")
                         println(index + 1)
-                        val date = data[CommonKeyword(Note.CREATED)] as Date
-                        val text = data[CommonKeyword(Note.TEXT)] as String
+                        val date = data[Note.CREATED] as Date
+                        val text = data[Note.TEXT] as String
                         println("Created: $date")
                         println("Note: $text")
                     }

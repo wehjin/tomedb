@@ -4,12 +4,14 @@ import com.rubyhuntersky.tomedb.EntValue
 import com.rubyhuntersky.tomedb.FindResult
 import com.rubyhuntersky.tomedb.Projection
 import com.rubyhuntersky.tomedb.Query
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.*
 
 interface ReadingScope {
 
     val databaseChannel: DatabaseChannel
 
+    suspend fun entsWithAttr(attr: Attribute): Sequence<Ent> = entsWithAttr(attr.attrName)
     suspend fun entsWithAttr(attr: Keyword): Sequence<Ent> {
         val eSlot = slot("e")
         val query = queryOf { rules = listOf(-eSlot, eSlot has attr) }
@@ -61,4 +63,5 @@ interface ReadingScope {
     fun slip(name: String): Query.Find.Slip = Query.Find.Slip(name)
 
     operator fun String.unaryMinus(): Query.Find.Slot = slot(this)
+    operator fun Map<Keyword, *>.get(attr: Attribute) = this[attr.attrName]
 }

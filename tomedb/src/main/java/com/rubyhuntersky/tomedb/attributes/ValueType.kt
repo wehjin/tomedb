@@ -6,7 +6,7 @@ import com.rubyhuntersky.tomedb.basics.TagList
 import java.math.BigDecimal
 import java.util.*
 
-enum class ValueType(val typeId: Int) : Keyword {
+enum class ValueType(val typeId: Int) {
     BOOLEAN(1),
     LONG(2),
     STRING(3),
@@ -16,6 +16,9 @@ enum class ValueType(val typeId: Int) : Keyword {
     BIGDEC(7),
     VALUE(8),
     DATA(9);
+
+    val keyword: Keyword
+            by lazy { Keyword(this.name, ValueType::class.java.simpleName) }
 
     fun <T> toValueClass(): Class<T> {
         @Suppress("UNCHECKED_CAST")

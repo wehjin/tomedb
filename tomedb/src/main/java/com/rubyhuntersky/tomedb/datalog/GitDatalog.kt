@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.basics.Keyword
@@ -31,8 +32,8 @@ class GitDatalog(private val repoDir: File) : Datalog {
     private val cardinalityMap = CardinalityMap().also {
         entDirs().forEach { eDir ->
             val ent = eDir.name.toLong()
-            val nameValue = assertedValueAtEntityAttr(ent, Scheme.NAME)
-            val cardinalityValue = assertedValueAtEntityAttr(ent, Scheme.CARDINALITY)
+            val nameValue = assertedValueAtEntityAttr(ent, Scheme.NAME.attrName)
+            val cardinalityValue = assertedValueAtEntityAttr(ent, Scheme.CARDINALITY.attrName)
             it[nameValue] = cardinalityValue
         }
     }
@@ -66,12 +67,12 @@ class GitDatalog(private val repoDir: File) : Datalog {
     }
 
     private fun updateCardMap(entity: Long, attr: Keyword, value: Value<*>, cardMap: CardinalityMap) {
-        if (attr.keywordEquals(Scheme.CARDINALITY)) {
-            val nameValue = assertedValueAtEntityAttr(entity, Scheme.NAME)
+        if (attr == Scheme.CARDINALITY.attrName) {
+            val nameValue = assertedValueAtEntityAttr(entity, Scheme.NAME.attrName)
             cardMap[nameValue] = value
         }
-        if (attr.keywordEquals(Scheme.NAME)) {
-            val cardinalityValue = assertedValueAtEntityAttr(entity, Scheme.CARDINALITY)
+        if (attr == Scheme.NAME.attrName) {
+            val cardinalityValue = assertedValueAtEntityAttr(entity, Scheme.CARDINALITY.attrName)
             cardMap[value] = cardinalityValue
         }
     }

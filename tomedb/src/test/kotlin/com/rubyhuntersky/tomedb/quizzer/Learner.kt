@@ -13,5 +13,5 @@ enum class Learner(
     Selected(ValueType.BOOLEAN, Cardinality.ONE, "The selected learner"),
     Quiz(ValueType.LONG, Cardinality.MANY, "A quiz held by the learner");
 
-    override fun toString(): String = toKeywordString()
+    override fun toString(): String = attrName.toString()
 }

@@ -6,7 +6,7 @@ import com.rubyhuntersky.tomedb.basics.Value
 
 data class ResultRow(val row: Map<Query.Find.Slot, Value<*>>) {
 
-    fun toLegacy(): Map<String, Value<*>> = row.mapKeys { it.key.keywordName }
+    fun toLegacy(): Map<String, Value<*>> = row.mapKeys { it.key.slotName }
 
     operator fun invoke(slot: Query.Find.Slot): Value<*> = row[slot] ?: error("No value for slot.")
 

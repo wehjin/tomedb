@@ -17,17 +17,17 @@ class CardinalityMap {
 
     operator fun set(keyword: Keyword, cardinality: Cardinality?) {
         if (cardinality == null) {
-            map.remove(keyword.keywordHashCode())
+            map.remove(keyword.hashCode())
         } else {
-            map[keyword.keywordHashCode()] = cardinality
+            map[keyword.hashCode()] = cardinality
         }
     }
 
     operator fun get(keyword: Keyword): Cardinality {
-        return map[keyword.keywordHashCode()] ?: Cardinality.ONE
+        return map[keyword.hashCode()] ?: Cardinality.ONE
     }
 
     override fun toString(): String = "$map"
 
-    private val map = Scheme.cardinalities.mapKeys { it.key.keywordHashCode() }.toMutableMap()
+    private val map = Scheme.cardinalities.mapKeys { it.key.hashCode() }.toMutableMap()
 }

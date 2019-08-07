@@ -33,7 +33,7 @@ class GitDatalogTest {
             override val description: String = "A count that accumulates values."
         };
 
-        override fun toString(): String = toKeywordString()
+        override fun toString(): String = attrName.toString()
     }
 
     private lateinit var folderPath: File

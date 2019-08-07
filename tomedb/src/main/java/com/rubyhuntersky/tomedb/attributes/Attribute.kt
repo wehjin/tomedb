@@ -1,22 +1,25 @@
 package com.rubyhuntersky.tomedb.attributes
 
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.TagList
+import com.rubyhuntersky.tomedb.basics.at
+import com.rubyhuntersky.tomedb.basics.tagListOf
 
-interface Attribute : Keyword {
+interface Attribute : GroupedItem {
 
-    val groupName: String
-        get() = keywordGroup
-    val itemName: String
-        get() = keywordName
+    val attrName: Keyword
+        get() = Keyword(itemName, groupName)
 
     val valueType: ValueType
     val cardinality: Cardinality
     val description: String
 
+    infix fun <T : Any> to(other: T) = Pair(attrName, other)
+
     fun toSchemeData(): TagList = tagListOf(
-        Scheme.NAME..this,
-        valueType at Scheme.VALUETYPE,
-        cardinality at Scheme.CARDINALITY,
+        attrName at Scheme.NAME,
+        valueType.keyword at Scheme.VALUETYPE,
+        cardinality.keyword at Scheme.CARDINALITY,
         description at Scheme.DESCRIPTION
     )
 }

@@ -14,5 +14,5 @@ enum class Quiz(
     Lesson(ValueType.LONG, Cardinality.MANY, "A lesson in the quiz"),
     CompletedOn(ValueType.INSTANT, Cardinality.ONE, "Time the quiz was completed");
 
-    override fun toString(): String = toKeywordString()
+    override fun toString(): String = attrName.toString()
 }

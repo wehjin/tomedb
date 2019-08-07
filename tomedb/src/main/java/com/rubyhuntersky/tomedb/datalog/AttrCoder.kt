@@ -1,6 +1,5 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.basics.CommonKeyword
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.folderNameToString
 import com.rubyhuntersky.tomedb.basics.stringToFolderName
@@ -16,7 +15,7 @@ object AttrCoder {
         return string.split(',').let {
             val keywordName = folderNameToString(it[0])
             val keywordGroup = folderNameToString(it[1])
-            CommonKeyword(keywordName, keywordGroup)
+            Keyword(keywordName, keywordGroup)
         }
     }
 }

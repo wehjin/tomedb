@@ -44,28 +44,28 @@ class MutableDatabase(dataDir: File) : Database {
         val rules1: List<Rule> = rules.mapNotNull {
             when (it) {
                 is Query.Find.Rule2.SlotAttrSlot -> Rule.SlotAttrSlot(
-                    entityVar = it.eSlot.keywordName,
-                    valueVar = it.vSlot.keywordName,
+                    entityVar = it.eSlot.slotName,
+                    valueVar = it.vSlot.slotName,
                     attr = it.attr
                 )
                 is Query.Find.Rule2.SlotAttrValue -> Rule.SlotAttrValue(
-                    entityVar = it.eSlot.keywordName,
+                    entityVar = it.eSlot.slotName,
                     value = it.value,
                     attr = it.attr
                 )
                 is Query.Find.Rule2.SlotAttrESlot -> Rule.SlotAttrESlot(
-                    entityVar = it.eSlot.keywordName,
-                    entityValueVar = it.eSlot2.keywordName,
+                    entityVar = it.eSlot.slotName,
+                    entityValueVar = it.eSlot2.slotName,
                     attr = it.attr
                 )
                 is Query.Find.Rule2.SlotAttr -> Rule.SlotAttr(
-                    entityVar = it.slot.keywordName,
+                    entityVar = it.slot.slotName,
                     attr = it.attr
                 )
                 is Query.Find.Rule2.SlotSlotSlot -> Rule.SlotSlotSlot(
-                    entityVar = it.eSlot.keywordName,
-                    attrVar = it.aSlot.keywordName,
-                    valueVar = it.vSlot.keywordName
+                    entityVar = it.eSlot.slotName,
+                    attrVar = it.aSlot.slotName,
+                    valueVar = it.vSlot.slotName
                 )
                 is Query.Find.Rule2.SlipValue -> null
                 is Query.Find.Rule2.Slide -> null

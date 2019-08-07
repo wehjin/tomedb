@@ -12,5 +12,5 @@ enum class Lesson(
     Question(ValueType.STRING, Cardinality.ONE, "The question of the lesson"),
     Answer(ValueType.STRING, Cardinality.ONE, "The answer of the lesson");
 
-    override fun toString(): String = toKeywordString()
+    override fun toString(): String = attrName.toString()
 }

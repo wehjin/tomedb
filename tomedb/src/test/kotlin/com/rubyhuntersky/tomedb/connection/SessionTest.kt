@@ -1,11 +1,12 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.Client
 import com.rubyhuntersky.tomedb.TempDirFixture
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.Update
+import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.basics.*
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -19,21 +20,21 @@ class SessionTest {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The title of the movie"
-            override fun toString(): String = toKeywordString()
+            override fun toString(): String = attrName.toString()
         }
 
         object Genre : Attribute {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The genre of the movie"
-            override fun toString(): String = toKeywordString()
+            override fun toString(): String = attrName.toString()
         }
 
         object ReleaseYear : Attribute {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
             override val description = "The year the movie was released in theaters"
-            override fun toString(): String = toKeywordString()
+            override fun toString(): String = attrName.toString()
         }
     }
 
@@ -48,7 +49,8 @@ class SessionTest {
     fun reconnectionLoadsDataFromLedger() {
         Client().connect(dataDir, listOf(Movie.Title))
             .also { connection ->
-                connection.update(1, Movie.Title, Value.STRING("Return of the King"))
+                val update = Update(1, Movie.Title, Value.STRING("Return of the King"))
+                connection.send(update)
                 connection.commit()
             }
 
@@ -70,7 +72,7 @@ class SessionTest {
         val firstMovies = listOf(
             tagListOf(
                 "The Goonies" at Movie.Title,
-                "action/adventure" at Cardinality.ONE,
+                "action/adventure" at Cardinality.ONE.keyword,
                 1985 at Movie.ReleaseYear
             ),
             tagListOf(

@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
@@ -31,7 +32,7 @@ sealed class Query {
             data class SlipValue(val slip: Slip, val value: Value<*>) : Rule2()
             data class Slide(val keywordNames: List<String>) : Rule2() {
                 infix fun and(keywordName: String): Slide = Slide(keywordNames + keywordName)
-                infix fun and(slot: Slot): Slide = Slide(keywordNames + slot.keywordName)
+                infix fun and(slot: Slot): Slide = Slide(keywordNames + slot.slotName)
             }
         }
 
@@ -43,21 +44,26 @@ sealed class Query {
             infix fun put(value: Value<*>): Rule2.SlipValue = Rule2.SlipValue(this, value)
         }
 
-        interface Slot : Keyword {
+        interface Slot {
+
+            val slotName: String
+
             operator fun invoke(results: List<Map<String, Value<*>>>): List<Value<*>> =
-                results.mapNotNull { it[keywordName] }
+                results.mapNotNull { it[slotName] }
 
             operator fun invoke(rows: FindResult): List<Value<*>> = rows(this)
             infix fun has(attr: Keyword): Rule2.SlotAttr = Rule2.SlotAttr(this, attr)
+            infix fun has(attr: Attribute): Rule2.SlotAttr = Rule2.SlotAttr(this, attr.attrName)
             infix fun has(aSlot: Slot): SlotSlot = SlotSlot(this, aSlot)
-            operator fun unaryMinus() = Rule2.Slide(listOf(this.keywordName))
-            operator fun unaryPlus() = Slip(this.keywordName)
+            operator fun unaryMinus() = Rule2.Slide(listOf(this.slotName))
+            operator fun unaryPlus() = Slip(this.slotName)
         }
 
-        data class ESlot(override val keywordName: String) : Slot {
-            override fun toString(): String = "ESlot/$keywordName"
+        data class ESlot(override val slotName: String) : Slot {
+            override fun toString(): String = "ESlot/$slotName"
         }
 
+        infix fun String.has(attr: Attribute): Rule2.SlotAttr = CommonSlot(this).has(attr.attrName)
         infix fun String.has(attr: Keyword): Rule2.SlotAttr = CommonSlot(this).has(attr)
         operator fun String.unaryPlus() = Slip(this)
         operator fun String.unaryMinus() = Rule2.Slide(listOf(this))
@@ -65,8 +71,8 @@ sealed class Query {
 
     }
 
-    data class CommonSlot(override val keywordName: String) : Find.Slot {
-        override fun toString(): String = "Slot/$keywordName"
+    data class CommonSlot(override val slotName: String) : Find.Slot {
+        override fun toString(): String = "Slot/$slotName"
     }
 
     companion object {

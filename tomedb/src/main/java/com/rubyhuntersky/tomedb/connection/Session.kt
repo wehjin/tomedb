@@ -25,15 +25,16 @@ class Session(dataDir: File, spec: List<Attribute>?) {
     }
 
     private fun List<Attribute>.toNewAttributes(): List<Attribute> = mapNotNull { attribute ->
-        val nameValue = attribute()
-        if (mutDb.entityExistsWithAttrValue(Scheme.NAME, nameValue)) {
+        val nameValue = Value.of(attribute.attrName)
+        if (mutDb.entityExistsWithAttrValue(Scheme.NAME.attrName, nameValue)) {
             attribute
         } else {
-            println("SKIPPED: Existing attribute: ${attribute.toKeywordString()}")
+            println("SKIPPED: Existing attribute: ${attribute.attrName}")
             null
         }
     }
 
+    fun send(update: Update) = send(setOf(update))
     fun send(updates: Set<Update>) {
         val expanded = updates.flatMap(this::expandDataValues)
         mutDb.update(expanded)

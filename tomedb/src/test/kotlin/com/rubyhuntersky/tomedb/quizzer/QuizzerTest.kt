@@ -1,9 +1,9 @@
 package com.rubyhuntersky.tomedb.quizzer
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.Client
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.TempDirFixture
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -21,7 +21,9 @@ class QuizzerTest {
         dataDir = TempDirFixture.initDir("quizzerTest").toFile()
     }
 
-    object SelectedLearnerSlot : Query.Find.Slot
+    object SelectedLearnerSlot : Query.Find.Slot {
+        override val slotName: String = "selectedLearner"
+    }
 
     @Test
     fun happy() {

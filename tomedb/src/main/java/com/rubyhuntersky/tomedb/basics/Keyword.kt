@@ -1,34 +1,16 @@
 package com.rubyhuntersky.tomedb.basics
 
-interface Keyword {
+import com.rubyhuntersky.tomedb.attributes.GroupedItem
 
-    val keywordName: String
-        get() = (this as? Enum<*>)?.let { this.name } ?: this::class.java.simpleName
-
+data class Keyword(
+    val keywordName: String,
     val keywordGroup: String
-        get() = (this as? Enum<*>)
-            ?.let {
-                this::class.java.simpleName.let {
-                    if (it != name) it else this::class.java.enclosingClass?.simpleName ?: ""
-                }
-            }
-            ?: this::class.java.declaringClass?.simpleName ?: ""
+) : GroupedItem {
+    constructor(keyword: Keyword) : this(keyword.keywordName, keyword.keywordGroup)
 
-    fun toKeywordString(): String = "$keywordGroup/$keywordName"
-
-    fun keywordEquals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Keyword) return false
-
-        if (keywordName != other.keywordName) return false
-        if (keywordGroup != other.keywordGroup) return false
-
-        return true
-    }
-
-    fun keywordHashCode(): Int {
-        var result = keywordName.hashCode()
-        result = 31 * result + keywordGroup.hashCode()
-        return result
-    }
+    override val itemName: String = keywordName
+    override val groupName: String = keywordGroup
+    override fun toString(): String = toGroupedItemString()
+    override fun equals(other: Any?): Boolean = groupedItemEquals(other)
+    override fun hashCode(): Int = groupedItemHashCode()
 }

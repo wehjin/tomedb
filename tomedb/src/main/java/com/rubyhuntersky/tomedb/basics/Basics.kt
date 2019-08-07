@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb.basics
 
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.ResultRow
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import java.math.BigDecimal
 import java.util.*
 
@@ -43,6 +44,16 @@ infix fun Date.at(keyword: Keyword) = this() at keyword
 infix fun Double.at(keyword: Keyword) = this() at keyword
 infix fun BigDecimal.at(keyword: Keyword) = this() at keyword
 infix fun TagList.at(keyword: Keyword) = this() at keyword
+
+infix fun Boolean.at(attr: Attribute) = this() at attr.attrName
+infix fun Long.at(attr: Attribute) = this() at attr.attrName
+infix fun Int.at(attr: Attribute) = this() at attr.attrName
+infix fun Keyword.at(attr: Attribute) = this() at attr.attrName
+infix fun String.at(attr: Attribute) = this() at attr.attrName
+infix fun Date.at(attr: Attribute) = this() at attr.attrName
+infix fun Double.at(attr: Attribute) = this() at attr.attrName
+infix fun BigDecimal.at(attr: Attribute) = this() at attr.attrName
+infix fun TagList.at(attr: Attribute) = this() at attr.attrName
 
 // TODO Remove these too?
 operator fun <T : Any> Keyword.rangeTo(value: Value<T>) = tagOf(value, this)

@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
+import com.rubyhuntersky.tomedb.attributes.GroupedItem
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
@@ -12,7 +13,7 @@ data class Fact(
     val inst: Date,
     val txn: TxnId
 ) {
-    sealed class Standing : Keyword {
+    sealed class Standing : GroupedItem {
 
         object Asserted : Standing()
         object Retracted : Standing()
@@ -20,6 +21,6 @@ data class Fact(
         val isAsserted: Boolean
             get() = this == Asserted
 
-        override fun toString(): String = toKeywordString()
+        override fun toString(): String = toGroupedItemString()
     }
 }

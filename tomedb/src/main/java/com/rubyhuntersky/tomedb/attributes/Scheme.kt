@@ -26,10 +26,11 @@ enum class Scheme : Attribute {
         override val description = "Specifies a documentation string"
     };
 
-    override fun toString(): String = toKeywordString()
+    override fun toString(): String = attrName.toString()
 
     companion object {
-        val cardinalities: Map<Keyword, Cardinality> = values().associateBy({ it }, { it.cardinality })
+        val cardinalities: Map<Keyword, Cardinality> =
+            values().associateBy(Scheme::attrName, Scheme::cardinality)
     }
 }
 

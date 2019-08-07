@@ -45,7 +45,7 @@ private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Va
         }
         ValueType.ATTR -> {
             val (first, last) = content.split(',')
-            val itemName = CommonKeyword(folderNameToString(first), folderNameToString(last))
+            val itemName = Keyword(folderNameToString(first), folderNameToString(last))
             itemName()
         }
         ValueType.INSTANT -> Date(content.toLong())()
