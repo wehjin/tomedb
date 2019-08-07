@@ -13,8 +13,7 @@ data class Ent(val long: Long) {
     companion object {
         fun <T : Any> of(attr: Attribute, value: T): Ent = of(attr.attrName, value)
         fun <T : Any> of(attr: Keyword, value: T): Ent {
-            val result = attr.keywordGroup.hashCode().let { 31 * it + value.hashCode() }
-            return Ent(result.toLong().absoluteValue)
+            return Ent(attr.keywordGroup.hashCode().let { 31 * it + value.hashCode() }.toLong().absoluteValue)
         }
     }
 }
