@@ -29,4 +29,6 @@ interface GroupedItem {
         result = 31 * result + this.groupName.hashCode()
         return result
     }
+
+    fun toKeyword(): Keyword = Keyword(groupName, itemName)
 }

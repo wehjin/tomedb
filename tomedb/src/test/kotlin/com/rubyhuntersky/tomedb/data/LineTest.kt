@@ -8,7 +8,7 @@ class LineTest {
     @Test
     fun isComposedOfKeywordAndValue() {
         val line = lineOf(Citizen.FullName.attrName, "Miranda")
-        assertEquals(Citizen.FullName.attrName, line.attr)
-        assertEquals("Miranda", line.value)
+        assertEquals(Citizen.FullName.attrName, line.lineAttr)
+        assertEquals("Miranda", line.lineValue)
     }
 }
