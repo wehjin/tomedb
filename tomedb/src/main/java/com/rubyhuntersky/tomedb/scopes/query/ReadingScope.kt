@@ -9,12 +9,11 @@ import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.scopes.client.DestructuringScope
 
 
-suspend inline fun <reified TraitT : Any> ReadingScope.tomeFromTraitTopic(topic: TomeTopic.Trait<TraitT>): Tome<TraitT> {
+suspend inline fun <reified TraitT : Any> ReadingScope.dbTome(topic: TomeTopic.Trait<TraitT>): Tome<TraitT> {
     val traitHolders = entsWithAttr(topic.attr).toList()
     val pages = traitHolders.map { traitHolder ->
         val data = dbRead(traitHolder)
-        val traitValue = valueFromData<TraitT>(topic.attr.attrName, data)
-        val title = topic.toTitle(traitValue)
+        val title = topic.toSubject(valueFromData(topic.attr.attrName, data))
         pageOf(title, data)
     }
     return tomeOf(topic, pages.toSet())
@@ -31,8 +30,6 @@ interface ReadingScope : DestructuringScope {
         val result = find(query)
         return result.toEnts(eSlot)
     }
-
-    suspend operator fun Keyword.invoke(ident: Ident): Any? = findValues(ident, this).firstOrNull()
 
     suspend fun findValues(ident: Ident, attr: Keyword): Sequence<Any> {
         val end = ident.toEnt().long
@@ -51,6 +48,11 @@ interface ReadingScope : DestructuringScope {
         }
 
         return find(query).toProjections(eSlot, attr, vSlot)
+    }
+
+    suspend fun dbRead(subject: PageSubject.Entity): Page<Ent> {
+        val data = dbRead(subject.ent)
+        return pageOf(subject, data)
     }
 
     suspend fun dbRead(ent: Ent): Map<Keyword, Any> {

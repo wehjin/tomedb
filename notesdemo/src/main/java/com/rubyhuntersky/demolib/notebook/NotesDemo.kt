@@ -7,7 +7,7 @@ import com.rubyhuntersky.tomedb.attributes.ValueType
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
-import com.rubyhuntersky.tomedb.scopes.query.tomeFromTraitTopic
+import com.rubyhuntersky.tomedb.scopes.query.dbTome
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
@@ -19,7 +19,7 @@ import kotlin.coroutines.CoroutineContext
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 fun main() {
-    val demo = NotebookDemo()
+    val demo = NotesDemo()
     demo.run()
 }
 
@@ -38,7 +38,7 @@ object Note : AttributeGroup {
     }
 }
 
-class NotebookDemo(
+class NotesDemo(
     private val job: Job = Job(),
     override val coroutineContext: CoroutineContext = Dispatchers.Default + job,
     override val dbDir: File = File("data", "notebook"),
@@ -76,7 +76,7 @@ class NotebookDemo(
 
     private suspend fun initMdl(): Mdl {
         val topic = TomeTopic.Trait<Date>(Note.CREATED)
-        return Mdl(tome = connectionScope { tomeFromTraitTopic(topic) })
+        return Mdl(tome = connectionScope { dbTome(topic) })
     }
 
     private suspend fun updateMdl(mdl: Mdl, msg: Msg): Mdl? = when (msg) {

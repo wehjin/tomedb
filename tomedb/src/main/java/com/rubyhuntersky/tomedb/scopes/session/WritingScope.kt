@@ -17,10 +17,10 @@ interface WritingScope {
         dbSet(ent, attr.attrName, v, assert)
 
     suspend fun <KeyT : Any> dbClear(page: Page<KeyT>) {
-        when (val title = page.title) {
-            is PageTitle.Entity -> TODO()
-            is PageTitle.Child -> TODO()
-            is PageTitle.TraitHolder<*> -> {
+        when (val title = page.subject) {
+            is PageSubject.Entity -> TODO()
+            is PageSubject.Follower -> TODO()
+            is PageSubject.TraitHolder<*> -> {
                 val ent = title.traitHolder
                 val attr = (title.topic as TomeTopic.Trait<*>).attr
                 val value = title.traitValue
@@ -36,12 +36,12 @@ interface WritingScope {
 
     suspend fun <KeyT : Any> dbWrite(page: Page<KeyT>) {
         val data = page.data
-        val projections = data.bindEnt(page.title.dataEnt)
+        val projections = data.bindEnt(page.subject.dataEnt)
         dbWrite(projections)
     }
 
     suspend fun <KeyT : Any> dbWrite(page: Page<KeyT>, line: Line<Any>): Page<KeyT> {
-        val projection = line.bindEnt(page.title.dataEnt)
+        val projection = line.bindEnt(page.subject.dataEnt)
         dbWrite(listOf(projection))
         return page + line
     }

@@ -10,15 +10,15 @@ class PageTest {
 
     @Test
     fun composeFromTitleAndLines() {
-        val topic = TomeTopic.Parent(norway, Citizen.Country)
+        val topic = TomeTopic.Leader(norway, Citizen.Country)
         val page = pageOf(
-            title = PageTitle.Child(citizen17, topic),
+            subject = PageSubject.Follower(citizen17, topic),
             lines = setOf(
                 Citizen.Country to norway,
                 Citizen.FullName to "Benjy"
             )
         )
-        assertEquals(PageTitle.Child(citizen17, topic), page.title)
+        assertEquals(PageSubject.Follower(citizen17, topic), page.subject)
         assertEquals(norway, page(Citizen.Country))
         assertEquals("Benjy", page(Citizen.FullName))
     }

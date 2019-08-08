@@ -10,9 +10,9 @@ class TomeTest {
         val norway = Norway.toEnt(0)
         val citizen17 = Citizen.toEnt(17)
 
-        val topic = TomeTopic.Parent(norway, Citizen.Country)
+        val topic = TomeTopic.Leader(norway, Citizen.Country)
         val page1 = pageOf(
-            title = PageTitle.Child(citizen17, topic),
+            subject = PageSubject.Follower(citizen17, topic),
             lines = setOf(Citizen.Country to norway, Citizen.FullName to "Benjy")
         )
         val tome = tomeOf(topic, setOf(page1))

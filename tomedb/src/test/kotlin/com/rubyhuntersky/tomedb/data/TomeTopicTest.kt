@@ -20,7 +20,7 @@ class TomeTopicTest {
 
     @Test
     fun parentIsATopic() {
-        val parentTopic = TomeTopic.Parent(Norway.toEnt(0), Citizen.Country)
+        val parentTopic = TomeTopic.Leader(Norway.toEnt(0), Citizen.Country)
         assertNotNull(parentTopic)
     }
 }

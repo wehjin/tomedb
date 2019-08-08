@@ -9,16 +9,16 @@ import com.rubyhuntersky.tomedb.basics.Ent
  */
 sealed class TomeTopic<KeyT : Any> {
 
-    abstract fun toTitle(key: KeyT): PageTitle<KeyT>
+    abstract fun toSubject(key: KeyT): PageSubject<KeyT>
 
     /**
      * A single-entity topic.  Any tome generated from this topic will
      * contain a single page.
      */
     data class Entity(val ent: Ent) : TomeTopic<Ent>() {
-        override fun toTitle(key: Ent): PageTitle.Entity {
+        override fun toSubject(key: Ent): PageSubject.Entity {
             require(key == ent)
-            return PageTitle.Entity(key, this)
+            return PageSubject.Entity(key)
         }
     }
 
@@ -28,8 +28,8 @@ sealed class TomeTopic<KeyT : Any> {
      * citizen entities with a date-of-birth value.
      */
     data class Trait<TraitT : Any>(val attr: Attribute) : TomeTopic<TraitT>() {
-        override fun toTitle(key: TraitT): PageTitle.TraitHolder<TraitT> {
-            return PageTitle.TraitHolder(traitHolder = Ent.of(attr, key), traitValue = key, topic = this)
+        override fun toSubject(key: TraitT): PageSubject.TraitHolder<TraitT> {
+            return PageSubject.TraitHolder(traitHolder = Ent.of(attr, key), traitValue = key, topic = this)
         }
     }
 
@@ -38,9 +38,9 @@ sealed class TomeTopic<KeyT : Any> {
      * the parent is (Norway, Citizen/Country), then the topic describes
      * all entities with a Norway value at Citizen/Country.
      */
-    data class Parent(val parentEnt: Ent, val childAttr: Attribute) : TomeTopic<Ent>() {
-        override fun toTitle(key: Ent): PageTitle.Child {
-            return PageTitle.Child(child = key, topic = this)
+    data class Leader(val leader: Ent, val childAttr: Attribute) : TomeTopic<Ent>() {
+        override fun toSubject(key: Ent): PageSubject.Follower {
+            return PageSubject.Follower(follower = key, topic = this)
         }
     }
 }

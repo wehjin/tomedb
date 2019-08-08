@@ -7,27 +7,28 @@ import com.rubyhuntersky.tomedb.basics.Ent
  * found to be described by the topic. When a tome is created from
  * a topic, the pages in the tome are indexed by title.
  */
-sealed class PageTitle<KeyT : Any> {
+sealed class PageSubject<KeyT : Any> {
 
     abstract val topic: TomeTopic<KeyT>
     abstract val dataEnt: Ent
     abstract val dataKey: KeyT
 
-    data class Entity(val ent: Ent, override val topic: TomeTopic.Entity) : PageTitle<Ent>() {
+    data class Entity(val ent: Ent) : PageSubject<Ent>() {
+        override val topic: TomeTopic.Entity = TomeTopic.Entity(ent)
         override val dataEnt: Ent get() = ent
         override val dataKey: Ent get() = ent
     }
 
-    data class Child(val child: Ent, override val topic: TomeTopic.Parent) : PageTitle<Ent>() {
-        override val dataEnt: Ent get() = child
-        override val dataKey: Ent get() = child
+    data class Follower(val follower: Ent, override val topic: TomeTopic.Leader) : PageSubject<Ent>() {
+        override val dataEnt: Ent get() = follower
+        override val dataKey: Ent get() = follower
     }
 
     data class TraitHolder<TraitT : Any>(
         val traitHolder: Ent,
         val traitValue: TraitT,
         override val topic: TomeTopic.Trait<TraitT>
-    ) : PageTitle<TraitT>() {
+    ) : PageSubject<TraitT>() {
         override val dataEnt: Ent get() = traitHolder
         override val dataKey: TraitT get() = traitValue
     }
