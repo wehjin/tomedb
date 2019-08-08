@@ -16,7 +16,10 @@ sealed class TomeTopic<KeyT : Any> {
      * contain a single page.
      */
     data class Entity(val ent: Ent) : TomeTopic<Ent>() {
-        override fun toTitle(key: Ent): PageTitle.Entity = PageTitle.Entity(key, this)
+        override fun toTitle(key: Ent): PageTitle.Entity {
+            require(key == ent)
+            return PageTitle.Entity(key, this)
+        }
     }
 
     /**
@@ -24,15 +27,9 @@ sealed class TomeTopic<KeyT : Any> {
      * the trait is Citizen/DateOfBirth, then the topic describes all
      * citizen entities with a date-of-birth value.
      */
-    data class Trait<TraitT : Any>(val attr: Attribute) : TomeTopic<TraitKey<TraitT>>() {
-
-        fun toTitle(holderEnt: Ent, traitValue: TraitT): PageTitle.TraitHolder<TraitT> {
-            return toTitle(TraitKey(holderEnt, traitValue))
-        }
-
-        override fun toTitle(key: TraitKey<TraitT>): PageTitle.TraitHolder<TraitT> {
-            val (holder, trait) = key
-            return PageTitle.TraitHolder(holder, trait, this)
+    data class Trait<TraitT : Any>(val attr: Attribute) : TomeTopic<TraitT>() {
+        override fun toTitle(key: TraitT): PageTitle.TraitHolder<TraitT> {
+            return PageTitle.TraitHolder(traitHolder = Ent.of(attr, key), traitValue = key, topic = this)
         }
     }
 
@@ -42,6 +39,8 @@ sealed class TomeTopic<KeyT : Any> {
      * all entities with a Norway value at Citizen/Country.
      */
     data class Parent(val parentEnt: Ent, val childAttr: Attribute) : TomeTopic<Ent>() {
-        override fun toTitle(key: Ent): PageTitle.Child = PageTitle.Child(key, this)
+        override fun toTitle(key: Ent): PageTitle.Child {
+            return PageTitle.Child(child = key, topic = this)
+        }
     }
 }

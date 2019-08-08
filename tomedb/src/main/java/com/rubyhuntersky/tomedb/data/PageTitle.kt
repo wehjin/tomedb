@@ -11,20 +11,24 @@ sealed class PageTitle<KeyT : Any> {
 
     abstract val topic: TomeTopic<KeyT>
     abstract val dataEnt: Ent
+    abstract val dataKey: KeyT
 
     data class Entity(val ent: Ent, override val topic: TomeTopic.Entity) : PageTitle<Ent>() {
         override val dataEnt: Ent get() = ent
+        override val dataKey: Ent get() = ent
     }
 
     data class Child(val child: Ent, override val topic: TomeTopic.Parent) : PageTitle<Ent>() {
         override val dataEnt: Ent get() = child
+        override val dataKey: Ent get() = child
     }
 
     data class TraitHolder<TraitT : Any>(
         val traitHolder: Ent,
-        val traitValue: Any,
+        val traitValue: TraitT,
         override val topic: TomeTopic.Trait<TraitT>
-    ) : PageTitle<TraitKey<TraitT>>() {
+    ) : PageTitle<TraitT>() {
         override val dataEnt: Ent get() = traitHolder
+        override val dataKey: TraitT get() = traitValue
     }
 }

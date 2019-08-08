@@ -6,10 +6,7 @@ import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Ident
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
-import com.rubyhuntersky.tomedb.data.Page
-import com.rubyhuntersky.tomedb.data.PageTitle
-import com.rubyhuntersky.tomedb.data.Projection
-import com.rubyhuntersky.tomedb.data.TomeTopic
+import com.rubyhuntersky.tomedb.data.*
 
 interface WritingScope {
 
@@ -41,6 +38,12 @@ interface WritingScope {
         val data = page.data
         val projections = data.bindEnt(page.title.dataEnt)
         dbWrite(projections)
+    }
+
+    suspend fun <KeyT : Any> dbWrite(page: Page<KeyT>, line: Line<Any>): Page<KeyT> {
+        val projection = line.bindEnt(page.title.dataEnt)
+        dbWrite(listOf(projection))
+        return page + line
     }
 
     suspend fun dbWrite(facts: List<Projection<Any>>) {

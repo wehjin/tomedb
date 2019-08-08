@@ -9,13 +9,12 @@ import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.scopes.client.DestructuringScope
 
 
-suspend inline fun <reified TraitT : Any> ReadingScope.tomeFromTraitTopic(topic: TomeTopic.Trait<TraitT>): Tome<TraitKey<TraitT>> {
-    val ents = entsWithAttr(topic.attr).toList()
-    val pages = ents.map {
-        val data = dbRead(it)
-        val trait = valueFromData<TraitT>(topic.attr.attrName, data)
-        val key = TraitKey(it, trait)
-        val title = topic.toTitle(key)
+suspend inline fun <reified TraitT : Any> ReadingScope.tomeFromTraitTopic(topic: TomeTopic.Trait<TraitT>): Tome<TraitT> {
+    val traitHolders = entsWithAttr(topic.attr).toList()
+    val pages = traitHolders.map { traitHolder ->
+        val data = dbRead(traitHolder)
+        val traitValue = valueFromData<TraitT>(topic.attr.attrName, data)
+        val title = topic.toTitle(traitValue)
         pageOf(title, data)
     }
     return tomeOf(topic, pages.toSet())

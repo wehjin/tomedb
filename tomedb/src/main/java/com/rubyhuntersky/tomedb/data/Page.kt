@@ -12,7 +12,12 @@ import com.rubyhuntersky.tomedb.basics.Keyword
 data class Page<KeyT : Any>(
     val title: PageTitle<KeyT>,
     val data: Map<Keyword, Any>
-)
+) {
+    val key: KeyT
+        get() = title.dataKey
+
+    operator fun plus(line: Line<Any>): Page<KeyT> = copy(data = data + line)
+}
 
 inline operator fun <reified T : Any> Page<*>.invoke(attr: Attribute): T = this.data[attr.attrName] as T
 

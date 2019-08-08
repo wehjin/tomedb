@@ -4,7 +4,6 @@ import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.AttributeGroup
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
@@ -48,12 +47,13 @@ class NotebookDemo(
 
     private val connectionScope = connectToDatabase()
 
-    data class Mdl(val tome: Tome<TraitKey<Date>>)
+    data class Mdl(val tome: Tome<Date>)
 
     sealed class Msg {
         object LIST : Msg()
         data class ADD(val text: String) : Msg()
-        data class DROP(val page: PageTitle<TraitKey<Date>>) : Msg()
+        data class REVISE(val key: Date, val text: String) : Msg()
+        data class DROP(val key: Date) : Msg()
     }
 
     @ExperimentalCoroutinesApi
@@ -87,19 +87,22 @@ class NotebookDemo(
                 Note.CREATED to date,
                 Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
             )
-
-            val ent = Ent.of(Note.CREATED, date)
-            val key = TraitKey(ent, date)
-            val title = mdl.tome.newPageTitle(key)
+            val title = mdl.tome.newPageTitle(date)
             val page = pageOf(title, data)
             connectionScope { dbWrite(page) }
             mdl.copy(tome = mdl.tome + page)
         }
+        is Msg.REVISE -> {
+            mdl.tome(msg.key)?.let {
+                val textLine = lineOf(Note.TEXT, msg.text)
+                val nextPage = connectionScope { dbWrite(it, textLine) }
+                mdl.copy(tome = mdl.tome + nextPage)
+            } ?: mdl
+        }
         is Msg.DROP -> {
-            val page = mdl.tome(msg.page)
-            page?.let {
+            mdl.tome(msg.key)?.let {
                 connectionScope { dbClear(it) }
-                mdl.copy(tome = mdl.tome - page)
+                mdl.copy(tome = mdl.tome - msg.key)
             }
         }
     }
@@ -124,32 +127,45 @@ class NotebookDemo(
             } else {
                 print("----------\n> ")
             }
-            tailrec fun readUserAndContinue(): Boolean {
-                val userLine = readLine()!!
-                when {
-                    userLine == "list" -> actor.offer(Msg.LIST)
-                    userLine.startsWith("add", true) -> {
-                        val text = userLine.substring("add".length).trim()
-                        actor.offer(Msg.ADD(text))
-                    }
-                    userLine.startsWith("drop", true) -> {
-                        val number = userLine.substring("drop".length).trim().toIntOrNull()
-                        val index = number?.let { it - 1 } ?: 0
-                        actor.offer(Msg.DROP(page = pageList[index].title))
-                    }
-                    userLine == "done" -> {
-                        actor.close()
-                        return false
-                    }
-                    else -> {
-                        print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
-                        return readUserAndContinue()
-                    }
-                }
-                return true
-            }
-            if (!readUserAndContinue()) break@loop
+            if (!sendMsg(pageList, actor)) break@loop
         }
         println("\nUser has left the building.")
     }
+
+    private tailrec fun sendMsg(pageList: List<Page<Date>>, actor: SendChannel<Msg>): Boolean {
+        val userLine = readLine()!!
+        when {
+            userLine == "list" -> actor.offer(Msg.LIST)
+            userLine.startsWith("add", true) -> {
+                val text = userLine.substring("add".length).trim()
+                actor.offer(Msg.ADD(text))
+            }
+            userLine.startsWith("revise", true) -> {
+                val numberAndText = userLine.substring("revise".length).trim()
+                val number = numberAndText.substringBefore(' ')
+                val index = number.toIntOrNull()?.let { it - 1 }
+                val msg = index?.let {
+                    val text = numberAndText.substringAfter(' ').trim()
+                    Msg.REVISE(key = pageList[index].key, text = text)
+                } ?: Msg.LIST
+                actor.offer(msg)
+            }
+            userLine.startsWith("drop", true) -> {
+                val number = userLine.substring("drop".length).trim()
+                val index = number.toIntOrNull()?.let { it - 1 }
+                val msg = index?.let { Msg.DROP(key = pageList[index].key) } ?: Msg.LIST
+                actor.offer(msg)
+            }
+            userLine == "done" -> {
+                actor.close()
+                return false
+            }
+            else -> {
+                print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
+                return sendMsg(pageList, actor)
+            }
+        }
+        return true
+    }
+
 }
