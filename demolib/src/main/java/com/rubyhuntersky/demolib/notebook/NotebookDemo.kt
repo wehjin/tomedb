@@ -6,7 +6,9 @@ import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
+import com.rubyhuntersky.tomedb.scopes.query.tomeFromTraitTopic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
@@ -22,6 +24,20 @@ fun main() {
     demo.run()
 }
 
+object Note : AttributeGroup {
+
+    object CREATED : Attribute {
+        override val valueType: ValueType = ValueType.INSTANT
+        override val cardinality: Cardinality = Cardinality.ONE
+        override val description: String = "The instant a note was created."
+    }
+
+    object TEXT : Attribute {
+        override val valueType: ValueType = ValueType.STRING
+        override val cardinality: Cardinality = Cardinality.ONE
+        override val description: String = "The text of the note."
+    }
+}
 
 class NotebookDemo(
     private val job: Job = Job(),
@@ -32,30 +48,12 @@ class NotebookDemo(
 
     private val connectionScope = connectToDatabase()
 
-    object Note : AttributeGroup {
-
-        object CREATED : Attribute {
-            override val valueType: ValueType = ValueType.INSTANT
-            override val cardinality: Cardinality = Cardinality.ONE
-            override val description: String = "The instant a note was created."
-        }
-
-        object TEXT : Attribute {
-            override val valueType: ValueType = ValueType.STRING
-            override val cardinality: Cardinality = Cardinality.ONE
-            override val description: String = "The text of the note."
-        }
-    }
-
-    data class Mdl(
-        val notes: List<Ent>,
-        val details: Map<Ent, Map<Keyword, Any>>
-    )
+    data class Mdl(val tome: Tome<TraitKey<Date>>)
 
     sealed class Msg {
         object LIST : Msg()
         data class ADD(val text: String) : Msg()
-        data class DROP(val index: Int) : Msg()
+        data class DROP(val page: PageTitle<TraitKey<Date>>) : Msg()
     }
 
     @ExperimentalCoroutinesApi
@@ -77,33 +75,32 @@ class NotebookDemo(
     }
 
     private suspend fun initMdl(): Mdl {
-        val notes = connectionScope { entsWithAttr(Note.CREATED).toList() }
-        return Mdl(notes, connectionScope { notes.associateWith { dbRead(it) } })
+        val topic = TomeTopic.Trait<Date>(Note.CREATED)
+        return Mdl(tome = connectionScope { tomeFromTraitTopic(topic) })
     }
 
     private suspend fun updateMdl(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
         is Msg.LIST -> null
         is Msg.ADD -> {
             val date = Date()
-            val ent = Ent.of(Note.CREATED, date)
             val data = mapOf<Keyword, Any>(
                 Note.CREATED to date,
                 Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
             )
-            connectionScope { dbWrite(data.bind(ent)) }
-            val newNotes = mdl.notes + ent
-            val newDetails = mdl.details + mapOf(ent to data)
-            mdl.copy(notes = newNotes, details = newDetails)
+
+            val ent = Ent.of(Note.CREATED, date)
+            val key = TraitKey(ent, date)
+            val title = mdl.tome.newPageTitle(key)
+            val page = pageOf(title, data)
+            connectionScope { dbWrite(page) }
+            mdl.copy(tome = mdl.tome + page)
         }
         is Msg.DROP -> {
-            if (msg.index >= 0 && msg.index < mdl.notes.size) {
-                val ent = mdl.notes[msg.index]
-                val date = mdl.details[ent]?.get(Note.CREATED) as Date
-                connectionScope { dbClear(ent.long, Note.CREATED.attrName, date) }
-                val newNotes = mdl.notes - ent
-                val newDetails = mdl.details.minus(ent)
-                mdl.copy(notes = newNotes, details = newDetails)
-            } else null
+            val page = mdl.tome(msg.page)
+            page?.let {
+                connectionScope { dbClear(it) }
+                mdl.copy(tome = mdl.tome - page)
+            }
         }
     }
 
@@ -113,19 +110,19 @@ class NotebookDemo(
         println("=========")
         loop@ while (!mdls.isClosedForReceive) {
             val mdl = mdls.receive()
-            mdl.notes.forEachIndexed { index, ent ->
+            val pageList = mdl.tome.pageList
+            pageList.forEachIndexed { index, page ->
                 println("----------")
                 println(index + 1)
-                val data = mdl.details[ent] ?: error("No details for $ent")
-                val date = data[Note.CREATED] as Date
-                val text = data[Note.TEXT] as String
+                val date = page<Date>(Note.CREATED)
+                val text = page<String>(Note.TEXT)
                 println("Created: $date")
                 println("Note: $text")
             }
-            if (mdl.notes.isNotEmpty()) {
-                print("----------\n> ")
-            } else {
+            if (pageList.isEmpty()) {
                 print("--- EMPTY ---\n> ")
+            } else {
+                print("----------\n> ")
             }
             tailrec fun readUserAndContinue(): Boolean {
                 val userLine = readLine()!!
@@ -138,7 +135,7 @@ class NotebookDemo(
                     userLine.startsWith("drop", true) -> {
                         val number = userLine.substring("drop".length).trim().toIntOrNull()
                         val index = number?.let { it - 1 } ?: 0
-                        actor.offer(Msg.DROP(index))
+                        actor.offer(Msg.DROP(page = pageList[index].title))
                     }
                     userLine == "done" -> {
                         actor.close()

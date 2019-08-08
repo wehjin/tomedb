@@ -17,7 +17,7 @@ class PageTitleTest {
 
     @Test
     fun traitHolderTitle() {
-        val topic = TomeTopic.Trait(Citizen.FullName)
+        val topic = TomeTopic.Trait<String>(Citizen.FullName)
         val pageTitle = PageTitle.TraitHolder(citizen17, "Frankie", topic)
         assertNotNull(pageTitle)
     }

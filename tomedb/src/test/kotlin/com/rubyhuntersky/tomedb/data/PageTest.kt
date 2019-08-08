@@ -18,7 +18,7 @@ class PageTest {
                 Citizen.FullName to "Benjy"
             )
         )
-        assertEquals(PageTitle.Child(citizen17, topic), page.pageTitle)
+        assertEquals(PageTitle.Child(citizen17, topic), page.title)
         assertEquals(norway, page(Citizen.Country))
         assertEquals("Benjy", page(Citizen.FullName))
     }

@@ -12,6 +12,5 @@ typealias Line<T> = Pair<Keyword, T>
 val <T : Any> Line<T>.lineAttr: Keyword get() = this.first
 val <T : Any> Line<T>.lineValue: T get() = this.second
 
-fun <T : Any> lineOf(attr: Keyword, value: T): Line<T> {
-    return attr to value
-}
+fun <T : Any> lineOf(entry: Map.Entry<Keyword, T>): Line<T> = lineOf(entry.key, entry.value)
+fun <T : Any> lineOf(attr: Keyword, value: T): Line<T> = attr to value

@@ -9,18 +9,12 @@ import com.rubyhuntersky.tomedb.basics.Keyword
  * are lines in the page.  The entity and topic is the title
  * of the page.
  */
-typealias Page = Map<Keyword, Any>
+data class Page<KeyT : Any>(
+    val title: PageTitle<KeyT>,
+    val data: Map<Keyword, Any>
+)
 
-val Page.pageTitle: PageTitle
-    get() = this[pageTitleKeyword] as PageTitle
+inline operator fun <reified T : Any> Page<*>.invoke(attr: Attribute): T = this.data[attr.attrName] as T
 
-inline operator fun <reified T : Any> Page.invoke(attr: Attribute): T = this[attr.attrName] as T
-
-fun pageOf(title: PageTitle, lines: Set<Line<Any>>): Page {
-    return lines.associate { it } + mapOf(pageTitleKeyword to title)
-}
-
-private val pageTitleKeyword = Keyword("Db.Page", "Title")
-
-
-
+fun <KeyT : Any> pageOf(title: PageTitle<KeyT>, data: Map<Keyword, Any>): Page<KeyT> = Page(title, data)
+fun <KeyT : Any> pageOf(title: PageTitle<KeyT>, lines: Set<Line<Any>>): Page<KeyT> = Page(title, lines.associate { it })

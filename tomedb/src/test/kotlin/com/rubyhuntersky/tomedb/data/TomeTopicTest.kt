@@ -14,7 +14,7 @@ class TomeTopicTest {
 
     @Test
     fun traitIsATopic() {
-        val traitTopic = TomeTopic.Trait(Citizen.FullName)
+        val traitTopic = TomeTopic.Trait<String>(Citizen.FullName)
         assertNotNull(traitTopic)
     }
 

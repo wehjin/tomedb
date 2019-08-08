@@ -77,3 +77,5 @@ fun queryOf(init: Query.Find.() -> Unit): Query.Find = Query.Find(init)
 
 operator fun List<Map<String, Value<*>>>.invoke(slot: Query.Find.Slot): List<Value<*>> = slot(this)
 operator fun List<ResultRow>.get(slot: Query.Find.Slot): List<Value<*>> = this.mapNotNull { it.row[slot] }
+
+inline fun <reified T : Any> valueFromData(keyword: Keyword, data: Map<Keyword, Any>): T = data[keyword] as T

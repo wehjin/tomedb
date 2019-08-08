@@ -4,15 +4,30 @@ package com.rubyhuntersky.tomedb.data
  * A Tome is a collection of pages each relating to
  * an entity described in a topic.
  */
-typealias Tome = Map<PageTitle, Page>
+data class Tome<KeyT : Any>(
+    val topic: TomeTopic<KeyT>,
+    val pages: Map<PageTitle<KeyT>, Page<KeyT>>
+) {
+    val pageList: List<Page<KeyT>> by lazy { pages.values.toList() }
+}
 
-val Tome.pageTitles
-    get() = this.keys.asSequence()
+val <KeyT : Any> Tome<KeyT>.size: Int
+    get() = pages.size
 
-val Tome.tomeTopic: TomeTopic?
-    get() = this.pageTitles.firstOrNull()?.topic
+operator fun <KeyT : Any> Tome<KeyT>.invoke(pageTitle: PageTitle<KeyT>): Page<KeyT>? = pages[pageTitle]
 
-operator fun Tome.invoke(pageTitle: PageTitle): Page = this[pageTitle] ?: error("No title in tome: $pageTitle")
+fun <KeyT : Any> Tome<KeyT>.newPageTitle(key: KeyT): PageTitle<KeyT> = topic.toTitle(key)
 
-fun tomeOf(pages: Set<Page>): Map<PageTitle, Page> = pages.associateBy { it.pageTitle }
+operator fun <KeyT : Any> Tome<KeyT>.plus(page: Page<KeyT>): Tome<KeyT> {
+    return copy(pages = pages + mapOf(page.title to page))
+}
 
+operator fun <KeyT : Any> Tome<KeyT>.minus(page: Page<KeyT>): Tome<KeyT> {
+    return copy(pages = pages - page.title)
+}
+
+
+fun <KeyT : Any> tomeOf(topic: TomeTopic<KeyT>, pages: Set<Page<KeyT>>): Tome<KeyT> {
+    val pagesMap = pages.associateBy { it.title }
+    return Tome(topic, pagesMap)
+}
