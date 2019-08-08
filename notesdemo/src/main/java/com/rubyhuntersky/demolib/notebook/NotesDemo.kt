@@ -83,12 +83,13 @@ class NotesDemo(
         is Msg.LIST -> null
         is Msg.ADD -> {
             val date = Date()
-            val data = mapOf<Keyword, Any>(
-                Note.CREATED to date,
-                Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
+            val page = pageOf(
+                subject = mdl.tome.newPageSubject(date),
+                data = mapOf<Keyword, Any>(
+                    Note.CREATED to date,
+                    Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
+                )
             )
-            val title = mdl.tome.newPageTitle(date)
-            val page = pageOf(title, data)
             connectionScope { dbWrite(page) }
             mdl.copy(tome = mdl.tome + page)
         }
