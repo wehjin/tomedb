@@ -3,7 +3,7 @@ package com.rubyhuntersky.tomedb.data
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
-class SubjectTest {
+class PageSubjectTest {
 
     private val norway = Norway.toEnt(0)
     private val citizen17 = Citizen.toEnt(17)

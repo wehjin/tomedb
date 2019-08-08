@@ -15,7 +15,7 @@ val <KeyT : Any> Tome<KeyT>.size: Int
     get() = pages.size
 
 operator fun <KeyT : Any> Tome<KeyT>.invoke(key: KeyT): Page<KeyT>? {
-    return pages.values.asSequence().first { it.subject.dataKey == key }
+    return pages.values.asSequence().first { it.subject.key == key }
 }
 
 fun <KeyT : Any> Tome<KeyT>.newPageTitle(keyValue: KeyT): PageSubject<KeyT> {

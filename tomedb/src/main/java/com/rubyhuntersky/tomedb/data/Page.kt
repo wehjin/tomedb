@@ -13,7 +13,7 @@ data class Page<KeyT : Any>(
     val subject: PageSubject<KeyT>,
     val data: Map<Keyword, Any>
 ) {
-    val key: KeyT get() = subject.dataKey
+    val key: KeyT get() = subject.key
 
     operator fun get(attr: Attribute): Any? = this.data[attr.attrName]
     operator fun contains(attr: Attribute): Boolean = attr.attrName in data

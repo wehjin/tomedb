@@ -1,31 +1,23 @@
 package com.rubyhuntersky.tomedb.scopes.session
 
 import com.rubyhuntersky.tomedb.Update
-import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Ent
-import com.rubyhuntersky.tomedb.basics.Ident
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.data.*
 
 interface WritingScope {
 
-    suspend fun <T : Any> dbClear(ent: Long, attr: Attribute, v: T) = dbSet(ent, attr, v, false)
     suspend fun <T : Any> dbClear(ent: Long, attr: Keyword, v: T) = dbSet(ent, attr, v, false)
 
-    suspend fun <T : Any> dbSet(ent: Long, attr: Attribute, v: T, assert: Boolean = true) =
-        dbSet(ent, attr.attrName, v, assert)
-
     suspend fun <KeyT : Any> dbClear(page: Page<KeyT>) {
-        when (val title = page.subject) {
+        when (val subject = page.subject) {
             is PageSubject.Entity -> TODO()
-            is PageSubject.Follower -> TODO()
-            is PageSubject.TraitHolder<*> -> {
-                val ent = title.traitHolder
-                val attr = (title.topic as TomeTopic.Trait<*>).attr
-                val value = title.traitValue
-                dbClear(ent.long, attr.attrName, value)
-            }
+            is PageSubject.Follower, is PageSubject.TraitHolder -> dbClear(
+                subject.keyEnt.long,
+                subject.keyAttr!!.attrName,
+                subject.keyValue!!
+            )
         }
     }
 
@@ -36,12 +28,12 @@ interface WritingScope {
 
     suspend fun <KeyT : Any> dbWrite(page: Page<KeyT>) {
         val data = page.data
-        val projections = data.bindEnt(page.subject.dataEnt)
+        val projections = data.bindEnt(page.subject.keyEnt)
         dbWrite(projections)
     }
 
     suspend fun <KeyT : Any> dbWrite(page: Page<KeyT>, line: Line<Any>): Page<KeyT> {
-        val projection = line.bindEnt(page.subject.dataEnt)
+        val projection = line.bindEnt(page.subject.keyEnt)
         dbWrite(listOf(projection))
         return page + line
     }
@@ -49,11 +41,6 @@ interface WritingScope {
     suspend fun dbWrite(facts: List<Projection<Any>>) {
         val updates = facts.map { Update(it.ent, it.attr, Value.of(it.value)) }
         transact(updates.toSet())
-    }
-
-    suspend fun <T : Any> dbWriteFact(ident: Ident, attr: Keyword, v: T) {
-        val update = Update(ident.toEnt().long, attr, Value.of(v))
-        transact(setOf(update))
     }
 
     suspend fun transact(updates: Set<Update>)
