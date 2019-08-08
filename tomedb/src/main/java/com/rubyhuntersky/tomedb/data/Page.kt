@@ -25,5 +25,5 @@ data class Page<KeyT : Any>(
 
 inline operator fun <reified T : Any> Page<*>.invoke(attr: Attribute): T = this.data[attr.attrName] as T
 
-fun <KeyT : Any> pageOf(subject: PageSubject<KeyT>, data: Map<Keyword, Any>): Page<KeyT> = Page(subject, data)
-fun <KeyT : Any> pageOf(subject: PageSubject<KeyT>, lines: Set<Line<Any>>): Page<KeyT> = Page(subject, lines.associate { it })
+fun <KeyT : Any> pageOf(subject: PageSubject<KeyT>, data: Map<Keyword, Any>) = Page(subject, data)
+fun <KeyT : Any> pageOf(subject: PageSubject<KeyT>, lines: Set<Line<Any>>) = Page(subject, lines.associate { it })
