@@ -1,6 +1,9 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.TagList
+import com.rubyhuntersky.tomedb.basics.folderNameToString
+import com.rubyhuntersky.tomedb.basics.stringToFolderName
 import java.math.BigDecimal
 import java.util.*
 
@@ -21,7 +24,6 @@ private fun <T : Any> T.toFolderNameUntyped(): String = when (this) {
     is Date -> this.time.toString()
     is Double -> this.toString()
     is BigDecimal -> this.toString()
-    is AnyValue -> this.value.toFolderName()
     else -> "Not supported for value of type: ${this::class.java.simpleName}"
 }
 
@@ -36,7 +38,6 @@ internal fun valueOfFolderName(folderName: String): Any {
         DateCode -> toDateValue(content)
         DoubleCode -> toDoubleValue(content)
         BigDecimalCode -> toBigDecimalValue(content)
-        AnyValueCode -> toAnyValueValue(content)
         TagListCode -> toTagListValue()
         else -> error("Unknown type code in folder name: $folderName")
     }
@@ -53,7 +54,6 @@ private fun toKeywordValue(content: String): Keyword {
 private fun toDateValue(content: String): Date = Date(content.toLong())
 private fun toDoubleValue(content: String): Double = content.toDouble()
 private fun toBigDecimalValue(content: String): BigDecimal = content.toBigDecimal()
-private fun toAnyValueValue(content: String): AnyValue = valueOfFolderName(content) as AnyValue
 private fun toTagListValue(): TagList = error("Not Supported")
 
 private fun typeCodeOfValue(v: Any): String = when (v) {
@@ -65,7 +65,6 @@ private fun typeCodeOfValue(v: Any): String = when (v) {
     is Date -> DateCode
     is Double -> DoubleCode
     is BigDecimal -> BigDecimalCode
-    is AnyValue -> AnyValueCode
     is TagList -> TagListCode
     else -> error("Unsupported type: ${v::class.java.simpleName}.")
 }
@@ -77,5 +76,4 @@ private const val KeywordCode = "a"
 private const val DateCode = "i"
 private const val DoubleCode = "d"
 private const val BigDecimalCode = "t"
-private const val AnyValueCode = "v"
 private const val TagListCode = "z"

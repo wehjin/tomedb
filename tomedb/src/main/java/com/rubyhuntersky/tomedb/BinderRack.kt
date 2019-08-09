@@ -1,6 +1,5 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.basics.AnyValue
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.datalog.Datalog
 
@@ -25,10 +24,7 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
             }
 
         return checkedOutputBindings.map { bindings ->
-            bindings.associate { (name, value) ->
-                val unwrappedValue = if (value is AnyValue) value.value else value
-                Pair(name, unwrappedValue)
-            }
+            bindings.associate { (name, value) -> Pair(name, value) }
         }
     }
 
