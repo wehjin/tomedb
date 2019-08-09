@@ -2,8 +2,6 @@ package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TimeClock
-import com.rubyhuntersky.tomedb.basics.Value
-
 class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : Datalog {
 
     override fun commit() = Unit
@@ -12,7 +10,7 @@ class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : 
         get() = eavt.keys.toList()
 
     private val eavt =
-        mutableMapOf<Long, MutableMap<Keyword, MutableMap<Value<*>, MutableList<Txn>>>>()
+        mutableMapOf<Long, MutableMap<Keyword, MutableMap<Any, MutableList<Txn>>>>()
 
     override val ents: Sequence<Long>
         get() = allEntities.asSequence()
@@ -20,26 +18,26 @@ class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : 
     override val attrs: Sequence<Keyword>
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
-    override val allAssertedValues: List<Value<*>>
+    override val allAssertedValues: List<Any>
         get() = eavt.values.asSequence()
-            .map(MutableMap<Keyword, MutableMap<Value<*>, MutableList<Txn>>>::values).flatten()
-            .map(MutableMap<Value<*>, MutableList<Txn>>::entries).flatten()
+            .map(MutableMap<Keyword, MutableMap<Any, MutableList<Txn>>>::values).flatten()
+            .map(MutableMap<Any, MutableList<Txn>>::entries).flatten()
             .filter { (_, txns) ->
                 val latest = txns[0]
                 latest.standing == Fact.Standing.Asserted
             }
-            .map(MutableMap.MutableEntry<Value<*>, MutableList<Txn>>::key).distinct()
+            .map(MutableMap.MutableEntry<Any, MutableList<Txn>>::key).distinct()
             .toList()
 
-    override fun attrs(entity: Long): Sequence<Value<Keyword>> {
+    override fun attrs(entity: Long): Sequence<Keyword> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun values(entity: Long, attr: Keyword): Sequence<Value<*>> {
+    override fun values(entity: Long, attr: Keyword): Sequence<Any> {
         return (eavt[entity]?.get(attr)?.keys?.asSequence() ?: emptySequence())
     }
 
-    override fun isAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean {
+    override fun isAsserted(entity: Long, attr: Keyword, value: Any): Boolean {
         val txns = eavt[entity]?.get(attr)?.get(value)
         val firstTxn = txns?.get(0)
         return firstTxn?.isAsserted ?: false
@@ -52,7 +50,7 @@ class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : 
         return firstTxns?.map(Txn::isAsserted)?.fold(initial = false, operation = Boolean::or) ?: false
     }
 
-    override fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Fact.Standing): Fact {
+    override fun append(entity: Long, attr: Keyword, value: Any, standing: Fact.Standing): Fact {
         val instant = timeClock.now
         val txnId = nextTxnId++
         val txn = Txn(standing, instant, txnId)

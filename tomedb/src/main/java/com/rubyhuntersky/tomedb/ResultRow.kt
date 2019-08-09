@@ -2,18 +2,17 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.data.Projection
 
-data class ResultRow(val row: Map<Query.Find.Slot, Value<*>>) {
+data class ResultRow(val row: Map<Query.Find.Slot, Any>) {
 
-    fun toLegacy(): Map<String, Value<*>> = row.mapKeys { it.key.slotName }
+    fun toLegacy(): Map<String, Any> = row.mapKeys { it.key.slotName }
 
-    operator fun invoke(slot: Query.Find.Slot): Value<*> = row[slot] ?: error("No value for slot.")
+    operator fun invoke(slot: Query.Find.Slot): Any = row[slot] ?: error("No value for slot.")
 
     companion object {
-        fun valueOf(legacy: Map<String, Value<*>>): ResultRow {
-            val values: Map<Query.Find.Slot, Value<*>> = legacy.mapKeys {
+        fun valueOf(legacy: Map<String, Any>): ResultRow {
+            val values: Map<Query.Find.Slot, Any> = legacy.mapKeys {
                 Query.CommonSlot(it.key)
             }
             return ResultRow(values)
@@ -23,8 +22,8 @@ data class ResultRow(val row: Map<Query.Find.Slot, Value<*>>) {
 
 data class FindResult(val rows: List<ResultRow>) {
 
-    operator fun invoke(slot: Query.Find.Slot): List<Value<*>> = rows.mapNotNull { it.row[slot] }
-    operator fun invoke(): List<Value<*>> = rows.mapNotNull { it.row.values.firstOrNull() }
+    operator fun invoke(slot: Query.Find.Slot): List<Any> = rows.mapNotNull { it.row[slot] }
+    operator fun invoke(): List<Any> = rows.mapNotNull { it.row.values.firstOrNull() }
 
     fun toLegacy() = rows.map(ResultRow::toLegacy)
 
@@ -33,8 +32,8 @@ data class FindResult(val rows: List<ResultRow>) {
         attr: Keyword,
         vSlot: Query.Find.Slot
     ): Sequence<Projection<Any>> = rows.asSequence().map {
-        val ent = it(eSlot).toType<Long>()
-        val value = it(vSlot).v
+        val ent = it(eSlot) as Long
+        val value = it(vSlot)
         Projection(ent, attr, value)
     }
 
@@ -43,9 +42,9 @@ data class FindResult(val rows: List<ResultRow>) {
         aSlot: Query.Find.Slot,
         vSlot: Query.Find.Slot
     ): Sequence<Projection<Any>> = rows.asSequence().map {
-        val ent = it(eSlot).toType<Long>()
-        val attr = it(aSlot).toType<Keyword>()
-        val value = it(vSlot).v
+        val ent = it(eSlot) as Long
+        val attr = it(aSlot) as Keyword
+        val value = it(vSlot)
         Projection(ent, attr, value)
     }
 
@@ -54,10 +53,10 @@ data class FindResult(val rows: List<ResultRow>) {
         aSlot: Query.Find.Slot,
         vSlot: Query.Find.Slot
     ): Sequence<Projection<Any>> = rows.asSequence().map {
-        val attr = it(aSlot).toType<Keyword>()
-        val value = it(vSlot).v
+        val attr = it(aSlot) as Keyword
+        val value = it(vSlot)
         Projection(ent.long, attr, value)
     }
 
-    fun toEnts(eSlot: Query.Find.Slot): Sequence<Ent> = rows.asSequence().map { it(eSlot).toType<Long>() }.map(::Ent)
+    fun toEnts(eSlot: Query.Find.Slot): Sequence<Ent> = rows.asSequence().map { it(eSlot) as Long }.map(::Ent)
 }

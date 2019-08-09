@@ -6,7 +6,8 @@ import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.tagListOf
+import com.rubyhuntersky.tomedb.basics.tagOf
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -49,7 +50,7 @@ class SessionTest {
     fun reconnectionLoadsDataFromLedger() {
         Client().connect(dataDir, listOf(Movie.Title))
             .also { connection ->
-                val update = Update(1, Movie.Title, Value.STRING("Return of the King"))
+                val update = Update(1, Movie.Title, ("Return of the King"))
                 connection.send(update)
                 connection.commit()
             }
@@ -61,8 +62,8 @@ class SessionTest {
                 -"movie" and "title"
             )
         }
-        assertEquals(1, result.first()["movie"].asLong())
-        assertEquals("Return of the King", result.first()["title"].asString())
+        assertEquals(1, result.first()["movie"] as Long)
+        assertEquals("Return of the King", result.first()["title"] as String)
     }
 
     @Test
@@ -71,19 +72,19 @@ class SessionTest {
         val conn = Client().connect(dataDir, spec)
         val firstMovies = listOf(
             tagListOf(
-                "The Goonies" at Movie.Title,
-                "action/adventure" at Cardinality.ONE.keyword,
-                1985 at Movie.ReleaseYear
+                tagOf("The Goonies", Movie.Title.attrName),
+                tagOf("action/adventure", Cardinality.ONE.keyword),
+                tagOf(1985, Movie.ReleaseYear.attrName)
             ),
             tagListOf(
-                "Commando" at Movie.Title,
-                "action/adventure" at Movie.Genre,
-                1985 at Movie.ReleaseYear
+                tagOf("Commando", Movie.Title.attrName),
+                tagOf("action/adventure", Movie.Genre.attrName),
+                tagOf(1985, Movie.ReleaseYear.attrName)
             ),
             tagListOf(
-                "Repo Man" at Movie.Title,
-                "punk dystopia" at Movie.Genre,
-                1984 at Movie.ReleaseYear
+                tagOf("Repo Man", Movie.Title.attrName),
+                tagOf("punk dystopia", Movie.Genre.attrName),
+                tagOf(1984, Movie.ReleaseYear.attrName)
             )
         )
         conn.transactData(firstMovies)

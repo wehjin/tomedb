@@ -3,14 +3,13 @@ package com.rubyhuntersky.tomedb.datalog
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.Value
 
 class CardinalityMap {
 
-    operator fun set(nameValue: Value<*>?, cardinalityValue: Value<*>?) {
+    operator fun set(nameValue: Any?, cardinalityValue: Any?) {
         if (cardinalityValue != null && nameValue != null) {
-            val cardKeyword = cardinalityValue.toTypeP<Keyword>()
-            val nameKeyword = nameValue.toTypeP<Keyword>()
+            val cardKeyword = cardinalityValue as? Keyword
+            val nameKeyword = nameValue as? Keyword
             nameKeyword?.let { this[it] = Cardinality.valueOf(cardKeyword) }
         }
     }

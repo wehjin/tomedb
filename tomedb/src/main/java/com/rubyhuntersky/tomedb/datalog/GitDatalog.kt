@@ -4,7 +4,6 @@ import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.datalog.Fact.Standing.Asserted
 import com.rubyhuntersky.tomedb.datalog.Fact.Standing.Retracted
 import org.eclipse.jgit.api.Git
@@ -38,7 +37,7 @@ class GitDatalog(private val repoDir: File) : Datalog {
         }
     }
 
-    override fun append(entity: Long, attr: Keyword, value: Value<*>, standing: Fact.Standing): Fact {
+    override fun append(entity: Long, attr: Keyword, value: Any, standing: Fact.Standing): Fact {
         updateCardMap(entity, attr, value, cardinalityMap)
         val txnId = txnIdCounter.txnId
         val eDir = entityDir(eavtIndexDir, entity).also { it.mkdirs() }
@@ -66,7 +65,7 @@ class GitDatalog(private val repoDir: File) : Datalog {
         }
     }
 
-    private fun updateCardMap(entity: Long, attr: Keyword, value: Value<*>, cardMap: CardinalityMap) {
+    private fun updateCardMap(entity: Long, attr: Keyword, value: Any, cardMap: CardinalityMap) {
         if (attr == Scheme.CARDINALITY.attrName) {
             val nameValue = assertedValueAtEntityAttr(entity, Scheme.NAME.attrName)
             cardMap[nameValue] = value
@@ -92,7 +91,7 @@ class GitDatalog(private val repoDir: File) : Datalog {
     override val ents: Sequence<Long>
         get() = allEntities.asSequence()
 
-    override val allAssertedValues: List<Value<*>>
+    override val allAssertedValues: List<Any>
         get() = entDirs()
             .map(Companion::subFiles).flatten()
             .map(Companion::subFiles).flatten()
@@ -100,20 +99,20 @@ class GitDatalog(private val repoDir: File) : Datalog {
             .map(File::getName).map(::valueOfFolderName)
             .distinct().toList()
 
-    override fun attrs(entity: Long): Sequence<Value<Keyword>> {
-        return attrDirs(entity).map { AttrCoder.attrFromFolderName(it.name) }.map { Value.of(it) }
+    override fun attrs(entity: Long): Sequence<Keyword> {
+        return attrDirs(entity).map { AttrCoder.attrFromFolderName(it.name) }.map { (it) }
     }
 
-    override fun values(entity: Long, attr: Keyword): Sequence<Value<*>> {
+    override fun values(entity: Long, attr: Keyword): Sequence<Any> {
         return valueDirs(entity, attr).map { valueOfFolderName(it.name) }
     }
 
-    override fun isAsserted(entity: Long, attr: Keyword, value: Value<*>): Boolean {
+    override fun isAsserted(entity: Long, attr: Keyword, value: Any): Boolean {
         val valueDir = entityAttrValueDir(entity, attr, value)
         return isStandingAssertedInDir(valueDir)
     }
 
-    private fun entityAttrValueDir(entity: Long, attr: Keyword, value: Value<*>): File =
+    private fun entityAttrValueDir(entity: Long, attr: Keyword, value: Any): File =
         valueDir(entityAttrDir(entity, attr), value)
 
     private fun entityAttrDir(entity: Long, attr: Keyword): File = attrDir(entityDir(entity), attr)
@@ -149,7 +148,7 @@ class GitDatalog(private val repoDir: File) : Datalog {
 
         private fun standingFile(vDir: File) = File(vDir, "standing")
 
-        private fun valueDir(aDir: File, value: Value<*>): File {
+        private fun valueDir(aDir: File, value: Any): File {
             val folderName = value.toFolderName()
             return File(aDir, folderName)
         }

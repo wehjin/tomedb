@@ -4,8 +4,6 @@ import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.basics.Value.LONG
-import com.rubyhuntersky.tomedb.basics.invoke
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Before
@@ -47,17 +45,17 @@ class GitDatalogTest {
     @Test
     fun assertedValuesPersist() {
         val datalog = GitDatalog(folderPath)
-        datalog.append(1, Counter.COUNT, 3())
-        assertEquals(3, (datalog.allAssertedValues.first() as LONG).v)
+        datalog.append(1, Counter.COUNT, 3)
+        assertEquals(3, (datalog.allAssertedValues.first() as Long))
 
         val datalog2 = GitDatalog(folderPath)
-        assertEquals(3, (datalog2.allAssertedValues.first() as LONG).v)
+        assertEquals(3, (datalog2.allAssertedValues.first() as Long))
     }
 
     @Test
     fun neverAssertedValuesReturnFalseForIsAsserted() {
         val datalog = GitDatalog(folderPath)
-        assertFalse(datalog.isAsserted(3, Counter.MAXCOUNT, "Hello"()))
+        assertFalse(datalog.isAsserted(3, Counter.MAXCOUNT, "Hello"))
     }
 
     @Test
@@ -66,8 +64,8 @@ class GitDatalogTest {
         Counter.COUNTSET.toSchemeData().forEach { (value, keyword) ->
             datalog.append(2000, keyword, value)
         }
-        datalog.append(1, Counter.COUNTSET, 3())
-        datalog.append(1, Counter.COUNTSET, 4())
+        datalog.append(1, Counter.COUNTSET, 3)
+        datalog.append(1, Counter.COUNTSET, 4)
         assertEquals(2, datalog.values(1, Counter.COUNTSET).toList().size)
     }
 }

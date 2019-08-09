@@ -4,7 +4,10 @@ import com.rubyhuntersky.tomedb.Client
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.invoke
+import com.rubyhuntersky.tomedb.basics.queryOf
+import com.rubyhuntersky.tomedb.basics.tagListOf
+import com.rubyhuntersky.tomedb.basics.tagOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
@@ -32,7 +35,7 @@ class QuizzerTest {
 
         val findSelectedLearners = queryOf {
             rules = listOf(
-                SelectedLearnerSlot has Learner.Selected eq true(),
+                SelectedLearnerSlot has Learner.Selected eq true,
                 -SelectedLearnerSlot
             )
         }
@@ -47,7 +50,7 @@ class QuizzerTest {
 
         val quizResults = conn.mutDb(queryOf {
             rules = listOf(
-                SelectedLearnerSlot has Learner.Selected eq true(),
+                SelectedLearnerSlot has Learner.Selected eq true,
                 SelectedLearnerSlot has Learner.Quiz eq !"quiz",
                 "quiz" has Quiz.Name eq "name",
                 -"quiz" and "name"
@@ -55,14 +58,14 @@ class QuizzerTest {
         })
         println("QUIZZES: $quizResults")
         assertEquals(2, quizResults.size)
-        assertEquals(setOf("Basics", "Advanced"), quizResults.map { it["name"].asString() }.toSet())
+        assertEquals(setOf("Basics", "Advanced"), quizResults.map { it["name"] as String }.toSet())
 
-        val selectedQuizEntity = quizResults.first { it["name"].asString() == "Basics" }["quiz"].asLong()
+        val selectedQuizEntity = quizResults.first { it["name"] as String == "Basics" }["quiz"] as Long
         assertNotNull(selectedQuizEntity)
 
         val lessonResults = conn.mutDb(queryOf {
             rules = listOf(
-                +"selectedQuiz" put selectedQuizEntity(),
+                +"selectedQuiz" put selectedQuizEntity,
                 "selectedQuiz" has Quiz.Lesson eq !"lesson",
                 "lesson" has Lesson.Question eq "question",
                 "lesson" has Lesson.Answer eq "answer",
@@ -73,36 +76,48 @@ class QuizzerTest {
         assertEquals(2, lessonResults.size)
         assertEquals(
             setOf("World", "Sekkai"),
-            lessonResults.map { it["answer"].asString() }.toSet()
+            lessonResults.map { it["answer"] as String }.toSet()
         )
     }
 
     private val learnerData = tagListOf(
-        "Default" at Learner.Name,
-        true at Learner.Selected,
-        tagListOf(
-            "Basics" at Quiz.Name,
-            "Life" at Quiz.Publisher,
+        tagOf("Default", Learner.Name.attrName),
+        tagOf(true, Learner.Selected.attrName),
+        tagOf(
             tagListOf(
-                "Hello?" at Lesson.Question,
-                "World" at Lesson.Answer
-            ) at Quiz.Lesson,
+                tagOf("Basics", Quiz.Name.attrName),
+                tagOf("Life", Quiz.Publisher.attrName),
+                tagOf(
+                    tagListOf(
+                        tagOf("Hello?", Lesson.Question.attrName),
+                        tagOf("World", Lesson.Answer.attrName)
+                    ), Quiz.Lesson.attrName
+                ),
+                tagOf(
+                    tagListOf(
+                        tagOf("Moshi moshi ka", Lesson.Question.attrName),
+                        tagOf("Sekkai", Lesson.Answer.attrName)
+                    ), Quiz.Lesson.attrName
+                )
+            ), Learner.Quiz.attrName
+        ),
+        tagOf(
             tagListOf(
-                "Moshi moshi ka" at Lesson.Question,
-                "Sekkai" at Lesson.Answer
-            ) at Quiz.Lesson
-        ) at Learner.Quiz,
-        tagListOf(
-            "Advanced" at Quiz.Name,
-            "Life" at Quiz.Publisher,
-            tagListOf(
-                "World?" at Lesson.Question,
-                "Hello" at Lesson.Answer
-            ) at Quiz.Lesson,
-            tagListOf(
-                "Sekkai ka" at Lesson.Question,
-                "Moshi moshi" at Lesson.Answer
-            ) at Quiz.Lesson
-        ) at Learner.Quiz
+                tagOf("Advanced", Quiz.Name.attrName),
+                tagOf("Life", Quiz.Publisher.attrName),
+                tagOf(
+                    tagListOf(
+                        tagOf("World?", Lesson.Question.attrName),
+                        tagOf("Hello", Lesson.Answer.attrName)
+                    ), Quiz.Lesson.attrName
+                ),
+                tagOf(
+                    tagListOf(
+                        tagOf("Sekkai ka", Lesson.Question.attrName),
+                        tagOf("Moshi moshi", Lesson.Answer.attrName)
+                    ), Quiz.Lesson.attrName
+                )
+            ), Learner.Quiz.attrName
+        )
     )
 }

@@ -5,8 +5,6 @@ import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
-import com.rubyhuntersky.tomedb.basics.Value
-import com.rubyhuntersky.tomedb.basics.invoke
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.MutableDatabase
 import com.rubyhuntersky.tomedb.datalog.Fact
@@ -25,7 +23,7 @@ class Session(dataDir: File, spec: List<Attribute>?) {
     }
 
     private fun List<Attribute>.toNewAttributes(): List<Attribute> = mapNotNull { attribute ->
-        val nameValue = Value.of(attribute.attrName)
+        val nameValue = (attribute.attrName)
         if (mutDb.entityExistsWithAttrValue(Scheme.NAME.attrName, nameValue)) {
             attribute
         } else {
@@ -59,17 +57,16 @@ class Session(dataDir: File, spec: List<Attribute>?) {
 
     private fun expandDataValues(update: Update): List<Update> {
         val (entity, attr, value, type) = update
-        return if (value is Value.DATA) {
-            val tagList = value.v
+        return if (value is TagList) {
             val subEntity = mutDb.nextEntity()
-            expandTagList(tagList, subEntity, type) + Update(entity, attr, subEntity(), type)
+            expandTagList(value, subEntity, type) + Update(entity, attr, subEntity, type)
         } else {
             listOf(update)
         }
     }
 
     @Deprecated(message = "Use send.")
-    fun update(entity: Long, attr: Keyword, value: Value<*>, isAsserted: Boolean = true) {
+    fun update(entity: Long, attr: Keyword, value: Any, isAsserted: Boolean = true) {
         val type = Update.Action.valueOf(isAsserted)
         val update = Update(entity, attr, value, type)
         send(setOf(update))

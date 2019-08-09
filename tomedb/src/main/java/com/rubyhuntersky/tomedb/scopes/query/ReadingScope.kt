@@ -33,7 +33,7 @@ interface ReadingScope : DestructuringScope {
         val vSlot = slot("v")
         val query = queryOf {
             rules = listOf(
-                +eSlot put Value.of(ent.long),
+                +eSlot put (ent.long),
                 eSlot has aSlot eq vSlot,
                 -aSlot and vSlot
             )

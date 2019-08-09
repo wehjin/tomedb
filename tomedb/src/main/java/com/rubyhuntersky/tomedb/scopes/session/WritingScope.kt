@@ -3,7 +3,6 @@ package com.rubyhuntersky.tomedb.scopes.session
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.Value
 import com.rubyhuntersky.tomedb.data.*
 
 interface WritingScope {
@@ -21,7 +20,7 @@ interface WritingScope {
     }
 
     suspend fun dbWrite(facts: List<Projection<Any>>) {
-        val updates = facts.map { Update(it.ent, it.attr, Value.of(it.value)) }
+        val updates = facts.map { Update(it.ent, it.attr, it.value) }
         transact(updates.toSet())
     }
 
@@ -32,7 +31,7 @@ interface WritingScope {
                 val update = Update(
                     subject.keyEnt.long,
                     subject.keyAttr!!.attrName,
-                    Value.of(subject.keyValue!!),
+                    subject.keyValue!!,
                     Update.Action.valueOf(false)
                 )
                 transact(setOf(update))
