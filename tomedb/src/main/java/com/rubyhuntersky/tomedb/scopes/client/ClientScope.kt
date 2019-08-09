@@ -1,7 +1,9 @@
 package com.rubyhuntersky.tomedb.scopes.client
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.TagList
+import com.rubyhuntersky.tomedb.basics.tagOf
 import com.rubyhuntersky.tomedb.connection.Session
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
 import com.rubyhuntersky.tomedb.scopes.session.ConnectionScope
@@ -47,28 +49,16 @@ interface ClientScope : CoroutineScope, DestructuringScope {
 
     private class CommonConnectionScope(override val dbSessionChannel: SessionChannel) : ConnectionScope
 
-    operator fun Boolean.invoke(): Value<Boolean> = Value.of(this)
-    operator fun Long.invoke(): Value<Long> = Value.of(this)
-    operator fun Int.invoke(): Value<Long> = Value.of(this.toLong())
-    operator fun Keyword.invoke(): Value<Keyword> = Value.of(this)
-    operator fun String.invoke(): Value<String> = Value.of(this)
-    operator fun Date.invoke(): Value<Date> = Value.of(this)
-    operator fun Double.invoke(): Value<Double> = Value.of(this)
-    operator fun BigDecimal.invoke(): Value<BigDecimal> = Value.of(this)
-    operator fun AnyValue.invoke(): Value<AnyValue> = Value.of(this)
-    operator fun <T : Any> Value<T>.invoke(): Value<AnyValue> = Value.of(AnyValue(this))
-    operator fun TagList.invoke(): Value<TagList> = Value.of(this)
-
-    operator fun <T : Any> Keyword.rangeTo(value: Value<T>) = tagOf(value, this)
-    operator fun Keyword.rangeTo(v: Boolean) = tagOf(v(), this)
-    operator fun Keyword.rangeTo(v: Long) = tagOf(v(), this)
-    operator fun Keyword.rangeTo(v: Int) = tagOf(v(), this)
-    operator fun Keyword.rangeTo(v: Keyword) = tagOf(v(), this)
-    operator fun Keyword.rangeTo(v: String) = tagOf(v(), this)
-    operator fun Keyword.rangeTo(v: Date) = tagOf(v(), this)
-    operator fun Keyword.rangeTo(v: Double) = tagOf(v(), this)
-    operator fun Keyword.rangeTo(v: BigDecimal) = tagOf(v(), this)
-    operator fun Keyword.rangeTo(v: TagList) = tagOf(v(), this)
+    operator fun <T : Any> Keyword.rangeTo(value: T) = tagOf(value, this)
+    operator fun Keyword.rangeTo(v: Boolean) = tagOf(v, this)
+    operator fun Keyword.rangeTo(v: Long) = tagOf(v, this)
+    operator fun Keyword.rangeTo(v: Int) = tagOf(v, this)
+    operator fun Keyword.rangeTo(v: Keyword) = tagOf(v, this)
+    operator fun Keyword.rangeTo(v: String) = tagOf(v, this)
+    operator fun Keyword.rangeTo(v: Date) = tagOf(v, this)
+    operator fun Keyword.rangeTo(v: Double) = tagOf(v, this)
+    operator fun Keyword.rangeTo(v: BigDecimal) = tagOf(v, this)
+    operator fun Keyword.rangeTo(v: TagList) = tagOf(v, this)
 }
 
 

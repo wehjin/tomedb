@@ -2,8 +2,8 @@ package com.rubyhuntersky.tomedb.attributes
 
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
-import com.rubyhuntersky.tomedb.basics.at
 import com.rubyhuntersky.tomedb.basics.tagListOf
+import com.rubyhuntersky.tomedb.basics.tagOf
 
 interface Attribute : GroupedItem {
 
@@ -17,10 +17,10 @@ interface Attribute : GroupedItem {
     infix fun <T : Any> to(other: T) = Pair(attrName, other)
 
     fun toSchemeData(): TagList = tagListOf(
-        attrName at Scheme.NAME,
-        valueType.keyword at Scheme.VALUETYPE,
-        cardinality.keyword at Scheme.CARDINALITY,
-        description at Scheme.DESCRIPTION
+        tagOf(attrName, Scheme.NAME.attrName),
+        tagOf(valueType.keyword, Scheme.VALUETYPE.attrName),
+        tagOf(cardinality.keyword, Scheme.CARDINALITY.attrName),
+        tagOf(description, Scheme.DESCRIPTION.attrName)
     )
 }
 

@@ -1,7 +1,7 @@
 package com.rubyhuntersky.tomedb.database
 
 import com.rubyhuntersky.tomedb.*
-import com.rubyhuntersky.tomedb.basics.Value
+import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.datalog.Datalog
 import com.rubyhuntersky.tomedb.datalog.Fact
 import com.rubyhuntersky.tomedb.datalog.GitDatalog
@@ -17,7 +17,7 @@ class MutableDatabase(dataDir: File) : Database {
 
     private fun update(update: Update): Fact {
         val (entity, attr, value, type) = update
-        require(value !is Value.DATA)
+        require(value !is TagList)
         return datalog.append(entity, attr, value, type.toStanding())
     }
 
@@ -34,7 +34,7 @@ class MutableDatabase(dataDir: File) : Database {
         val rules = query.rules
         val inputs: List<Input<*>> = rules.mapNotNull {
             when (it) {
-                is Query.Find.Rule2.SlipValue -> Input(
+                is Query.Find.Rule2.SlipValue<*> -> Input(
                     it.slip.name,
                     it.value
                 )
@@ -67,7 +67,7 @@ class MutableDatabase(dataDir: File) : Database {
                     attrVar = it.aSlot.slotName,
                     valueVar = it.vSlot.slotName
                 )
-                is Query.Find.Rule2.SlipValue -> null
+                is Query.Find.Rule2.SlipValue<*> -> null
                 is Query.Find.Rule2.Slide -> null
             }
         }
@@ -77,7 +77,7 @@ class MutableDatabase(dataDir: File) : Database {
                 else -> null
             }
         }.flatten()
-        val fixedSolvers = (if (inputs.isEmpty()) null else inputs)?.map(Input<*>::toSolver)
+        val fixedSolvers = (if (inputs.isEmpty()) null else inputs)?.map { it.toSolver() }
         val found = BinderRack(fixedSolvers).stir(outputs, rules1, datalog)
         return FindResult(found.map(ResultRow.Companion::valueOf))
     }

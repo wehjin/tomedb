@@ -1,83 +1,79 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.TagList
+import com.rubyhuntersky.tomedb.basics.folderNameToString
+import com.rubyhuntersky.tomedb.basics.stringToFolderName
+import java.math.BigDecimal
 import java.util.*
 
-internal fun <T : Any> Value<T>.toFolderName(): String {
-    return valueType.typeCode + toFolderNameUntyped()
+internal fun <T : Any> T.toFolderName(): String {
+    return typeCodeOfValue(this) + toFolderNameUntyped()
 }
 
-internal fun valueOfFolderName(folderName: String): Value<*> {
-    val typeCode = folderName.substring(0, 1)
-    val content = folderName.substring(1)
-    val valueType =
-        try {
-            valueTypeOfTypeCode(typeCode)
-        } catch (e: Throwable) {
-            error("Bad type code for folder name: $folderName")
-        }
-    return valueOfFolderNameWithType(valueType, content)
-}
-
-private fun <T : Any> Value<T>.toFolderNameUntyped(): String = when (this) {
-    is Value.BOOLEAN -> (if (v) 1 else 0).toString()
-    is Value.LONG -> v.toString()
-    is Value.STRING -> stringToFolderName(v)
-    is Value.ATTR -> {
-        val first = stringToFolderName(v.keywordName)
-        val last = stringToFolderName(v.keywordGroup)
+private fun <T : Any> T.toFolderNameUntyped(): String = when (this) {
+    is Boolean -> (if (this) 1 else 0).toString()
+    is Long -> this.toString()
+    is Int -> this.toString()
+    is String -> stringToFolderName(this)
+    is Keyword -> {
+        val first = stringToFolderName(this.keywordName)
+        val last = stringToFolderName(this.keywordGroup)
         "$first,$last"
     }
-    is Value.INSTANT -> v.time.toString()
-    is Value.DOUBLE -> v.toString()
-    is Value.BIGDEC -> v.toString()
-    is Value.VALUE -> v.value.toFolderName()
-    is Value.DATA -> error("Not supported.")
+    is Date -> this.time.toString()
+    is Double -> this.toString()
+    is BigDecimal -> this.toString()
+    else -> "Not supported for value of type: ${this::class.java.simpleName}"
 }
 
-private fun valueOfFolderNameWithType(valueType: ValueType, content: String): Value<*> {
-    return when (valueType) {
-        ValueType.BOOLEAN -> (content == "1")()
-        ValueType.LONG -> (content.toLong())()
-        ValueType.STRING -> {
-            folderNameToString(content)()
-        }
-        ValueType.ATTR -> {
-            val (first, last) = content.split(',')
-            val itemName = Keyword(folderNameToString(first), folderNameToString(last))
-            itemName()
-        }
-        ValueType.INSTANT -> Date(content.toLong())()
-        ValueType.DOUBLE -> (content.toDouble())()
-        ValueType.BIGDEC -> (content.toBigDecimal())()
-        ValueType.VALUE -> valueOfFolderName(content)()
-        ValueType.DATA -> error("Not supported")
+internal fun valueOfFolderName(folderName: String): Any {
+    val typeCode = folderName.substring(0, 1)
+    val content = folderName.substring(1)
+    return when (typeCode) {
+        BooleanCode -> toBooleanValue(content)
+        LongCode -> toLongValue(content)
+        StringCode -> toStringValue(content)
+        KeywordCode -> toKeywordValue(content)
+        DateCode -> toDateValue(content)
+        DoubleCode -> toDoubleValue(content)
+        BigDecimalCode -> toBigDecimalValue(content)
+        TagListCode -> toTagListValue()
+        else -> error("Unknown type code in folder name: $folderName")
     }
 }
 
-private val ValueType.typeCode: String
-    get() = when (this) {
-        ValueType.BOOLEAN -> "b"
-        ValueType.LONG -> "l"
-        ValueType.STRING -> "s"
-        ValueType.ATTR -> "a"
-        ValueType.INSTANT -> "i"
-        ValueType.DOUBLE -> "d"
-        ValueType.BIGDEC -> "t"
-        ValueType.VALUE -> "v"
-        ValueType.DATA -> "z"
-    }
-
-private fun valueTypeOfTypeCode(typeCode: String): ValueType = when (typeCode) {
-    "b" -> ValueType.BOOLEAN
-    "l" -> ValueType.LONG
-    "s" -> ValueType.STRING
-    "a" -> ValueType.ATTR
-    "i" -> ValueType.INSTANT
-    "d" -> ValueType.DOUBLE
-    "t" -> ValueType.BIGDEC
-    "v" -> ValueType.VALUE
-    "z" -> ValueType.DATA
-    else -> error("Invalid type code: $typeCode")
+private fun toBooleanValue(content: String): Boolean = (content == "1")
+private fun toLongValue(content: String): Long = content.toLong()
+private fun toStringValue(content: String): String = folderNameToString(content)
+private fun toKeywordValue(content: String): Keyword {
+    val (first, last) = content.split(',')
+    return Keyword(folderNameToString(first), folderNameToString(last))
 }
+
+private fun toDateValue(content: String): Date = Date(content.toLong())
+private fun toDoubleValue(content: String): Double = content.toDouble()
+private fun toBigDecimalValue(content: String): BigDecimal = content.toBigDecimal()
+private fun toTagListValue(): TagList = error("Not Supported")
+
+private fun typeCodeOfValue(v: Any): String = when (v) {
+    is Boolean -> BooleanCode
+    is Long -> LongCode
+    is Int -> LongCode
+    is String -> StringCode
+    is Keyword -> KeywordCode
+    is Date -> DateCode
+    is Double -> DoubleCode
+    is BigDecimal -> BigDecimalCode
+    is TagList -> TagListCode
+    else -> error("Unsupported type: ${v::class.java.simpleName}.")
+}
+
+private const val BooleanCode = "b"
+private const val LongCode = "l"
+private const val StringCode = "s"
+private const val KeywordCode = "a"
+private const val DateCode = "i"
+private const val DoubleCode = "d"
+private const val BigDecimalCode = "t"
+private const val TagListCode = "z"

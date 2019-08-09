@@ -2,13 +2,12 @@ package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.attributes.GroupedItem
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
 data class Fact(
     val entity: Long,
     val attr: Keyword,
-    val value: Value<*>,
+    val value: Any,
     val standing: Standing,
     val inst: Date,
     val txn: TxnId

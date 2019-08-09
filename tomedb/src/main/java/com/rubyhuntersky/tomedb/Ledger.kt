@@ -1,7 +1,6 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.Value
 import java.util.*
 
 interface Ledger {
@@ -13,7 +12,7 @@ interface Ledger {
     data class Line(
         val entity: Long,
         val attr: Keyword,
-        val value: Value<*>,
+        val value: Any,
         val isAsserted: Boolean,
         val time: Date
     )
