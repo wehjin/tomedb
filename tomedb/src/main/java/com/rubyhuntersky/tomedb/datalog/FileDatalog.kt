@@ -3,6 +3,7 @@ package com.rubyhuntersky.tomedb.datalog
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
 import com.rubyhuntersky.tomedb.datalog.framing.FrameWriter
+import com.rubyhuntersky.tomedb.datalog.trie.TrieKey
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -47,19 +48,40 @@ class FileDatalog : Datalog {
     }
 }
 
-data class TrieNode(
-    val subTries: LongArray = LongArray(32)
-)
+class TrieNode(bytes: ByteArray) {
+
+    operator fun get(index: Byte): Long? {
+        return null
+    }
+}
 
 class TrieReader(inputStream: InputStream, private val rootStart: Long?) {
     private val frameReader = FrameReader(inputStream)
 
-    fun findValue(key: Long): Long? {
-        return rootStart?.let { nodeStart ->
-            null
-        }
+    fun trace(key: Long): List<Pair<Byte, TrieNode?>> {
+        val rootToValue = TrieKey(key).toIndices().fold(
+            initial = Pair(rootStart, emptyList<Pair<Byte, TrieNode?>>()),
+            operation = { (start, out), index ->
+                start?.let {
+                    val node = TrieNode(frameReader.read(start))
+                    Pair(node[index], out + Pair(index, node))
+                } ?: Pair(null, out + Pair(index, null))
+            }
+        ).second
+        return rootToValue.reversed()
     }
 
+    fun find(key: Long): Long? {
+        return TrieKey(key).toIndices().fold(
+            initial = rootStart,
+            operation = { start, index ->
+                start?.let {
+                    val node = TrieNode(frameReader.read(start))
+                    node[index]
+                }
+            }
+        )
+    }
 }
 
 class FactWriter {
