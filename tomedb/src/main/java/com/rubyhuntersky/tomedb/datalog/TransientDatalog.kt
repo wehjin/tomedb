@@ -2,32 +2,27 @@ package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TimeClock
+
 class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : Datalog {
 
     override fun commit() = Unit
 
-    override val allEntities: List<Long>
-        get() = eavt.keys.toList()
-
     private val eavt =
         mutableMapOf<Long, MutableMap<Keyword, MutableMap<Any, MutableList<Txn>>>>()
 
-    override val ents: Sequence<Long>
-        get() = allEntities.asSequence()
+    override fun ents(): Sequence<Long> = eavt.keys.asSequence()
 
-    override val attrs: Sequence<Keyword>
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    override fun attrs(): Sequence<Keyword> =
+        TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
-    override val allAssertedValues: List<Any>
-        get() = eavt.values.asSequence()
-            .map(MutableMap<Keyword, MutableMap<Any, MutableList<Txn>>>::values).flatten()
-            .map(MutableMap<Any, MutableList<Txn>>::entries).flatten()
-            .filter { (_, txns) ->
-                val latest = txns[0]
-                latest.standing == Fact.Standing.Asserted
-            }
-            .map(MutableMap.MutableEntry<Any, MutableList<Txn>>::key).distinct()
-            .toList()
+    override fun values(): Sequence<Any> = eavt.values.asSequence()
+        .map(MutableMap<Keyword, MutableMap<Any, MutableList<Txn>>>::values).flatten()
+        .map(MutableMap<Any, MutableList<Txn>>::entries).flatten()
+        .filter { (_, txns) ->
+            val latest = txns[0]
+            latest.standing == Fact.Standing.Asserted
+        }
+        .map(MutableMap.MutableEntry<Any, MutableList<Txn>>::key).distinct()
 
     override fun attrs(entity: Long): Sequence<Keyword> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -47,7 +42,8 @@ class TransientDatalog(private val timeClock: TimeClock = TimeClock.REALTIME) : 
         val mapValueToTxnList = eavt[entity]?.get(attr)
         val txnLists = mapValueToTxnList?.values
         val firstTxns = txnLists?.map { it[0] }
-        return firstTxns?.map(Txn::isAsserted)?.fold(initial = false, operation = Boolean::or) ?: false
+        return firstTxns?.map(Txn::isAsserted)?.fold(initial = false, operation = Boolean::or)
+            ?: false
     }
 
     override fun append(entity: Long, attr: Keyword, value: Any, standing: Fact.Standing): Fact {

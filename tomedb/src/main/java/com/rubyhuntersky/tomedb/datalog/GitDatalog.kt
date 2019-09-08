@@ -1,6 +1,5 @@
 package com.rubyhuntersky.tomedb.datalog
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.basics.Keyword
@@ -31,8 +30,8 @@ class GitDatalog(private val repoDir: File) : Datalog {
     private val cardinalityMap = CardinalityMap().also {
         entDirs().forEach { eDir ->
             val ent = eDir.name.toLong()
-            val nameValue = assertedValueAtEntityAttr(ent, Scheme.NAME.attrName)
-            val cardinalityValue = assertedValueAtEntityAttr(ent, Scheme.CARDINALITY.attrName)
+            val nameValue = value(ent, Scheme.NAME.attrName)
+            val cardinalityValue = value(ent, Scheme.CARDINALITY.attrName)
             it[nameValue] = cardinalityValue
         }
     }
@@ -67,37 +66,32 @@ class GitDatalog(private val repoDir: File) : Datalog {
 
     private fun updateCardMap(entity: Long, attr: Keyword, value: Any, cardMap: CardinalityMap) {
         if (attr == Scheme.CARDINALITY.attrName) {
-            val nameValue = assertedValueAtEntityAttr(entity, Scheme.NAME.attrName)
+            val nameValue = value(entity, Scheme.NAME.attrName)
             cardMap[nameValue] = value
         }
         if (attr == Scheme.NAME.attrName) {
-            val cardinalityValue = assertedValueAtEntityAttr(entity, Scheme.CARDINALITY.attrName)
+            val cardinalityValue = value(entity, Scheme.CARDINALITY.attrName)
             cardMap[value] = cardinalityValue
         }
     }
 
     private fun entDirs() = subFiles(eavtIndexDir).asSequence()
     private fun attrDirs(entity: Long) = subFiles(entityDir(entity)).asSequence()
-    private fun valueDirs(entity: Long, attr: Keyword) = subFiles(entityAttrDir(entity, attr)).asSequence()
+    private fun valueDirs(entity: Long, attr: Keyword) =
+        subFiles(entityAttrDir(entity, attr)).asSequence()
 
-    override val allEntities: List<Long>
-        get() = entDirs().map(File::getName).map { it.toLong() }.toList()
+    override fun attrs(): Sequence<Keyword> = ents().flatMap { ent ->
+        subFiles(entityDir(ent)).asSequence().map { it.name }.map(AttrCoder::attrFromFolderName)
+    }
 
-    override val attrs: Sequence<Keyword>
-        get() = ents.flatMap { ent ->
-            subFiles(entityDir(ent)).asSequence().map { it.name }.map(AttrCoder::attrFromFolderName)
-        }
+    override fun ents(): Sequence<Long> = entDirs().map(File::getName).map { it.toLong() }
 
-    override val ents: Sequence<Long>
-        get() = allEntities.asSequence()
-
-    override val allAssertedValues: List<Any>
-        get() = entDirs()
-            .map(Companion::subFiles).flatten()
-            .map(Companion::subFiles).flatten()
-            .filter(Companion::isStandingAssertedInDir)
-            .map(File::getName).map(::valueOfFolderName)
-            .distinct().toList()
+    override fun values(): Sequence<Any> = entDirs()
+        .map(Companion::subFiles).flatten()
+        .map(Companion::subFiles).flatten()
+        .filter(Companion::isStandingAssertedInDir)
+        .map(File::getName).map(::valueOfFolderName)
+        .distinct()
 
     override fun attrs(entity: Long): Sequence<Keyword> {
         return attrDirs(entity).map { AttrCoder.attrFromFolderName(it.name) }.map { (it) }
@@ -127,7 +121,8 @@ class GitDatalog(private val repoDir: File) : Datalog {
 
     companion object {
 
-        private fun subFiles(folder: File): List<File> = (folder.listFiles() ?: emptyArray()).toList()
+        private fun subFiles(folder: File): List<File> =
+            (folder.listFiles() ?: emptyArray()).toList()
 
         private fun Fact.Standing.toContent(): String = when (this) {
             Asserted -> "asserted"
@@ -153,7 +148,9 @@ class GitDatalog(private val repoDir: File) : Datalog {
             return File(aDir, folderName)
         }
 
-        private fun attrDir(eDir: File, attr: Keyword) = File(eDir, AttrCoder.folderNameFromAttr(attr))
+        private fun attrDir(eDir: File, attr: Keyword) =
+            File(eDir, AttrCoder.folderNameFromAttr(attr))
+
         private fun entityDir(eavtDir: File, entity: Long) = File(eavtDir, entity.toString())
     }
 }

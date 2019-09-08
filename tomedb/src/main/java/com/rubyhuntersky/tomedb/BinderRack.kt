@@ -94,7 +94,7 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
     private fun Rule.SlotAttrSlot.squeeze(datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
         val entityBinder = addOrFindEntitySolver(entityVar, binders, datalog)
         val valueBinder = addOrFindValueSolver(valueVar, binders, datalog)
-        val ents = listPossible(entityBinder.possible, listAll = { datalog.ents.map { (it) } })
+        val ents = listPossible(entityBinder.possible, listAll = { datalog.ents().map { (it) } })
         val entValues = ents
             .flatMap { ent ->
                 listPossible(valueBinder.possible, listAll = { datalog.values(ent, attr) }).map { Pair(ent, it) }
@@ -114,11 +114,11 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
         val startBinder = addOrFindEntitySolver(entityVar, binders, datalog)
         val endBinder = addOrFindEntitySolver(entityValueVar, binders, datalog)
         val substitutions =
-            listPossible(startBinder.possible, listAll = { datalog.ents.map { (it) } })
+            listPossible(startBinder.possible, listAll = { datalog.ents().map { (it) } })
                 .flatMap { start: Long ->
                     listPossible(
                         possible = endBinder.possible,
-                        listAll = { datalog.ents.map { (it) } }
+                        listAll = { datalog.ents().map { (it) } }
                     ).map { end: Long -> Pair(start, end) }
                 }
                 .filter { datalog.isAsserted(it.first, attr, it.second) }
@@ -131,7 +131,7 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
 
     private fun Rule.SlotAttrValue.squeeze(datalog: Datalog, solvers: MutableMap<String, Solver<*>>) {
         val entityBinder = addOrFindEntitySolver(entityVar, solvers, datalog)
-        val matches = listPossible(entityBinder.possible, listAll = { datalog.ents.map { (it) } })
+        val matches = listPossible(entityBinder.possible, listAll = { datalog.ents().map { (it) } })
             .filter { datalog.isAsserted(it, attr, this.value) }
 
         solvers[entityVar] = entityBinder.setPossible(Possible.fromList(matches))
@@ -139,7 +139,7 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
 
     private fun Rule.SlotAttr.squeeze(datalog: Datalog, binders: MutableMap<String, Solver<*>>) {
         val entityBinder = addOrFindEntitySolver(entityVar, binders, datalog)
-        val matches = listPossible(entityBinder.possible, listAll = { datalog.ents.map { (it) } })
+        val matches = listPossible(entityBinder.possible, listAll = { datalog.ents().map { (it) } })
             .filter { datalog.isAsserted(it, attr) }
 
         solvers[entityVar] = entityBinder.setPossible(Possible.fromList(matches))
@@ -152,7 +152,7 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
     ): Solver<Long> = binders.addOrFindSolver(
         name = entityVar,
         valueClass = Long::class.java,
-        allSolutions = { datalog.ents.map { (it) } }
+        allSolutions = { datalog.ents().map { (it) } }
     )
 
     private fun addOrFindAttrSolver(
@@ -162,7 +162,7 @@ class BinderRack(initSolvers: List<Solver<*>>?) {
     ): Solver<Keyword> = binders.addOrFindSolver(
         name = attrVar,
         valueClass = Keyword::class.java,
-        allSolutions = { datalog.attrs.map { (it) } }
+        allSolutions = { datalog.attrs().map { (it) } }
     )
 
     private fun addOrFindValueSolver(
