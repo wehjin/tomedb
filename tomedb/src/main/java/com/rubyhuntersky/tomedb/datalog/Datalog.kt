@@ -10,8 +10,6 @@ interface Datalog {
     fun attrs(entity: Long): Sequence<Keyword>
     fun attrs(): Sequence<Keyword>
 
-    fun value(entity: Long, attr: Keyword): Any? =
-        values(entity, attr).asSequence().firstOrNull { isAsserted(entity, attr, it) }
     fun values(entity: Long, attr: Keyword): Sequence<Any>
     fun values(): Sequence<Any>
 
@@ -27,3 +25,6 @@ interface Datalog {
 
     fun commit()
 }
+
+fun Datalog.value(entity: Long, attr: Keyword): Any? =
+    values(entity, attr).asSequence().firstOrNull { isAsserted(entity, attr, it) }
