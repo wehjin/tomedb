@@ -1,6 +1,6 @@
-package com.rubyhuntersky.tomedb.datalog.trie
+package com.rubyhuntersky.tomedb.datalog.hamt
 
-class TrieKey(private val hash: Long) {
+class HamtKey(private val hash: Long) {
     fun toIndices(): Sequence<Byte> {
         return sequence {
             for (shiftBits in 0..60 step 5) {
