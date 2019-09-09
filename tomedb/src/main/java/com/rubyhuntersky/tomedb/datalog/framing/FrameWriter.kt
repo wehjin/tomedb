@@ -1,6 +1,5 @@
 package com.rubyhuntersky.tomedb.datalog.framing
 
-import com.rubyhuntersky.tomedb.datalog.framing.FramePolicy
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
