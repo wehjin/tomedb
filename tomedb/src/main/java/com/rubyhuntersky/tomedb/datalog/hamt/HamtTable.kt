@@ -22,11 +22,24 @@ class HamtTable(bytes: ByteArray, type: HamtTableType) {
         return SlotContent.Empty
     }
 
+    val map: Long
+        get() {
+            TODO()
+        }
+
     fun toBytes(): ByteArray {
         TODO()
     }
 
-    fun fillSlot(index: Byte, key: Long, value: Long): HamtTable {
+    fun toRootBytes(): ByteArray {
+        TODO()
+    }
+
+    fun fillSlotWithKeyValue(index: Byte, key: Long, value: Long): HamtTable {
+        TODO()
+    }
+
+    fun fillSlotWithMapBase(index: Byte, map: Long, base: Long): HamtTable {
         TODO()
     }
 
@@ -35,7 +48,11 @@ class HamtTable(bytes: ByteArray, type: HamtTableType) {
             TODO()
         }
 
-        fun createSub(indexKeyValues: Set<Triple<Byte, Long, Long>>): HamtTable {
+        fun createSubWithKeyValues(indexKeyValues: Set<Triple<Byte, Long, Long>>): HamtTable {
+            TODO()
+        }
+
+        fun createSubWithMapBase(index: Byte, map: Long, base: Long): HamtTable {
             TODO()
         }
     }

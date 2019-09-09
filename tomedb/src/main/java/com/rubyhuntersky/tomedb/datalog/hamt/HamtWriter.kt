@@ -19,90 +19,77 @@ class HamtWriter(
     )
 
     private sealed class Insert {
-        data class Descend(
+        data class Revised(
+            val revisedTable: HamtTable,
+            val upperTables: List<Pair<HamtTable?, Byte>>
+        ) : Insert()
+
+        data class Descending(
             val table: HamtTable,
-            val ancestors: List<Pair<HamtTable, Byte>>
+            val upperTables: List<Pair<HamtTable, Byte>>
         ) : Insert()
 
         data class DescendConflicted(
             val conflict: Conflict,
-            val ancestors: List<Pair<HamtTable?, Byte>>
-        ) : Insert()
-
-        data class Ascend(
-            val revisedTable: HamtTable,
-            val rewriteTables: List<Pair<HamtTable?, Byte>>
+            val upperTables: List<Pair<HamtTable?, Byte>>
         ) : Insert()
     }
 
     fun put(key: Long, value: Long) {
-        rootBase = rootBase?.let {
-            val rootTable = HamtTable(
-                frameReader.read(it),
-                HamtTableType.Root
-            )
+        val nextRoot = rootBase?.let {
+            val rootTable = HamtTable(frameReader.read(it), HamtTableType.Root)
             when (val insert = descend(rootTable, key, value)) {
-                is Insert.Descend -> error("Subtable found at final index from key: $key")
-                is Insert.DescendConflicted -> error("Hash collision for keys: $key, ${insert.conflict.key}")
-                is Insert.Ascend -> {
-                    val topTable = insert.rewriteTables.fold(
+                is Insert.Descending -> error("Sub-table found in slot at lowest sub-table of key: $key")
+                is Insert.DescendConflicted -> error("Key hashes collided: $key, ${insert.conflict.key}")
+                is Insert.Revised -> {
+                    insert.upperTables.reversed().fold(
                         initial = insert.revisedTable,
-                        operation = { subTable, (supTable, index) ->
-                            TODO()
+                        operation = { revised, (original, index) ->
+                            val revisedBase = frameWriter.write(revised.toBytes())
+                            original?.fillSlotWithMapBase(index, revised.map, revisedBase)
+                                ?: HamtTable.createSubWithMapBase(
+                                    index = index,
+                                    map = revised.map,
+                                    base = revisedBase
+                                )
                         }
                     )
-                    TODO()
                 }
             }
-            TODO()
-        } ?: createRootTable(key, value)
+        } ?: HamtTable.createRoot(HamtKey(key).toIndices().first(), key, value)
+        rootBase = frameWriter.write(nextRoot.toRootBytes())
     }
 
     private fun descend(rootTable: HamtTable, key: Long, value: Long): Insert {
         return HamtKey(key).toIndices().fold(
-            initial = Insert.Descend(rootTable, emptyList()) as Insert,
+            initial = Insert.Descending(rootTable, emptyList()) as Insert,
             operation = { insert, index ->
                 when (insert) {
-                    is Insert.Descend -> {
+                    is Insert.Revised -> insert
+                    is Insert.Descending -> {
                         when (val slotContent = insert.table.getSlotContent(index)) {
                             is HamtTable.SlotContent.MapBase -> {
+                                val upperTables = insert.upperTables + Pair(insert.table, index)
                                 val subTable = slotContent.toSubTable(frameReader)
-                                Insert.Descend(
-                                    table = subTable,
-                                    ancestors = insert.ancestors + Pair(insert.table, index)
-                                )
+                                Insert.Descending(subTable, upperTables)
                             }
                             is HamtTable.SlotContent.Empty -> {
-                                val revisedTable = insert.table.fillSlot(index, key, value)
-                                Insert.Ascend(
-                                    revisedTable,
-                                    insert.ancestors.reversed()
-                                )
+                                val revised = insert.table.fillSlotWithKeyValue(index, key, value)
+                                Insert.Revised(revised, insert.upperTables)
                             }
                             is HamtTable.SlotContent.KeyValue -> {
                                 if (slotContent.key == key) {
-                                    val revisedTable = insert.table.fillSlot(index, key, value)
-                                    Insert.Ascend(
-                                        revisedTable,
-                                        insert.ancestors.reversed()
-                                    )
+                                    val revised =
+                                        insert.table.fillSlotWithKeyValue(index, key, value)
+                                    Insert.Revised(revised, insert.upperTables)
                                 } else {
-                                    val extendedAncestors =
-                                        insert.ancestors + Pair(insert.table, index)
-                                    val conflictIndices = HamtKey(
-                                        slotContent.key
-                                    ).toIndices()
-                                        .drop(extendedAncestors.size)
-                                    val conflict =
-                                        Conflict(
-                                            slotContent.key,
-                                            slotContent.value,
-                                            conflictIndices
-                                        )
-                                    Insert.DescendConflicted(
-                                        conflict = conflict,
-                                        ancestors = extendedAncestors
+                                    val upperTables = insert.upperTables + Pair(insert.table, index)
+                                    val conflict = Conflict(
+                                        slotContent.key,
+                                        slotContent.value,
+                                        HamtKey(slotContent.key).toIndices().drop(upperTables.size)
                                     )
+                                    Insert.DescendConflicted(conflict, upperTables)
                                 }
                             }
                         }
@@ -110,39 +97,24 @@ class HamtWriter(
                     is Insert.DescendConflicted -> {
                         val conflictIndex = insert.conflict.indices.first()
                         if (conflictIndex == index) {
-                            Insert.DescendConflicted(
-                                conflict = insert.conflict,
-                                ancestors = insert.ancestors + Pair(null, index)
-                            )
+                            val upperTables = insert.upperTables + Pair(null, index)
+                            Insert.DescendConflicted(insert.conflict, upperTables)
                         } else {
-                            val revisedTable =
-                                HamtTable.createSub(
-                                    setOf(
-                                        Triple(index, key, value),
-                                        Triple(
-                                            conflictIndex,
-                                            insert.conflict.key,
-                                            insert.conflict.value
-                                        )
+                            val revised = HamtTable.createSubWithKeyValues(
+                                setOf(
+                                    Triple(index, key, value),
+                                    Triple(
+                                        conflictIndex,
+                                        insert.conflict.key,
+                                        insert.conflict.value
                                     )
                                 )
-                            Insert.Ascend(
-                                revisedTable,
-                                insert.ancestors.reversed()
                             )
+                            Insert.Revised(revised, insert.upperTables)
                         }
                     }
-                    is Insert.Ascend -> insert
                 }
             }
         )
-    }
-
-    private fun createRootTable(key: Long, value: Long): Long {
-        val index = HamtKey(key).toIndices().first()
-        val rootTable =
-            HamtTable.createRoot(index, key, value)
-        val bytes = rootTable.toBytes()
-        return frameWriter.write(bytes)
     }
 }
