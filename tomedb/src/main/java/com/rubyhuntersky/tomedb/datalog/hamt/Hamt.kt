@@ -31,6 +31,7 @@ object Hamt {
     fun longFromBytes(bytes: ByteArray): Long {
         val buffer = ByteBuffer.allocate(Long.SIZE_BYTES).order(ByteOrder.BIG_ENDIAN)
         buffer.put(bytes, 0, Long.SIZE_BYTES)
-        return buffer.getLong(0)
+        buffer.rewind()
+        return buffer.long
     }
 }

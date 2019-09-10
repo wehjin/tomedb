@@ -28,4 +28,11 @@ class UniHashTest {
         assertNotEquals(one, negOne)
         assertNotEquals(one, negTwo)
     }
+
+    @Test
+    fun oneTwoSevenOneTwoNine() {
+        val one = UniHash.hashLong(127)
+        val two = UniHash.hashLong(129)
+        assertNotEquals("Hash collision $one $two", one, two)
+    }
 }

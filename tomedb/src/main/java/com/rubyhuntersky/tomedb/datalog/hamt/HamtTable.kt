@@ -7,9 +7,12 @@ import java.nio.ByteOrder
 class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
     init {
         require(isMap(map))
+        require(bytes.size % slotBytes == 0) {
+            "bytes length ${bytes.size} must be a multiple of slot-bytes: $slotBytes"
+        }
     }
 
-    private val slots by lazy {
+    private val slots =
         Array<Slot>(slotCount) { Slot.Empty }
             .also { slots ->
                 var slotBase = 0
@@ -18,20 +21,24 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
                     val slotIsPresent = ((map shr slotIndex) and 0x1L) == 1L
                     if (slotIsPresent) {
                         buffer.rewind()
-                        buffer.put(bytes, slotBase, slotBytes)
+                        try {
+                            buffer.put(bytes, slotBase, slotBytes)
+                        } catch (e: Throwable) {
+                            error("Put $slotBytes failed for index $slotBase, bytes length is ${bytes.size}")
+                        }
                         slotBase += slotBytes
-                        val firstLong = buffer.getLong(0)
-                        val secondLong = buffer.getLong(Long.SIZE_BYTES)
+                        buffer.rewind()
+                        val firstLong = buffer.long
                         slots[slotIndex] = if (firstLong < 0) {
-                            Slot.MapBase(firstLong, secondLong)
+                            val base = buffer.long
+                            check(base >= 0) { "Base $base must be not be negative" }
+                            Slot.MapBase(firstLong, base)
                         } else {
-                            Slot.KeyValue(firstLong, secondLong)
+                            Slot.KeyValue(firstLong, buffer.long)
                         }
                     }
                 }
             }
-    }
-
 
     fun getSlot(index: Byte): Slot = slots[index.toInt()]
 
@@ -55,8 +62,13 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
         data class KeyValue(val key: Long, val value: Long) : Slot()
 
         data class MapBase(val map: Long, val base: Long) : Slot() {
+            init {
+                require(base >= 0) { "Sub-table base must not be negative: $base" }
+            }
+
             fun toSubTable(frameReader: FrameReader): HamtTable {
-                return HamtTable(frameReader.read(base), map)
+                val bytes = frameReader.read(base)
+                return HamtTable(bytes, map)
             }
         }
     }
@@ -65,7 +77,7 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
 
         fun fromRootBytes(rootBytes: ByteArray): HamtTable {
             val map = Hamt.longFromBytes(rootBytes)
-            val bytes = rootBytes.sliceArray(Long.SIZE_BYTES..rootBytes.size)
+            val bytes = rootBytes.sliceArray(Long.SIZE_BYTES until rootBytes.size)
             return HamtTable(bytes, map)
         }
 
@@ -109,7 +121,10 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
                     }
                 }
             )
-            val newBytes = ByteArray(byteCount).also { buffer.get(it, 0, byteCount) }
+            val newBytes = ByteArray(byteCount).also {
+                buffer.rewind()
+                buffer.get(it)
+            }
             return HamtTable(newBytes, newMap)
         }
 

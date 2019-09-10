@@ -2,15 +2,14 @@ package com.rubyhuntersky.tomedb.datalog.hamt
 
 import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
 import com.rubyhuntersky.tomedb.datalog.framing.FrameWriter
-import java.io.InputStream
 
 class HamtWriter(
-    inputStream: InputStream,
+    private val refreshFrameReader: () -> FrameReader,
     private var rootBase: Long?,
     private val frameWriter: FrameWriter
 ) {
 
-    private val frameReader = FrameReader(inputStream)
+    private var frameReader = refreshFrameReader()
 
     private data class Conflict(
         val key: Long,
@@ -35,7 +34,11 @@ class HamtWriter(
         ) : Insert()
     }
 
-    fun put(key: Long, value: Long) {
+    val currentRootBase: Long?
+        get() = rootBase
+
+    operator fun set(key: Long, value: Long) {
+        require(key >= 0) { "key must be zero or positive: $key" }
         val nextRoot = rootBase?.let {
             val rootTable = HamtTable.fromRootBytes(frameReader.read(it))
             when (val insert = descend(rootTable, key, value)) {
@@ -58,6 +61,7 @@ class HamtWriter(
             }
         } ?: HamtTable.createWithKeyValue(Hamt.toIndices(key).first(), key, value)
         rootBase = frameWriter.write(nextRoot.toRootBytes())
+        frameReader = refreshFrameReader()
     }
 
     private fun descend(rootTable: HamtTable, key: Long, value: Long): Insert {
