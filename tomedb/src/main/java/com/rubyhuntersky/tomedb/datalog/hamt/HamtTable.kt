@@ -15,8 +15,7 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
                 var slotBase = 0
                 val buffer = ByteBuffer.allocate(slotBytes).order(ByteOrder.BIG_ENDIAN)
                 (0 until slotCount).forEach { slotIndex ->
-                    val slotBit = (map shr slotIndex) and 0x1L
-                    val slotIsPresent = slotBit == 1L
+                    val slotIsPresent = ((map shr slotIndex) and 0x1L) == 1L
                     if (slotIsPresent) {
                         buffer.rewind()
                         buffer.put(bytes, slotBase, slotBytes)
@@ -115,7 +114,7 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
         }
 
         private fun isMap(maybe: Long) = (maybe and mapBit) == mapBit
-        
+
         private const val slotCount = 32
         private const val slotBytes = Long.SIZE_BYTES * 2
         private const val mapBit = 1L shl (Long.SIZE_BITS - 1)
