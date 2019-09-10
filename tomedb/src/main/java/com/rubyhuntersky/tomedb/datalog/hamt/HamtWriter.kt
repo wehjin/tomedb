@@ -56,12 +56,12 @@ class HamtWriter(
                     )
                 }
             }
-        } ?: HamtTable.createRoot(HamtKey(key).toIndices().first(), key, value)
+        } ?: HamtTable.createRoot(Hamt.toIndices(key).first(), key, value)
         rootBase = frameWriter.write(nextRoot.toRootBytes())
     }
 
     private fun descend(rootTable: HamtTable, key: Long, value: Long): Insert {
-        return HamtKey(key).toIndices().fold(
+        return Hamt.toIndices(key).fold(
             initial = Insert.Descending(rootTable, emptyList()) as Insert,
             operation = { insert, index ->
                 when (insert) {
@@ -87,7 +87,7 @@ class HamtWriter(
                                     val conflict = Conflict(
                                         slotContent.key,
                                         slotContent.value,
-                                        HamtKey(slotContent.key).toIndices().drop(upperTables.size)
+                                        Hamt.toIndices(slotContent.key).drop(upperTables.size)
                                     )
                                     Insert.DescendConflicted(conflict, upperTables)
                                 }

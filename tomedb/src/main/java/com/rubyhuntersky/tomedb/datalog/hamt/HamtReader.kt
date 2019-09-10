@@ -19,7 +19,7 @@ class HamtReader(inputStream: InputStream, private val rootBase: Long?) {
                 frameReader.read(it),
                 HamtTableType.Root
             )
-            val search = HamtKey(key).toIndices().fold(
+            val search = Hamt.toIndices(key).fold(
                 initial = Search.Continue(rootTable) as Search,
                 operation = { search, index ->
                     when (search) {
