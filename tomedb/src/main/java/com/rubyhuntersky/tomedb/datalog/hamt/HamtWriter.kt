@@ -37,7 +37,7 @@ class HamtWriter(
 
     fun put(key: Long, value: Long) {
         val nextRoot = rootBase?.let {
-            val rootTable = HamtTable(frameReader.read(it), HamtTableType.Root)
+            val rootTable = HamtTable.fromRootBytes(frameReader.read(it))
             when (val insert = descend(rootTable, key, value)) {
                 is Insert.Descending -> error("Sub-table found in slot at lowest sub-table of key: $key")
                 is Insert.DescendConflicted -> error("Key hashes collided: $key, ${insert.conflict.key}")
@@ -45,7 +45,7 @@ class HamtWriter(
                     insert.upperTables.reversed().fold(
                         initial = insert.revisedTable,
                         operation = { revised, (original, index) ->
-                            val revisedBase = frameWriter.write(revised.toBytes())
+                            val revisedBase = frameWriter.write(revised.bytes)
                             original?.fillSlotWithMapBase(index, revised.map, revisedBase)
                                 ?: HamtTable.createSubWithMapBase(
                                     index = index,
@@ -56,7 +56,7 @@ class HamtWriter(
                     )
                 }
             }
-        } ?: HamtTable.createRoot(Hamt.toIndices(key).first(), key, value)
+        } ?: HamtTable.createWithKeyValue(Hamt.toIndices(key).first(), key, value)
         rootBase = frameWriter.write(nextRoot.toRootBytes())
     }
 
@@ -67,17 +67,17 @@ class HamtWriter(
                 when (insert) {
                     is Insert.Revised -> insert
                     is Insert.Descending -> {
-                        when (val slotContent = insert.table.getSlotContent(index)) {
-                            is HamtTable.SlotContent.MapBase -> {
+                        when (val slotContent = insert.table.getSlot(index)) {
+                            is HamtTable.Slot.MapBase -> {
                                 val upperTables = insert.upperTables + Pair(insert.table, index)
                                 val subTable = slotContent.toSubTable(frameReader)
                                 Insert.Descending(subTable, upperTables)
                             }
-                            is HamtTable.SlotContent.Empty -> {
+                            is HamtTable.Slot.Empty -> {
                                 val revised = insert.table.fillSlotWithKeyValue(index, key, value)
                                 Insert.Revised(revised, insert.upperTables)
                             }
-                            is HamtTable.SlotContent.KeyValue -> {
+                            is HamtTable.Slot.KeyValue -> {
                                 if (slotContent.key == key) {
                                     val revised =
                                         insert.table.fillSlotWithKeyValue(index, key, value)
@@ -100,7 +100,7 @@ class HamtWriter(
                             val upperTables = insert.upperTables + Pair(null, index)
                             Insert.DescendConflicted(insert.conflict, upperTables)
                         } else {
-                            val revised = HamtTable.createSubWithKeyValues(
+                            val revised = HamtTable.createWithKeyValues(
                                 setOf(
                                     Triple(index, key, value),
                                     Triple(

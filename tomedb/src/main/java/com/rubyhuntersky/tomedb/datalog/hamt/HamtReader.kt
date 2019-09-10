@@ -15,22 +15,19 @@ class HamtReader(inputStream: InputStream, private val rootBase: Long?) {
 
     operator fun get(key: Long): Long? {
         return rootBase?.let {
-            val rootTable = HamtTable(
-                frameReader.read(it),
-                HamtTableType.Root
-            )
+            val rootTable = HamtTable.fromRootBytes(frameReader.read(it))
             val search = Hamt.toIndices(key).fold(
                 initial = Search.Continue(rootTable) as Search,
                 operation = { search, index ->
                     when (search) {
                         is Search.Continue -> {
-                            when (val slotContent = search.table.getSlotContent(index)) {
-                                is HamtTable.SlotContent.MapBase -> {
+                            when (val slotContent = search.table.getSlot(index)) {
+                                is HamtTable.Slot.MapBase -> {
                                     Search.Continue(
                                         slotContent.toSubTable(frameReader)
                                     )
                                 }
-                                is HamtTable.SlotContent.KeyValue -> {
+                                is HamtTable.Slot.KeyValue -> {
                                     if (slotContent.key == key) {
                                         Search.Success(
                                             slotContent.value
@@ -39,7 +36,7 @@ class HamtReader(inputStream: InputStream, private val rootBase: Long?) {
                                         Search.Failure
                                     }
                                 }
-                                is HamtTable.SlotContent.Empty -> {
+                                is HamtTable.Slot.Empty -> {
                                     Search.Failure
                                 }
                             }
