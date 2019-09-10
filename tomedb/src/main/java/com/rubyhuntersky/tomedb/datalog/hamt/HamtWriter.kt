@@ -47,7 +47,7 @@ class HamtWriter(
                         operation = { revised, (original, index) ->
                             val revisedBase = frameWriter.write(revised.bytes)
                             original?.fillSlotWithMapBase(index, revised.map, revisedBase)
-                                ?: HamtTable.createSubWithMapBase(
+                                ?: HamtTable.createWithMapBase(
                                     index = index,
                                     map = revised.map,
                                     base = revisedBase

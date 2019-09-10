@@ -39,13 +39,13 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
 
     fun fillSlotWithKeyValue(index: Byte, key: Long, value: Long): HamtTable {
         val newSlots = slots.copyOf().also { it[index.toInt()] = Slot.KeyValue(key, value) }
-        return createTable(newSlots)
+        return createWithSlots(newSlots)
     }
 
     fun fillSlotWithMapBase(index: Byte, map: Long, base: Long): HamtTable {
         require(isMap(map))
         val newSlots = slots.copyOf().also { it[index.toInt()] = Slot.KeyValue(map, base) }
-        return createTable(newSlots)
+        return createWithSlots(newSlots)
     }
 
     sealed class Slot {
@@ -84,11 +84,11 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
             )
         }
 
-        fun createSubWithMapBase(index: Byte, map: Long, base: Long): HamtTable {
+        fun createWithMapBase(index: Byte, map: Long, base: Long): HamtTable {
             return createEmpty().fillSlotWithMapBase(index, map, base)
         }
 
-        private fun createTable(newSlots: Array<Slot>): HamtTable {
+        private fun createWithSlots(newSlots: Array<Slot>): HamtTable {
             val buffer = ByteBuffer.allocate(slotCount * slotBytes).order(ByteOrder.BIG_ENDIAN)
             val (newMap, byteCount) = newSlots.foldIndexed(
                 initial = Pair(mapBit, 0),
