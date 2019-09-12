@@ -1,8 +1,10 @@
 package com.rubyhuntersky.tomedb.datalog.hamt
 
+import com.rubyhuntersky.tomedb.basics.bytesFromLong
+
 object UniHash {
 
-    fun hashLong(l: Long) = hashBytes(Hamt.bytesFromLong(l))
+    fun hashLong(l: Long) = hashBytes(bytesFromLong(l))
 
     private fun hashBytes(key: ByteArray): Long {
         val (hash, _) = key.fold(

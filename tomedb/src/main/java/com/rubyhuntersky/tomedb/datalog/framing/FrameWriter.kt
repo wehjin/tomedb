@@ -7,23 +7,26 @@ class FrameWriter(private val outputStream: OutputStream, private var outputEnd:
 
     private val byteBuffer = ByteBuffer.allocate(Int.SIZE_BYTES)
         .order(FramePolicy.byteOrder)
-    private val sizeArray = ByteArray(Int.SIZE_BYTES)
+    private val frameSizeBytes = ByteArray(Int.SIZE_BYTES)
 
-    fun write(frame: ByteArray): Long {
+    fun write(vararg frameParts: ByteArray): FramePosition {
+        val frameLength = frameParts.map { it.size }.sum()
         val recordStart = outputEnd
-        updateSizeArray(frame)
-        outputStream.write(sizeArray)
-        outputStream.write(frame)
-        outputEnd += Int.SIZE_BYTES + frame.size
+        updateFrameSizeBytes(frameLength)
+        outputStream.write(frameSizeBytes)
+        for (part in frameParts) {
+            outputStream.write(part)
+        }
+        outputEnd += Int.SIZE_BYTES + frameLength
         return recordStart
     }
 
-    private fun updateSizeArray(record: ByteArray) {
+    private fun updateFrameSizeBytes(frameSize: Int) {
         with(byteBuffer) {
             rewind()
-            putInt(record.size)
+            putInt(frameSize)
             rewind()
-            get(sizeArray)
+            get(frameSizeBytes)
         }
     }
 }

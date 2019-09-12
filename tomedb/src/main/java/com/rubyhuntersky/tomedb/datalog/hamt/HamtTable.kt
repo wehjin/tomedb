@@ -1,5 +1,7 @@
 package com.rubyhuntersky.tomedb.datalog.hamt
 
+import com.rubyhuntersky.tomedb.basics.bytesFromLong
+import com.rubyhuntersky.tomedb.basics.longFromBytes
 import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -42,7 +44,7 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
 
     fun getSlot(index: Byte): Slot = slots[index.toInt()]
 
-    fun toRootBytes(): ByteArray = Hamt.bytesFromLong(map) + bytes
+    fun toRootBytes(): ByteArray = bytesFromLong(map) + bytes
 
     fun fillSlotWithKeyValue(index: Byte, key: Long, value: Long): HamtTable {
         val newSlots = slots.copyOf().also { it[index.toInt()] = Slot.KeyValue(key, value) }
@@ -76,7 +78,7 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
     companion object {
 
         fun fromRootBytes(rootBytes: ByteArray): HamtTable {
-            val map = Hamt.longFromBytes(rootBytes)
+            val map = longFromBytes(rootBytes)
             val bytes = rootBytes.sliceArray(Long.SIZE_BYTES until rootBytes.size)
             return HamtTable(bytes, map)
         }
