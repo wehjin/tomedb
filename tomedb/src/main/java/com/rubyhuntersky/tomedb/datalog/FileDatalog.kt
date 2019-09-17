@@ -5,8 +5,13 @@ import com.rubyhuntersky.tomedb.datalog.framing.FrameWriter
 import com.rubyhuntersky.tomedb.datalog.hamt.HamtReader
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 
-class FileDatalog : Datalog {
+class FileDatalog(private val rootDir: File) : Datalog {
+
+    init {
+        rootDir.mkdirs()
+    }
 
     override fun append(entity: Long, attr: Keyword, value: Any, standing: Fact.Standing): Fact {
 
@@ -18,7 +23,7 @@ class FileDatalog : Datalog {
     }
 
     override fun ents(): Sequence<Long> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return emptySequence()
     }
 
     override fun attrs(entity: Long): Sequence<Keyword> {
