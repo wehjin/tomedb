@@ -34,7 +34,12 @@ class HamtWriter(
         ) : Insert()
     }
 
-    val currentRootBase: Long?
+    fun write(key: Long, value: Long): Long {
+        this[key] = value
+        return hamtBase!!
+    }
+
+    val hamtBase: Long?
         get() = rootBase
 
     operator fun set(key: Long, value: Long) {

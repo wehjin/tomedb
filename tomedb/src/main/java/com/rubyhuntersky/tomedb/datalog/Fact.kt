@@ -20,6 +20,11 @@ data class Fact(
         val isAsserted: Boolean
             get() = this == Asserted
 
+        fun asByte(): Byte = when (this) {
+            Asserted -> 1
+            Retracted -> 0
+        }
+
         override fun toString(): String = toGroupedItemString()
     }
 }

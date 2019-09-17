@@ -30,7 +30,7 @@ class HamtWriterTest {
 
             val reader = HamtReader(
                 inputStream = ByteArrayInputStream(outputStream.toByteArray()),
-                rootBase = writer.currentRootBase
+                rootBase = writer.hamtBase
             )
             range.forEach { assertEquals(it, reader[it]) }
         }
@@ -51,7 +51,7 @@ class HamtWriterTest {
 
         val reader = HamtReader(
             inputStream = ByteArrayInputStream(outputStream.toByteArray()),
-            rootBase = writer.currentRootBase
+            rootBase = writer.hamtBase
         )
         assertEquals(-5L, reader[5])
     }
@@ -72,7 +72,7 @@ class HamtWriterTest {
 
         val reader = HamtReader(
             inputStream = ByteArrayInputStream(outputStream.toByteArray()),
-            rootBase = writer.currentRootBase
+            rootBase = writer.hamtBase
         )
         range.forEach { assertEquals(it, reader[it]) }
     }
