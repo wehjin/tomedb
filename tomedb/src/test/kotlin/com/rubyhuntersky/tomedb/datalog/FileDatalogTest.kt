@@ -26,5 +26,7 @@ class FileDatalogTest {
         assertEquals(attr, fact.attr)
         assertEquals(value, fact.value)
         assertEquals(entity, datalog.ents().single())
+        assertEquals(setOf(attr), datalog.attrs(entity).toSet())
+        assertEquals(setOf(attr), datalog.attrs().toSet())
     }
 }

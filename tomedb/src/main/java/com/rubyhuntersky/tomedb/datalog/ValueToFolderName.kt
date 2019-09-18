@@ -16,11 +16,7 @@ private fun <T : Any> T.toFolderNameUntyped(): String = when (this) {
     is Long -> this.toString()
     is Int -> this.toString()
     is String -> stringToFolderName(this)
-    is Keyword -> {
-        val first = stringToFolderName(this.keywordName)
-        val last = stringToFolderName(this.keywordGroup)
-        "$first,$last"
-    }
+    is Keyword -> AttrCoder.folderNameFromAttr(this)
     is Date -> this.time.toString()
     is Double -> this.toString()
     is BigDecimal -> this.toString()
@@ -46,11 +42,7 @@ internal fun valueOfFolderName(folderName: String): Any {
 private fun toBooleanValue(content: String): Boolean = (content == "1")
 private fun toLongValue(content: String): Long = content.toLong()
 private fun toStringValue(content: String): String = folderNameToString(content)
-private fun toKeywordValue(content: String): Keyword {
-    val (first, last) = content.split(',')
-    return Keyword(folderNameToString(first), folderNameToString(last))
-}
-
+private fun toKeywordValue(content: String): Keyword = AttrCoder.attrFromFolderName(content)
 private fun toDateValue(content: String): Date = Date(content.toLong())
 private fun toDoubleValue(content: String): Double = content.toDouble()
 private fun toBigDecimalValue(content: String): BigDecimal = content.toBigDecimal()
