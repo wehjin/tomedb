@@ -8,6 +8,7 @@ import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
 import com.rubyhuntersky.tomedb.datalog.framing.FrameWriter
 import com.rubyhuntersky.tomedb.datalog.hamt.HamtReader
 import com.rubyhuntersky.tomedb.datalog.hamt.HamtWriter
+import com.rubyhuntersky.tomedb.datalog.hamt.UniHash
 import com.rubyhuntersky.tomedb.datalog.pile.PileReader
 import com.rubyhuntersky.tomedb.datalog.pile.PileWriter
 import java.io.File
@@ -21,21 +22,29 @@ class FileDatalog(rootDir: File) : Datalog {
     private val valueEnd = 0L
     private val valueFrameWriter = FrameWriter.new(valueFile, valueEnd)
     private val valueFrameReader get() = FrameReader.new(valueFile)
+
+    private val entFile = File(rootDir.apply { mkdirs() }, "ent")
+    private val entEnd = 0L
+    private val entFrameWriter = FrameWriter.new(entFile, entEnd)
+    private val entFrameReader get() = FrameReader.new(entFile)
+    private var entTableBase: Long? = null
+    private val entTableWriter = HamtWriter({ entFrameReader }, entTableBase, entFrameWriter)
+    private val entTableReader get() = HamtReader(entFrameReader, entTableBase)
+
     private val indexFile = File(rootDir.apply { mkdirs() }, "index")
     private val indexEnd = 0L
     private val indexFrameWriter = FrameWriter.new(indexFile, indexEnd)
     private val indexFrameReader get() = FrameReader.new(indexFile)
+
     private val attrFile = File(rootDir.apply { mkdirs() }, "attrs")
     private val attrTableEnd = 0L
     private val attrTableFrameWriter = FrameWriter.new(attrFile, attrTableEnd)
     private val attrTableFrameReader get() = FrameReader.new(attrFile)
     private var attrTableBase: Long? = null
-    private val attrTableWriter = HamtWriter(
-        refreshFrameReader = { attrTableFrameReader },
-        rootBase = attrTableBase,
-        frameWriter = attrTableFrameWriter
-    )
+    private val attrTableWriter =
+        HamtWriter({ attrTableFrameReader }, attrTableBase, attrTableFrameWriter)
     private val attrTableReader get() = HamtReader(attrTableFrameReader, attrTableBase)
+
     private var eavtBase: Long? = null
     private val eavtReader get() = getAvtReader(eavtBase)
     private var aevtBase: Long? = null
@@ -43,8 +52,10 @@ class FileDatalog(rootDir: File) : Datalog {
 
     override fun append(entity: Long, attr: Keyword, value: Any, standing: Fact.Standing): Fact {
         val fact = Fact(entity, attr, value, standing, Date(), nextHeight++)
-        val avtBase = eavtReader[fact.entity]
+        val entKey = addEntToTable(fact.entity)
         val attrKey = addAttrToTable(fact.attr)
+
+        val avtBase = eavtReader[entKey]
         val vtBase = getAvtReader(avtBase)[attrKey]
         val newVtBase = PileWriter(vtBase, valueFrameWriter)
             .write(ValueLine.from(fact).toBytes())
@@ -55,12 +66,23 @@ class FileDatalog(rootDir: File) : Datalog {
             )
         eavtBase =
             HamtWriter(this::indexFrameReader, eavtBase, indexFrameWriter).write(
-                key = fact.entity,
+                key = entKey,
                 value = newAvtBase
             )
-        updateAevtBase(fact, newVtBase, attrKey)
+        updateAevtBase(newVtBase, attrKey, entKey)
         return fact
     }
+
+    private fun addEntToTable(ent: Long): Long {
+        val entKey = entToKey(ent)
+        return entKey.also {
+            if (entTableReader[entKey] == null) {
+                entTableBase = entTableWriter.write(entKey, ent)
+            }
+        }
+    }
+
+    private fun entToKey(ent: Long): Long = UniHash.hashLong(ent)
 
     private fun addAttrToTable(attr: Keyword): Long {
         return attr.toKey().also { attrKey ->
@@ -73,15 +95,15 @@ class FileDatalog(rootDir: File) : Datalog {
         }
     }
 
-    private fun Keyword.toKey() = groupedItemHashCode().toLong()
+    private fun Keyword.toKey() = UniHash.hashLong(groupedItemHashCode().toLong())
 
-    private fun updateAevtBase(fact: Fact, newVtBase: FramePosition, attrKey: Long) {
+    private fun updateAevtBase(newVtBase: FramePosition, attrKey: Long, entKey: Long) {
         val newEvtBase =
             HamtWriter(
                 refreshFrameReader = this::indexFrameReader,
                 rootBase = HamtReader(indexFrameReader, aevtBase)[attrKey],
                 frameWriter = indexFrameWriter
-            ).write(fact.entity, newVtBase)
+            ).write(entKey, newVtBase)
         aevtBase =
             HamtWriter(
                 refreshFrameReader = this::indexFrameReader,
@@ -130,11 +152,15 @@ class FileDatalog(rootDir: File) : Datalog {
 
     override fun commit() = Unit
 
-    override fun ents(): Sequence<Long> = eavtReader.keys()
+    override fun ents(): Sequence<Long> {
+        val entFromKeyReader = entTableReader
+        return eavtReader.keys().map { entFromKeyReader[it]!! }
+    }
 
     override fun attrs(entity: Long): Sequence<Keyword> {
+        val entKey = entToKey(entity)
         val attrReader = attrTableReader
-        return getAvtReader(eavtReader[entity]).keys().map { keywordFromAttrKey(it, attrReader) }
+        return getAvtReader(eavtReader[entKey]).keys().map { keywordFromAttrKey(it, attrReader) }
     }
 
     private fun keywordFromAttrKey(attrKey: Long, attrReader: HamtReader): Keyword {
@@ -149,23 +175,18 @@ class FileDatalog(rootDir: File) : Datalog {
     }
 
     override fun values(entity: Long, attr: Keyword): Sequence<Any> {
-        return readValueLine(entity, attr).map(ValueLine::value)
+        return readValueLines(entity, attr).map(ValueLine::value)
     }
 
-    private fun readValueLine(entity: Long, attr: Keyword): Sequence<ValueLine> {
-        val avtBase = eavtReader[entity]
+    private fun readValueLines(entity: Long, attr: Keyword): Sequence<ValueLine> {
+        val avtBase = eavtReader[entToKey(entity)]
         val vtBase = getAvtReader(avtBase)[attr.toKey()]
         return readValueLines(vtBase)
     }
 
     private fun readValueLines(vtBase: Long?): Sequence<ValueLine> {
-        val byteArrays = PileReader(vtBase, valueFrameReader).read()
-        val first = byteArrays.map(ValueLine.Companion::from).firstOrNull()
-        return if (first == null || first.standing.isRetracted) {
-            emptySequence()
-        } else {
-            sequenceOf(first)
-        }
+        return PileReader(vtBase, valueFrameReader).read().map(ValueLine.Companion::from)
+            .filter { it.standing.isAsserted }
     }
 
     override fun values(): Sequence<Any> {
@@ -176,11 +197,10 @@ class FileDatalog(rootDir: File) : Datalog {
     }
 
     override fun isAsserted(entity: Long, attr: Keyword, value: Any): Boolean {
-        val found = values(entity, attr).firstOrNull()
-        return found == value
+        return values(entity, attr).toSet().contains(value)
     }
 
     override fun isAsserted(entity: Long, attr: Keyword): Boolean {
-        return readValueLine(entity, attr).count() > 0
+        return readValueLines(entity, attr).count() > 0
     }
 }
