@@ -19,26 +19,22 @@ class FileDatalog(rootDir: File) : Datalog {
     private var nextHeight = TxnId(0)
 
     private val valueFile = File(rootDir.apply { mkdirs() }, "values")
-    private val valueEnd = 0L
-    private val valueFrameWriter = FrameWriter.new(valueFile, valueEnd)
+    private val valueFrameWriter = FrameWriter.new(valueFile)
     private val valueFrameReader get() = FrameReader.new(valueFile)
 
     private val entFile = File(rootDir.apply { mkdirs() }, "ent")
-    private val entEnd = 0L
-    private val entFrameWriter = FrameWriter.new(entFile, entEnd)
+    private val entFrameWriter = FrameWriter.new(entFile)
     private val entFrameReader get() = FrameReader.new(entFile)
     private var entTableBase: Long? = null
     private val entTableWriter = HamtWriter({ entFrameReader }, entTableBase, entFrameWriter)
     private val entTableReader get() = HamtReader(entFrameReader, entTableBase)
 
     private val indexFile = File(rootDir.apply { mkdirs() }, "index")
-    private val indexEnd = 0L
-    private val indexFrameWriter = FrameWriter.new(indexFile, indexEnd)
+    private val indexFrameWriter = FrameWriter.new(indexFile)
     private val indexFrameReader get() = FrameReader.new(indexFile)
 
     private val attrFile = File(rootDir.apply { mkdirs() }, "attrs")
-    private val attrTableEnd = 0L
-    private val attrTableFrameWriter = FrameWriter.new(attrFile, attrTableEnd)
+    private val attrTableFrameWriter = FrameWriter.new(attrFile)
     private val attrTableFrameReader get() = FrameReader.new(attrFile)
     private var attrTableBase: Long? = null
     private val attrTableWriter =

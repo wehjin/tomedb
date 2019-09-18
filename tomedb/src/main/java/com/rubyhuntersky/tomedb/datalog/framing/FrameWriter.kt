@@ -20,8 +20,8 @@ class FrameWriter(private val file: RandomAccessFile, private var outputEnd: Lon
     }
 
     companion object {
-        fun new(file: File, outputEnd: Long): FrameWriter {
-            return FrameWriter(RandomAccessFile(file, "rw"), outputEnd)
+        fun new(file: File): FrameWriter {
+            return FrameWriter(RandomAccessFile(file, "rw"), file.length())
         }
     }
 }

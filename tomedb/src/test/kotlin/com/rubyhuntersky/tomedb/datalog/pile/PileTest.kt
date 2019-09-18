@@ -20,7 +20,7 @@ class PileTest {
         val testValues = 0L..101L
         val pileWriter = PileWriter(
             topBase = null,
-            frameWriter = FrameWriter.new(framesFile, 0)
+            frameWriter = FrameWriter.new(framesFile)
         )
         val topBase = testValues.fold(-1L) { _, next -> pileWriter.write(bytesFromLong(next)) }
         val pileReader = PileReader(

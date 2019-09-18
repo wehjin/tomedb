@@ -31,7 +31,7 @@ class HamtWriterTest {
             val writer = HamtWriter(
                 refreshFrameReader = { FrameReader.new(framesFile) },
                 rootBase = null,
-                frameWriter = FrameWriter.new(framesFile, 0)
+                frameWriter = FrameWriter.new(framesFile)
             )
             range.forEach { writer[it] = it }
 
@@ -48,7 +48,7 @@ class HamtWriterTest {
         val writer = HamtWriter(
             refreshFrameReader = { FrameReader.new(framesFile) },
             rootBase = null,
-            frameWriter = FrameWriter.new(framesFile, 0)
+            frameWriter = FrameWriter.new(framesFile)
         )
         writer[5] = -5L
 
@@ -65,7 +65,7 @@ class HamtWriterTest {
         val writer = HamtWriter(
             refreshFrameReader = { FrameReader.new(framesFile) },
             rootBase = null,
-            frameWriter = FrameWriter.new(framesFile, 0)
+            frameWriter = FrameWriter.new(framesFile)
         )
         range.forEach { writer[it] = it }
 
