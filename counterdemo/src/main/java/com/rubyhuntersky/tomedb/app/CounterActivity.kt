@@ -52,20 +52,21 @@ class CounterActivity : AppCompatActivity(), ConnectionScope, CoroutineScope {
 
     private suspend fun init(): Mdl {
         val page = dbRead(PageSubject.Entity(Ent.of(Counter, 0)))
-        val init = page.plusDefault(Counter.Count, 42)
+        val init = page.plusDefault(Counter.Count, 42L)
         return Mdl(init)
     }
 
     private suspend fun update(mdl: Mdl, msg: Msg): Mdl {
-        val page = when (msg) {
-            Msg.Incr -> dbWrite(mdl.page, lineOf(Counter.Count, mdl.page<Long>(Counter.Count) + 1))
-            Msg.Decr -> dbWrite(mdl.page, lineOf(Counter.Count, mdl.page<Long>(Counter.Count) - 1))
+        val oldCount = mdl.page<Long>(Counter.Count)
+        val newPage = when (msg) {
+            Msg.Incr -> dbWrite(mdl.page, lineOf(Counter.Count, oldCount + 1L))
+            Msg.Decr -> dbWrite(mdl.page, lineOf(Counter.Count, oldCount - 1L))
         }
-        return Mdl(page)
+        return Mdl(newPage)
     }
 
     private fun render(mdl: Mdl) {
-        val count = mdl.page[Counter.Count] as Long
+        val count = mdl.page[Counter.Count]
         this@CounterActivity.textView.text = "$count"
     }
 }

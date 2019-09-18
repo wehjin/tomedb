@@ -14,7 +14,7 @@ internal fun <T : Any> T.toFolderName(): String {
 private fun <T : Any> T.toFolderNameUntyped(): String = when (this) {
     is Boolean -> (if (this) 1 else 0).toString()
     is Long -> this.toString()
-    is Int -> this.toString()
+    is Int -> this.toLong().toString()
     is String -> stringToFolderName(this)
     is Keyword -> AttrCoder.folderNameFromAttr(this)
     is Date -> this.time.toString()

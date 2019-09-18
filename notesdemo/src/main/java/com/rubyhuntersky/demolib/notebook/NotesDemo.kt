@@ -4,7 +4,6 @@ import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.AttributeGroup
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
 import com.rubyhuntersky.tomedb.scopes.query.dbTome
@@ -85,7 +84,7 @@ class NotesDemo(
             val date = Date()
             val page = pageOf(
                 subject = mdl.tome.newPageSubject(date),
-                data = mapOf<Keyword, Any>(
+                data = mapOf(
                     Note.CREATED to date,
                     Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
                 )

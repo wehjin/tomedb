@@ -4,7 +4,7 @@ import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.datalog.Datalog
 import com.rubyhuntersky.tomedb.datalog.Fact
-import com.rubyhuntersky.tomedb.datalog.GitDatalog
+import com.rubyhuntersky.tomedb.datalog.FileDatalog
 import java.io.File
 
 class MutableDatabase(dataDir: File) : Database {
@@ -21,7 +21,7 @@ class MutableDatabase(dataDir: File) : Database {
         return datalog.append(entity, attr, value, type.toStanding())
     }
 
-    private val datalog: Datalog = GitDatalog(dataDir)
+    private val datalog: Datalog = FileDatalog(dataDir)
 
     private fun Update.Action.toStanding(): Fact.Standing = when (this) {
         Update.Action.Declare -> Fact.Standing.Asserted

@@ -33,4 +33,11 @@ class FileDatalogTest {
         assertTrue(datalog.isAsserted(entity, attr, "Hello"))
         assertFalse(datalog.isAsserted(entity, attr, "Goodbye"))
     }
+
+    @Test
+    fun appendRetract() {
+        datalog.append(entity, attr, value)
+        datalog.append(entity, attr, value, Fact.Standing.Retracted)
+        assertEquals(emptySet<Any>(), datalog.values().toSet())
+    }
 }

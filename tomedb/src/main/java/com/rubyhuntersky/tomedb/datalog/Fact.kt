@@ -23,6 +23,8 @@ data class Fact(
         val isRetracted: Boolean
             get() = !isAsserted
 
+        fun flip(): Standing = if (isAsserted) Retracted else Asserted
+
         fun asByte(): Byte = when (this) {
             Asserted -> 1
             Retracted -> 0

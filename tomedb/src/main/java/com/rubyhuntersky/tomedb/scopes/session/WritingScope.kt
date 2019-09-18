@@ -13,10 +13,10 @@ interface WritingScope {
         dbWrite(projections)
     }
 
-    suspend fun <KeyT : Any> dbWrite(page: Page<KeyT>, line: Line<Any>): Page<KeyT> {
-        val projection = line.bindEnt(page.subject.keyEnt)
-        dbWrite(listOf(projection))
-        return page + line
+    suspend fun <KeyT : Any> dbWrite(page: Page<KeyT>, vararg lines: Line<Any>): Page<KeyT> {
+        val projection = lines.map { it.bindEnt(page.subject.keyEnt) }
+        dbWrite(projection)
+        return page + lines.toList()
     }
 
     suspend fun dbWrite(facts: List<Projection<Any>>) {
