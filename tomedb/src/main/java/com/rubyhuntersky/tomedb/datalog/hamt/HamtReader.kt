@@ -1,12 +1,8 @@
 package com.rubyhuntersky.tomedb.datalog.hamt
 
 import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
-import java.io.BufferedInputStream
-import java.io.InputStream
 
-class HamtReader(inputStream: InputStream, private val rootBase: Long?) {
-
-    private val frameReader = FrameReader(BufferedInputStream(inputStream))
+class HamtReader(private val frameReader: FrameReader, private val rootBase: Long?) {
 
     private sealed class Search {
         data class Continue(val table: HamtTable) : Search()

@@ -1,13 +1,24 @@
 package com.rubyhuntersky.tomedb.datalog.hamt
 
+import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
 import com.rubyhuntersky.tomedb.datalog.framing.FrameWriter
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
+import java.io.File
 
 class HamtWriterTest {
+
+    @Before
+    fun setUp() {
+        framesFile = TempDirFixture.initDir("basicPileTest").toFile()
+            .also { it.mkdirs() }
+            .let { File(it, "frames") }
+    }
+
+    private lateinit var framesFile: File
+
     @Test
     fun variousKeys() {
         val rangeSize = 300L
@@ -17,19 +28,15 @@ class HamtWriterTest {
             Long.MAX_VALUE - rangeSize until Long.MAX_VALUE
         )
         ranges.forEach { range ->
-            val outputStream = ByteArrayOutputStream(0)
             val writer = HamtWriter(
-                refreshFrameReader = {
-                    val writtenBytes = outputStream.toByteArray()
-                    FrameReader(ByteArrayInputStream(writtenBytes))
-                },
+                refreshFrameReader = { FrameReader.new(framesFile) },
                 rootBase = null,
-                frameWriter = FrameWriter(outputStream, 0)
+                frameWriter = FrameWriter.new(framesFile, 0)
             )
             range.forEach { writer[it] = it }
 
             val reader = HamtReader(
-                inputStream = ByteArrayInputStream(outputStream.toByteArray()),
+                frameReader = FrameReader.new(framesFile),
                 rootBase = writer.hamtBase
             )
             range.forEach { assertEquals(it, reader[it]) }
@@ -38,19 +45,15 @@ class HamtWriterTest {
 
     @Test
     fun negativeValues() {
-        val outputStream = ByteArrayOutputStream(0)
         val writer = HamtWriter(
-            refreshFrameReader = {
-                val writtenBytes = outputStream.toByteArray()
-                FrameReader(ByteArrayInputStream(writtenBytes))
-            },
+            refreshFrameReader = { FrameReader.new(framesFile) },
             rootBase = null,
-            frameWriter = FrameWriter(outputStream, 0)
+            frameWriter = FrameWriter.new(framesFile, 0)
         )
         writer[5] = -5L
 
         val reader = HamtReader(
-            inputStream = ByteArrayInputStream(outputStream.toByteArray()),
+            frameReader = FrameReader.new(framesFile),
             rootBase = writer.hamtBase
         )
         assertEquals(-5L, reader[5])
@@ -59,19 +62,15 @@ class HamtWriterTest {
     @Test
     fun biggerRange() {
         val range = 0L..3000L
-        val outputStream = ByteArrayOutputStream(0)
         val writer = HamtWriter(
-            refreshFrameReader = {
-                val writtenBytes = outputStream.toByteArray()
-                FrameReader(ByteArrayInputStream(writtenBytes))
-            },
+            refreshFrameReader = { FrameReader.new(framesFile) },
             rootBase = null,
-            frameWriter = FrameWriter(outputStream, 0)
+            frameWriter = FrameWriter.new(framesFile, 0)
         )
         range.forEach { writer[it] = it }
 
         val reader = HamtReader(
-            inputStream = ByteArrayInputStream(outputStream.toByteArray()),
+            frameReader = FrameReader.new(framesFile),
             rootBase = writer.hamtBase
         )
         range.forEach { assertEquals(it, reader[it]) }

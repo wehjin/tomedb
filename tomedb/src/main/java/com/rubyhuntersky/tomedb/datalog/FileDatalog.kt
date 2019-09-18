@@ -8,10 +8,8 @@ import com.rubyhuntersky.tomedb.datalog.framing.FrameWriter
 import com.rubyhuntersky.tomedb.datalog.hamt.HamtReader
 import com.rubyhuntersky.tomedb.datalog.hamt.HamtWriter
 import com.rubyhuntersky.tomedb.datalog.pile.PileWriter
-import java.io.BufferedInputStream
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.RandomAccessFile
 import java.util.*
 
 class FileDatalog(rootDir: File) : Datalog {
@@ -20,18 +18,18 @@ class FileDatalog(rootDir: File) : Datalog {
 
     private val valueFile = File(rootDir.apply { mkdirs() }, "values")
     private val valueEnd = 0L
-    private val valueFrameWriter = FrameWriter(valueFile.outputStream(), valueEnd)
+    private val valueFrameWriter = FrameWriter(RandomAccessFile(valueFile, "rw"), valueEnd)
     private val indexFile = File(rootDir.apply { mkdirs() }, "index")
     private val indexEnd = 0L
-    private val indexFrameWriter = FrameWriter(indexFile.outputStream(), indexEnd)
+    private val indexFrameWriter = FrameWriter(RandomAccessFile(indexFile, "rw"), indexEnd)
     private var eavtBase: Long? = null
     private var aevtBase: Long? = null
 
     override fun append(entity: Long, attr: Keyword, value: Any, standing: Fact.Standing): Fact {
         val fact = Fact(entity, attr, value, standing, Date(), nextHeight++)
-        val avtBase = HamtReader(indexFile.inputStream(), eavtBase)[fact.entity]
+        val avtBase = HamtReader(getIndexFrameReader(), eavtBase)[fact.entity]
         val attrKey = fact.attr.toKey()
-        val vtBase = avtBase?.let { HamtReader(indexFile.inputStream(), it) }?.get(attrKey)
+        val vtBase = avtBase?.let { HamtReader(getIndexFrameReader(), it) }?.get(attrKey)
         val newVtBase = PileWriter(vtBase, valueFrameWriter)
             .write(ValueLine.from(fact).toBytes())
         val newAvtBase =
@@ -53,7 +51,7 @@ class FileDatalog(rootDir: File) : Datalog {
         val newEvtBase =
             HamtWriter(
                 refreshFrameReader = this::getIndexFrameReader,
-                rootBase = HamtReader(indexFile.inputStream(), aevtBase)[attrKey],
+                rootBase = HamtReader(getIndexFrameReader(), aevtBase)[attrKey],
                 frameWriter = indexFrameWriter
             ).write(fact.entity, newVtBase)
         aevtBase =
@@ -64,7 +62,7 @@ class FileDatalog(rootDir: File) : Datalog {
             ).write(attrKey, newEvtBase)
     }
 
-    private fun getIndexFrameReader() = FrameReader(BufferedInputStream(indexFile.inputStream()))
+    private fun getIndexFrameReader() = FrameReader(RandomAccessFile(indexFile, "r"))
 
     private data class ValueLine(
         val value: Any,
@@ -120,14 +118,3 @@ class FileDatalog(rootDir: File) : Datalog {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
-
-class FactWriter {
-    private val outputStream = ByteArrayOutputStream()
-    private val writer = FrameWriter(outputStream, outputStream.size().toLong())
-    private val eavtReader = HamtReader(
-        ByteArrayInputStream(outputStream.toByteArray()),
-        -1
-    )
-}
-
-
