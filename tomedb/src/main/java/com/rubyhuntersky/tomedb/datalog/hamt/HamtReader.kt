@@ -18,12 +18,35 @@ class HamtReader(private val frameReader: FrameReader, private val rootBase: Lon
         } ?: emptySequence()
     }
 
+    fun values(): Sequence<Long> {
+        return rootBase?.let {
+            sequence {
+                yieldAll(values(HamtTable.fromRootBytes(frameReader.read(it))))
+            }
+        } ?: emptySequence()
+    }
+
     private fun keys(table: HamtTable): Sequence<Long> {
         return sequence {
             table.slots.forEach {
                 when (it) {
                     HamtTable.Slot.Empty -> Unit
                     is HamtTable.Slot.KeyValue -> yield(it.key)
+                    is HamtTable.Slot.MapBase -> {
+                        val subTable = it.toSubTable(frameReader)
+                        yieldAll(keys(subTable))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun values(table: HamtTable): Sequence<Long> {
+        return sequence {
+            table.slots.forEach {
+                when (it) {
+                    HamtTable.Slot.Empty -> Unit
+                    is HamtTable.Slot.KeyValue -> yield(it.value)
                     is HamtTable.Slot.MapBase -> {
                         val subTable = it.toSubTable(frameReader)
                         yieldAll(keys(subTable))

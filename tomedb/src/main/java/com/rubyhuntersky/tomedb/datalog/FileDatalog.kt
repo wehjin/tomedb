@@ -2,11 +2,13 @@ package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.bytesFromLong
+import com.rubyhuntersky.tomedb.basics.longFromBytes
 import com.rubyhuntersky.tomedb.datalog.framing.FramePosition
 import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
 import com.rubyhuntersky.tomedb.datalog.framing.FrameWriter
 import com.rubyhuntersky.tomedb.datalog.hamt.HamtReader
 import com.rubyhuntersky.tomedb.datalog.hamt.HamtWriter
+import com.rubyhuntersky.tomedb.datalog.pile.PileReader
 import com.rubyhuntersky.tomedb.datalog.pile.PileWriter
 import java.io.File
 import java.util.*
@@ -18,6 +20,7 @@ class FileDatalog(rootDir: File) : Datalog {
     private val valueFile = File(rootDir.apply { mkdirs() }, "values")
     private val valueEnd = 0L
     private val valueFrameWriter = FrameWriter.new(valueFile, valueEnd)
+    private val valueFrameReader get() = FrameReader.new(valueFile)
     private val indexFile = File(rootDir.apply { mkdirs() }, "index")
     private val indexEnd = 0L
     private val indexFrameWriter = FrameWriter.new(indexFile, indexEnd)
@@ -60,7 +63,7 @@ class FileDatalog(rootDir: File) : Datalog {
     }
 
     private fun addAttrToTable(attr: Keyword): Long {
-        return attr.groupedItemHashCode().toLong().also { attrKey ->
+        return attr.toKey().also { attrKey ->
             if (attrTableReader[attrKey] == null) {
                 AttrCoder.folderNameFromAttr(attr).let { folderName ->
                     val base = attrTableFrameWriter.write(folderName.toByteArray())
@@ -69,6 +72,8 @@ class FileDatalog(rootDir: File) : Datalog {
             }
         }
     }
+
+    private fun Keyword.toKey() = groupedItemHashCode().toLong()
 
     private fun updateAevtBase(fact: Fact, newVtBase: FramePosition, attrKey: Long) {
         val newEvtBase =
@@ -93,7 +98,6 @@ class FileDatalog(rootDir: File) : Datalog {
         val instant: Date,
         val height: TxnId
     ) {
-
         fun toBytes(): ByteArray {
             val valueBytes = value.toFolderName().toByteArray()
             val standingByte = standing.asByte()
@@ -105,13 +109,26 @@ class FileDatalog(rootDir: File) : Datalog {
         companion object {
             fun from(fact: Fact): ValueLine =
                 ValueLine(fact.value, fact.standing, fact.inst, fact.txn)
+
+            fun from(byteArray: ByteArray): ValueLine {
+                val valueLen = byteArray.size - 1 - Long.SIZE_BYTES - TxnId.bytesLen
+                val instantStart = valueLen + 1
+                val heightStart = instantStart + TxnId.bytesLen
+                val valueBytes = byteArray.sliceArray(0 until valueLen)
+                val standingByte = byteArray[valueLen]
+                val instantBytes = byteArray.sliceArray(instantStart until heightStart)
+                val heightBytes = byteArray.sliceArray(heightStart until byteArray.size)
+                return ValueLine(
+                    value = valueOfFolderName(String(valueBytes)),
+                    standing = Fact.Standing.from(standingByte),
+                    instant = Date(longFromBytes(instantBytes)),
+                    height = TxnId.from(heightBytes)
+                )
+            }
         }
-
     }
 
-    override fun commit() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun commit() = Unit
 
     override fun ents(): Sequence<Long> = eavtReader.keys()
 
@@ -132,18 +149,38 @@ class FileDatalog(rootDir: File) : Datalog {
     }
 
     override fun values(entity: Long, attr: Keyword): Sequence<Any> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return readValueLine(entity, attr).map(ValueLine::value)
+    }
+
+    private fun readValueLine(entity: Long, attr: Keyword): Sequence<ValueLine> {
+        val avtBase = eavtReader[entity]
+        val vtBase = getAvtReader(avtBase)[attr.toKey()]
+        return readValueLines(vtBase)
+    }
+
+    private fun readValueLines(vtBase: Long?): Sequence<ValueLine> {
+        val byteArrays = PileReader(vtBase, valueFrameReader).read()
+        val first = byteArrays.map(ValueLine.Companion::from).firstOrNull()
+        return if (first == null || first.standing.isRetracted) {
+            emptySequence()
+        } else {
+            sequenceOf(first)
+        }
     }
 
     override fun values(): Sequence<Any> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return eavtReader.values()
+            .flatMap { getAvtReader(it).values() }
+            .flatMap { readValueLines(it) }
+            .map(ValueLine::value)
     }
 
     override fun isAsserted(entity: Long, attr: Keyword, value: Any): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val found = values(entity, attr).firstOrNull()
+        return found == value
     }
 
     override fun isAsserted(entity: Long, attr: Keyword): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return readValueLine(entity, attr).count() > 0
     }
 }

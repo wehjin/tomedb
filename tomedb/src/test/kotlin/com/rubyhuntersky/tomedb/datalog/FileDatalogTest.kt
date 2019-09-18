@@ -2,8 +2,7 @@ package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.basics.Keyword
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 
 class FileDatalogTest {
@@ -28,5 +27,10 @@ class FileDatalogTest {
         assertEquals(entity, datalog.ents().single())
         assertEquals(setOf(attr), datalog.attrs(entity).toSet())
         assertEquals(setOf(attr), datalog.attrs().toSet())
+        assertEquals(setOf("Hello"), datalog.values(entity, attr).toSet())
+        assertEquals(setOf("Hello"), datalog.values().toSet())
+        assertTrue(datalog.isAsserted(entity, attr))
+        assertTrue(datalog.isAsserted(entity, attr, "Hello"))
+        assertFalse(datalog.isAsserted(entity, attr, "Goodbye"))
     }
 }
