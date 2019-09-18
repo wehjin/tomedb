@@ -90,9 +90,7 @@ class FileDatalog(rootDir: File) : Datalog {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun ents(): Sequence<Long> {
-        return emptySequence()
-    }
+    override fun ents(): Sequence<Long> = HamtReader(getIndexFrameReader(), eavtBase).keys()
 
     override fun attrs(entity: Long): Sequence<Keyword> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.

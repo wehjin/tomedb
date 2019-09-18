@@ -10,6 +10,29 @@ class HamtReader(private val frameReader: FrameReader, private val rootBase: Lon
         data class Success(val value: Long) : Search()
     }
 
+    fun keys(): Sequence<Long> {
+        return rootBase?.let {
+            sequence {
+                yieldAll(keys(HamtTable.fromRootBytes(frameReader.read(it))))
+            }
+        } ?: emptySequence()
+    }
+
+    private fun keys(table: HamtTable): Sequence<Long> {
+        return sequence {
+            table.slots.forEach {
+                when (it) {
+                    HamtTable.Slot.Empty -> Unit
+                    is HamtTable.Slot.KeyValue -> yield(it.key)
+                    is HamtTable.Slot.MapBase -> {
+                        val subTable = it.toSubTable(frameReader)
+                        yieldAll(keys(subTable))
+                    }
+                }
+            }
+        }
+    }
+
     operator fun get(key: Long): Long? {
         return rootBase?.let {
             val rootTable = HamtTable.fromRootBytes(frameReader.read(it))
@@ -18,16 +41,16 @@ class HamtReader(private val frameReader: FrameReader, private val rootBase: Lon
                 operation = { search, index ->
                     when (search) {
                         is Search.Continue -> {
-                            when (val slotContent = search.table.getSlot(index)) {
+                            when (val slot = search.table.getSlot(index)) {
                                 is HamtTable.Slot.MapBase -> {
                                     Search.Continue(
-                                        slotContent.toSubTable(frameReader)
+                                        slot.toSubTable(frameReader)
                                     )
                                 }
                                 is HamtTable.Slot.KeyValue -> {
-                                    if (slotContent.key == key) {
+                                    if (slot.key == key) {
                                         Search.Success(
-                                            slotContent.value
+                                            slot.value
                                         )
                                     } else {
                                         Search.Failure

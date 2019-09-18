@@ -8,21 +8,23 @@ import org.junit.Test
 
 class FileDatalogTest {
 
+    private val tempDir = TempDirFixture.initDir("fileDatalogTest").toFile()
+    private val datalog = FileDatalog(tempDir)
+    private val entity: Long = 17
+    private val attr = Keyword("a", "b")
+    private val value = "Hello"
+
     @Test
     fun newIsEmpty() {
-        val tempDir = TempDirFixture.initDir("fileDatalogNewIsEmptyTest").toFile()
-        val datalog = FileDatalog(tempDir)
         assertTrue(datalog.ents().toSet().isEmpty())
     }
 
     @Test
     fun append() {
-        val tempDir = TempDirFixture.initDir("fileDatalogAppendTest").toFile()
-        val datalog = FileDatalog(tempDir)
-        val fact = datalog.append(1, Keyword("a", "b"), "Hello")
-        assertEquals(1, fact.entity)
-        assertEquals(Keyword("a", "b"), fact.attr)
-        assertEquals("Hello", fact.value)
-        assertEquals(datalog.ents().count(), 1)
+        val fact = datalog.append(entity, attr, value)
+        assertEquals(entity, fact.entity)
+        assertEquals(attr, fact.attr)
+        assertEquals(value, fact.value)
+        assertEquals(entity, datalog.ents().single())
     }
 }

@@ -14,7 +14,7 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
         }
     }
 
-    private val slots =
+    val slots =
         Array<Slot>(slotCount) { Slot.Empty }
             .also { slots ->
                 var slotBase = 0
