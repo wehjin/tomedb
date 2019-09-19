@@ -3,15 +3,15 @@ package com.rubyhuntersky.tomedb.connection
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Scheme
-import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.MutableDatabase
 import com.rubyhuntersky.tomedb.datalog.Fact
+import com.rubyhuntersky.tomedb.scopes.session.Session
 import java.io.File
 
 
-class FileSession(dataDir: File, spec: List<Attribute>?) {
+class FileSession(dataDir: File, spec: List<Attribute>?) : Session {
 
     val mutDb = MutableDatabase(dataDir)
 
@@ -32,14 +32,11 @@ class FileSession(dataDir: File, spec: List<Attribute>?) {
         }
     }
 
-    fun send(update: Update) = send(setOf(update))
-    fun send(updates: Set<Update>) {
+    override fun db(): Database = mutDb
+
+    override fun updateDb(updates: Set<Update>) {
         val expanded = updates.flatMap(this::expandDataValues)
         mutDb.update(expanded)
-    }
-
-    fun checkout(): Database {
-        return mutDb
     }
 
     fun transactData(tagLists: List<TagList>): List<Long> {
@@ -63,13 +60,6 @@ class FileSession(dataDir: File, spec: List<Attribute>?) {
         } else {
             listOf(update)
         }
-    }
-
-    @Deprecated(message = "Use send.")
-    fun update(entity: Long, attr: Keyword, value: Any, isAsserted: Boolean = true) {
-        val type = Update.Action.valueOf(isAsserted)
-        val update = Update(entity, attr, value, type)
-        send(setOf(update))
     }
 
     fun commit() = mutDb.commit()

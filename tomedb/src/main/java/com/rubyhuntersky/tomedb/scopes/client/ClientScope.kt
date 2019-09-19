@@ -6,9 +6,9 @@ import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.basics.tagOf
 import com.rubyhuntersky.tomedb.connection.FileSession
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
-import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
 import com.rubyhuntersky.tomedb.scopes.session.SessionMsg
+import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -28,34 +28,34 @@ interface ClientScope : CoroutineScope, DestructuringScope {
         val job = launch(Dispatchers.IO) {
             val session = FileSession(dbDir, dbSpec)
             for (msg in channel) {
-                when (msg) {
-                    is SessionMsg.UPDATE -> session.send(msg.updates)
-                    is SessionMsg.BATCH -> {
-                        val ents = session.transactData(msg.tagLists)
-                        msg.backChannel.send(ents)
-                        msg.backChannel.close()
-                    }
-                    is SessionMsg.FIND -> {
-                        val db = session.checkout()
-                        val result = db.find(msg.query)
-                        msg.backChannel.send(result)
-                        msg.backChannel.close()
-                    }
-                    is SessionMsg.VALUE -> {
-                        // Replace this msg with a DB message.
-                        val db = session.checkout()
-                        val value = db.getValue(msg.entity, msg.attr)
-                        msg.backChannel.send(value)
-                        msg.backChannel.close()
-                    }
-                }
+                processMsg(msg, session)
             }
         }
         return CommonDbSessionScope(SessionChannel(job, channel))
     }
 
-    private class CommonDbSessionScope(override val sessionChannel: SessionChannel) :
-        SessionScope
+    suspend fun processMsg(msg: SessionMsg, session: FileSession) {
+        @Suppress("REDUNDANT_ELSE_IN_WHEN")
+        when (msg) {
+            is SessionMsg.DB -> {
+                val db = session.db()
+                msg.backChannel.send(db)
+            }
+            is SessionMsg.UPDATE -> session.updateDb(msg.updates)
+            is SessionMsg.BATCH -> {
+                val ents = session.transactData(msg.tagLists)
+                msg.backChannel.send(ents)
+            }
+            is SessionMsg.FIND -> {
+                val db = session.db()
+                val result = db.find(msg.query)
+                msg.backChannel.send(result)
+            }
+            else -> TODO()
+        }
+    }
+
+    private class CommonDbSessionScope(override val sessionChannel: SessionChannel) : SessionScope
 
     operator fun <T : Any> Keyword.rangeTo(value: T) = tagOf(value, this)
     operator fun Keyword.rangeTo(v: Boolean) = tagOf(v, this)

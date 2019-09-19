@@ -11,7 +11,7 @@ import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.scopes.client.DestructuringScope
 
 
-suspend inline fun <reified TraitT : Any> ReadingScope.dbTome(topic: TomeTopic.Trait<TraitT>): Tome<TraitT> {
+inline fun <reified TraitT : Any> ReadingScope.dbTome(topic: TomeTopic.Trait<TraitT>): Tome<TraitT> {
     val traitHolders = dbRead(topic.attr).toList()
     val pages = traitHolders.map { traitHolder ->
         val data = dbRead(traitHolder)
@@ -19,11 +19,6 @@ suspend inline fun <reified TraitT : Any> ReadingScope.dbTome(topic: TomeTopic.T
         pageOf(title, data)
     }
     return tomeOf(topic, pages.toSet())
-}
-
-suspend inline fun <reified T : Any> ReadingScope.dbGetValue(attr: Attribute): T? {
-    val value = databaseChannel.getValue(0L, attr.toKeyword())
-    return value as? T
 }
 
 interface ReadingScope : DestructuringScope {
@@ -35,7 +30,7 @@ interface ReadingScope : DestructuringScope {
         return pageOf(subject, data)
     }
 
-    suspend fun dbRead(ent: Ent): Map<Keyword, Any> {
+    fun dbRead(ent: Ent): Map<Keyword, Any> {
         val eSlot = slot("e")
         val aSlot = slot("a")
         val vSlot = slot("v")
@@ -50,14 +45,14 @@ interface ReadingScope : DestructuringScope {
             .mapValues { it.value.value }
     }
 
-    suspend fun dbRead(attr: Attribute): Sequence<Ent> {
+    fun dbRead(attr: Attribute): Sequence<Ent> {
         val eSlot = slot("e")
         val query = queryOf { rules = listOf(-eSlot, eSlot has attr.attrName) }
         val result = find(query)
         return result.toEnts(eSlot)
     }
 
-    suspend fun find(query: Query.Find): FindResult = databaseChannel.find2(query)
+    fun find(query: Query.Find): FindResult = databaseChannel.find2(query)
 
     fun slot(name: String): Query.Find.Slot = Query.CommonSlot(name)
 }

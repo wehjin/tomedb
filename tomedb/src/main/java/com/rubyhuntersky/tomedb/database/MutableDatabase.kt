@@ -31,7 +31,7 @@ class MutableDatabase(dataDir: File) : Database {
 
     internal fun commit() = datalog.commit()
 
-    override fun getValue(entity: Long, attr: Keyword): Any? {
+    override fun getUntypedDbValue(entity: Long, attr: Keyword): Any? {
         return datalog.values(entity, attr).firstOrNull()
     }
 

@@ -7,9 +7,9 @@ import com.rubyhuntersky.tomedb.scopes.session.WritingScope
 @ScopeTagMarker
 class DatabaseScope(
     override val databaseChannel: DatabaseChannel,
-    private val sessionTransact: suspend (Set<Update>) -> Unit
+    private val sessionTransact: (Set<Update>) -> Unit
 ) : ReadingScope, WritingScope {
 
-    override suspend fun transact(updates: Set<Update>) = sessionTransact(updates)
+    override fun updateDb(updates: Set<Update>) = sessionTransact(updates)
 }
 
