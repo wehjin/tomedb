@@ -4,9 +4,9 @@ import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.basics.tagOf
-import com.rubyhuntersky.tomedb.connection.Session
+import com.rubyhuntersky.tomedb.connection.FileSession
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
-import com.rubyhuntersky.tomedb.scopes.session.ConnectionScope
+import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
 import com.rubyhuntersky.tomedb.scopes.session.SessionMsg
 import kotlinx.coroutines.CoroutineScope
@@ -23,10 +23,10 @@ interface ClientScope : CoroutineScope, DestructuringScope {
     val dbDir: File
     val dbSpec: List<Attribute>
 
-    fun connectToDatabase(): ConnectionScope {
+    fun connectToDatabase(): SessionScope {
         val channel = Channel<SessionMsg>(10)
         val job = launch(Dispatchers.IO) {
-            val session = Session(dbDir, dbSpec)
+            val session = FileSession(dbDir, dbSpec)
             for (msg in channel) {
                 when (msg) {
                     is SessionMsg.UPDATE -> session.send(msg.updates)
@@ -51,11 +51,11 @@ interface ClientScope : CoroutineScope, DestructuringScope {
                 }
             }
         }
-        return CommonConnectionScope(SessionChannel(job, channel))
+        return CommonDbSessionScope(SessionChannel(job, channel))
     }
 
-    private class CommonConnectionScope(override val dbSessionChannel: SessionChannel) :
-        ConnectionScope
+    private class CommonDbSessionScope(override val sessionChannel: SessionChannel) :
+        SessionScope
 
     operator fun <T : Any> Keyword.rangeTo(value: T) = tagOf(value, this)
     operator fun Keyword.rangeTo(v: Boolean) = tagOf(v, this)

@@ -1,9 +1,9 @@
 package com.rubyhuntersky.tomedb.app
 
 import com.rubyhuntersky.tomedb.scopes.query.dbGetValue
-import com.rubyhuntersky.tomedb.scopes.session.ConnectionScope
+import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 
-class CountingStory(private val application: DemoApplication) : ConnectionScope {
+class CountingStory(private val application: DemoApplication) : SessionScope {
 
     data class Mdl(val count: Long)
 
@@ -23,6 +23,6 @@ class CountingStory(private val application: DemoApplication) : ConnectionScope 
         return mdl.copy(count = newCount)
     }
 
-    override val dbSessionChannel
-        get() = application.connectionScope.dbSessionChannel
+    override val sessionChannel
+        get() = application.connectionScope.sessionChannel
 }

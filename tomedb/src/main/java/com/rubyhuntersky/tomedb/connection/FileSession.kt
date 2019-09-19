@@ -11,7 +11,7 @@ import com.rubyhuntersky.tomedb.datalog.Fact
 import java.io.File
 
 
-class Session(dataDir: File, spec: List<Attribute>?) {
+class FileSession(dataDir: File, spec: List<Attribute>?) {
 
     val mutDb = MutableDatabase(dataDir)
 
