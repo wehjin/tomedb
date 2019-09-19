@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.database
 
 import com.rubyhuntersky.tomedb.*
+import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.datalog.Datalog
 import com.rubyhuntersky.tomedb.datalog.Fact
@@ -29,6 +30,10 @@ class MutableDatabase(dataDir: File) : Database {
     }
 
     internal fun commit() = datalog.commit()
+
+    override fun getValue(entity: Long, attr: Keyword): Any? {
+        return datalog.values(entity, attr).firstOrNull()
+    }
 
     override fun find(query: Query.Find): FindResult {
         val rules = query.rules

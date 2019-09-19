@@ -41,13 +41,21 @@ interface ClientScope : CoroutineScope, DestructuringScope {
                         msg.backChannel.send(result)
                         msg.backChannel.close()
                     }
+                    is SessionMsg.VALUE -> {
+                        // Replace this msg with a DB message.
+                        val db = session.checkout()
+                        val value = db.getValue(msg.entity, msg.attr)
+                        msg.backChannel.send(value)
+                        msg.backChannel.close()
+                    }
                 }
             }
         }
         return CommonConnectionScope(SessionChannel(job, channel))
     }
 
-    private class CommonConnectionScope(override val dbSessionChannel: SessionChannel) : ConnectionScope
+    private class CommonConnectionScope(override val dbSessionChannel: SessionChannel) :
+        ConnectionScope
 
     operator fun <T : Any> Keyword.rangeTo(value: T) = tagOf(value, this)
     operator fun Keyword.rangeTo(v: Boolean) = tagOf(v, this)

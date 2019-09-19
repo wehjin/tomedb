@@ -1,11 +1,16 @@
 package com.rubyhuntersky.tomedb.scopes.session
 
 import com.rubyhuntersky.tomedb.Update
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.data.*
 
 interface WritingScope {
+
+    suspend fun dbSetValue(attr: Attribute, value: Any) {
+        transact(setOf(Update(0, attr.toKeyword(), value)))
+    }
 
     suspend fun <KeyT : Any> dbWrite(page: Page<KeyT>) {
         val data = page.data

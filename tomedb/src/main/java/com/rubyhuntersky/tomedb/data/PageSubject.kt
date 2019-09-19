@@ -24,7 +24,8 @@ sealed class PageSubject<KeyT : Any> {
         override val keyValue: Any? get() = null
     }
 
-    data class Follower(val follower: Ent, override val topic: TomeTopic.Leader) : PageSubject<Ent>() {
+    data class Follower(val follower: Ent, override val topic: TomeTopic.Leader) :
+        PageSubject<Ent>() {
         override val key: Ent get() = follower
         override val keyEnt: Ent get() = follower
         override val keyAttr: Attribute? get() = topic.childAttr

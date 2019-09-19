@@ -3,7 +3,10 @@ package com.rubyhuntersky.tomedb.scopes.query
 import com.rubyhuntersky.tomedb.FindResult
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.basics.*
+import com.rubyhuntersky.tomedb.basics.Ent
+import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.basics.queryOf
+import com.rubyhuntersky.tomedb.basics.valueFromData
 import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.scopes.client.DestructuringScope
 
@@ -16,6 +19,11 @@ suspend inline fun <reified TraitT : Any> ReadingScope.dbTome(topic: TomeTopic.T
         pageOf(title, data)
     }
     return tomeOf(topic, pages.toSet())
+}
+
+suspend inline fun <reified T : Any> ReadingScope.dbGetValue(attr: Attribute): T? {
+    val value = databaseChannel.getValue(0L, attr.toKeyword())
+    return value as? T
 }
 
 interface ReadingScope : DestructuringScope {
@@ -38,7 +46,8 @@ interface ReadingScope : DestructuringScope {
                 -aSlot and vSlot
             )
         }
-        return find(query).toProjections(ent, aSlot, vSlot).associateBy { it.attr }.mapValues { it.value.value }
+        return find(query).toProjections(ent, aSlot, vSlot).associateBy { it.attr }
+            .mapValues { it.value.value }
     }
 
     suspend fun dbRead(attr: Attribute): Sequence<Ent> {
