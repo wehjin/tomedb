@@ -23,15 +23,15 @@ class DemoApplication : Application(), CoroutineScope, ClientScope {
     override val dbSpec: List<Attribute>
         get() = Counter.values().toList()
 
-    lateinit var connectionScope: SessionScope
+    lateinit var sessionScope: SessionScope
 
     override fun onCreate() {
         super.onCreate()
-        connectionScope = connectToDatabase()
+        sessionScope = connectToDatabase()
     }
 
     override fun onTerminate() {
-        connectionScope.sessionChannel.close()
+        sessionScope.sessionChannel.close()
         super.onTerminate()
     }
 

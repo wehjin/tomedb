@@ -44,7 +44,7 @@ class NotesDemo(
     override val dbSpec: List<Attribute> = emptyList()
 ) : ClientScope {
 
-    private val connectionScope = connectToDatabase()
+    private val sessionScope = connectToDatabase()
 
     data class Mdl(val tome: Tome<Date>)
 
@@ -73,12 +73,12 @@ class NotesDemo(
         }
     }
 
-    private suspend fun initMdl(): Mdl {
+    private fun initMdl(): Mdl {
         val topic = TomeTopic.Trait<Date>(Note.CREATED)
-        return Mdl(tome = connectionScope { dbTome(topic) })
+        return Mdl(tome = sessionScope { dbTome(topic) })
     }
 
-    private suspend fun updateMdl(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
+    private fun updateMdl(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
         is Msg.LIST -> null
         is Msg.ADD -> {
             val date = Date()
@@ -89,19 +89,19 @@ class NotesDemo(
                     Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
                 )
             )
-            connectionScope { dbWrite(page) }
+            sessionScope { dbWrite(page) }
             mdl.copy(tome = mdl.tome + page)
         }
         is Msg.REVISE -> {
             mdl.tome(msg.key)?.let {
                 val textLine = lineOf(Note.TEXT, msg.text)
-                val nextPage = connectionScope { dbWrite(it, textLine) }
+                val nextPage = sessionScope { dbWrite(it, textLine) }
                 mdl.copy(tome = mdl.tome + nextPage)
             } ?: mdl
         }
         is Msg.DROP -> {
             mdl.tome(msg.key)?.let {
-                connectionScope { dbClear(it) }
+                sessionScope { dbClear(it) }
                 mdl.copy(tome = mdl.tome - msg.key)
             }
         }
