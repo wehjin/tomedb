@@ -32,7 +32,7 @@ class FileSession(dataDir: File, spec: List<Attribute>?) : Session {
         }
     }
 
-    override fun db(): Database = mutDb
+    override fun getDb(): Database = mutDb
 
     override fun updateDb(updates: Set<Update>) {
         val expanded = updates.flatMap(this::expandDataValues)

@@ -3,24 +3,18 @@ package com.rubyhuntersky.tomedb.scopes.session
 import com.rubyhuntersky.tomedb.FindResult
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.Update
-import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.database.Database
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 
 sealed class SessionMsg {
 
-    data class DB(
+    data class GetDb(
         val backChannel: SendChannel<Database>
     ) : SessionMsg()
 
-    data class UPDATE(
+    data class UpdateDb(
         val updates: Set<Update>
-    ) : SessionMsg()
-
-    data class BATCH(
-        val tagLists: List<TagList>,
-        val backChannel: Channel<List<Long>>
     ) : SessionMsg()
 
     data class FIND(

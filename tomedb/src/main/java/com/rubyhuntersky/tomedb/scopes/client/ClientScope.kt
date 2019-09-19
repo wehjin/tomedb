@@ -37,17 +37,13 @@ interface ClientScope : CoroutineScope, DestructuringScope {
     suspend fun processMsg(msg: SessionMsg, session: FileSession) {
         @Suppress("REDUNDANT_ELSE_IN_WHEN")
         when (msg) {
-            is SessionMsg.DB -> {
-                val db = session.db()
+            is SessionMsg.GetDb -> {
+                val db = session.getDb()
                 msg.backChannel.send(db)
             }
-            is SessionMsg.UPDATE -> session.updateDb(msg.updates)
-            is SessionMsg.BATCH -> {
-                val ents = session.transactData(msg.tagLists)
-                msg.backChannel.send(ents)
-            }
+            is SessionMsg.UpdateDb -> session.updateDb(msg.updates)
             is SessionMsg.FIND -> {
-                val db = session.db()
+                val db = session.getDb()
                 val result = db.find(msg.query)
                 msg.backChannel.send(result)
             }

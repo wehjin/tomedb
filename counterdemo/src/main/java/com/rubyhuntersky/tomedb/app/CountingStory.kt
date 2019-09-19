@@ -16,7 +16,7 @@ class CountingStory(private val application: DemoApplication) : SessionScope {
         object Decr : Msg()
     }
 
-    fun init(): Mdl = Mdl(db = db())
+    fun init(): Mdl = Mdl(db = getDb())
 
     fun update(mdl: Mdl, msg: Msg): Mdl {
         val newCount = when (msg) {

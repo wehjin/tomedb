@@ -14,7 +14,7 @@ interface SessionScope : Session, ReadingScope, WritingScope {
     override val databaseChannel: DatabaseChannel
         get() = DatabaseChannel(sessionChannel)
 
-    override fun db() = sessionChannel.db()
+    override fun getDb() = sessionChannel.getDb()
 
     override fun updateDb(updates: Set<Update>) = sessionChannel.updateDb(updates)
 
