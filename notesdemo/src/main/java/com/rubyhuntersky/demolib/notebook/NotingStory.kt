@@ -33,7 +33,7 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
         is Msg.ADD -> {
             val date = Date()
             val text = if (msg.text.isBlank()) "Today is $date" else msg.text
-            val entity = Entity.from(mdl.tome, date, mapOf(Note.CREATED to date, Note.TEXT to text))
+            val entity = Entity.from(Note.CREATED, date, mapOf(Note.TEXT to text))
             dbWrite(entity.page)
             mdl.copy(tome = mdl.tome + entity.page, db = getDb())
         }
