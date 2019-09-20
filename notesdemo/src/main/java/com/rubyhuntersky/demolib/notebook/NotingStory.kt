@@ -1,6 +1,7 @@
 package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.tomedb.data.*
+import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.scopes.query.dbTome
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
@@ -10,8 +11,10 @@ import java.util.*
 
 class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
 
-    data class Mdl(val tome: Tome<Date>) {
-        val entities by lazy { tome.pageList.map { Entity.from(it, Note.CREATED) } }
+    data class Mdl(val tome: Tome<Date>, val db: Database) {
+        val entities by lazy {
+            db.getDbEntities(Note.CREATED).toList()
+        }
     }
 
     sealed class Msg {
@@ -22,7 +25,7 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
     }
 
     fun init(): Mdl {
-        return Mdl(tome = dbTome(TomeTopic.Trait(Note.CREATED)))
+        return Mdl(tome = dbTome(TomeTopic.Trait(Note.CREATED)), db = getDb())
     }
 
     fun update(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
@@ -32,19 +35,19 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
             val text = if (msg.text.isBlank()) "Today is $date" else msg.text
             val entity = Entity.from(mdl.tome, date, mapOf(Note.CREATED to date, Note.TEXT to text))
             dbWrite(entity.page)
-            mdl.copy(tome = mdl.tome + entity.page)
+            mdl.copy(tome = mdl.tome + entity.page, db = getDb())
         }
         is Msg.REVISE -> {
             mdl.tome(msg.key)?.let {
                 val textLine = lineOf(Note.TEXT, msg.text)
                 val nextPage = dbWrite(it, textLine)
-                mdl.copy(tome = mdl.tome + nextPage)
+                mdl.copy(tome = mdl.tome + nextPage, db = getDb())
             } ?: mdl
         }
         is Msg.DROP -> {
             mdl.tome(msg.key)?.let {
                 dbClear(it)
-                mdl.copy(tome = mdl.tome - msg.key)
+                mdl.copy(tome = mdl.tome - msg.key, db = getDb())
             }
         }
     }

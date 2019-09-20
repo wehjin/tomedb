@@ -55,6 +55,7 @@ class FileDatalog(rootDir: File) : Datalog {
     private val indexFile = File(rootDir.apply { mkdirs() }, "index")
     private val indexFrameWriter = FrameWriter.new(indexFile)
     private val indexFrameReader get() = FrameReader.new(indexFile)
+    private fun getIndexReader(indexBase: Long?) = HamtReader(indexFrameReader, indexBase)
 
     private val attrFile = File(rootDir.apply { mkdirs() }, "attrs")
     private val attrTableFrameWriter = FrameWriter.new(attrFile)
@@ -63,8 +64,8 @@ class FileDatalog(rootDir: File) : Datalog {
         HamtWriter({ attrTableFrameReader }, attrTableBase, attrTableFrameWriter)
 
     private val attrTableReader get() = HamtReader(attrTableFrameReader, attrTableBase)
-    private val eavtReader get() = getAvtReader(eavtBase)
-    private val aevtReader get() = getAvtReader(aevtBase)
+    private val eavtReader get() = getIndexReader(eavtBase)
+    private val aevtReader get() = getIndexReader(aevtBase)
 
     private val cardinalityMap = CardinalityMap().also { cardMap ->
         ents().forEach { ent ->
@@ -93,7 +94,7 @@ class FileDatalog(rootDir: File) : Datalog {
         val attrKey = addAttrToTable(fact.attr)
 
         val avtBase = eavtReader[entKey]
-        val vtBase = getAvtReader(avtBase)[attrKey]
+        val vtBase = getIndexReader(avtBase)[attrKey]
         val retracts =
             if (cardinalityMap[attr] == Cardinality.ONE) readValueLines(vtBase) else emptySequence()
         val retractBase = retracts.fold(vtBase) { nextBase, retract ->
@@ -155,8 +156,6 @@ class FileDatalog(rootDir: File) : Datalog {
             ).write(attrKey, newEvtBase)
     }
 
-    private fun getAvtReader(avtBase: Long?) = HamtReader(indexFrameReader, avtBase)
-
     private data class ValueLine(
         val value: Any,
         val standing: Fact.Standing,
@@ -209,15 +208,27 @@ class FileDatalog(rootDir: File) : Datalog {
         }
     }
 
+    override fun ents(attr: Keyword): Sequence<Long> {
+        val entReader = entTableReader
+        val evtBase = aevtReader[attr.toKey()]
+        val evtReader = getIndexReader(evtBase)
+        val ents = evtReader.keys().map { entFromEntKey(it, entReader) }
+        return ents.filter { isAsserted(it, attr) }
+    }
+
+    private fun entFromEntKey(entKey: Long, entReader: HamtReader) = entReader[entKey]!!
+
     override fun ents(): Sequence<Long> {
         val entFromKeyReader = entTableReader
-        return eavtReader.keys().map { entFromKeyReader[it]!! }
+        return eavtReader.keys().map { entFromEntKey(it, entFromKeyReader) }
     }
 
     override fun attrs(entity: Long): Sequence<Keyword> {
-        val entKey = entToKey(entity)
         val attrReader = attrTableReader
-        return getAvtReader(eavtReader[entKey]).keys().map { keywordFromAttrKey(it, attrReader) }
+        val avtBase = eavtReader[entToKey(entity)]
+        val avtReader = getIndexReader(avtBase)
+        val attrs = avtReader.keys().map { keywordFromAttrKey(it, attrReader) }
+        return attrs.filter { attr -> isAsserted(entity, attr) }
     }
 
     private fun keywordFromAttrKey(attrKey: Long, attrReader: HamtReader): Keyword {
@@ -237,7 +248,7 @@ class FileDatalog(rootDir: File) : Datalog {
 
     private fun readValueLines(entity: Long, attr: Keyword): Sequence<ValueLine> {
         val avtBase = eavtReader[entToKey(entity)]
-        val vtBase = getAvtReader(avtBase)[attr.toKey()]
+        val vtBase = getIndexReader(avtBase)[attr.toKey()]
         return readValueLines(vtBase)
     }
 
@@ -255,7 +266,7 @@ class FileDatalog(rootDir: File) : Datalog {
 
     override fun values(): Sequence<Any> {
         return eavtReader.values()
-            .flatMap { getAvtReader(it).values() }
+            .flatMap { getIndexReader(it).values() }
             .flatMap { readValueLines(it) }
             .map(ValueLine::value)
     }

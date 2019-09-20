@@ -8,7 +8,7 @@ import com.rubyhuntersky.tomedb.basics.tagOf
 interface Attribute : GroupedItem {
 
     val attrName: Keyword
-        get() = Keyword(itemName, groupName)
+        get() = toKeyword()
 
     val valueType: ValueType
     val cardinality: Cardinality

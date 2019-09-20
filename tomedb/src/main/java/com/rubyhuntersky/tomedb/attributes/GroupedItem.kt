@@ -30,5 +30,5 @@ interface GroupedItem {
         return result
     }
 
-    fun toKeyword(): Keyword = Keyword(groupName, itemName)
+    fun toKeyword(): Keyword = Keyword(itemName, groupName)
 }

@@ -2,12 +2,18 @@ package com.rubyhuntersky.tomedb.database
 
 import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
+import com.rubyhuntersky.tomedb.data.PageSubject
+import com.rubyhuntersky.tomedb.data.TomeTopic
+import com.rubyhuntersky.tomedb.data.pageOf
 import com.rubyhuntersky.tomedb.datalog.Datalog
 import com.rubyhuntersky.tomedb.datalog.Fact
 import com.rubyhuntersky.tomedb.datalog.FileDatalog
+import com.rubyhuntersky.tomedb.datalog.attrValues
 import java.io.File
+import java.util.*
 
 class MutableDatabase(dataDir: File) : Database {
     private var nextEntity: Long = 1
@@ -37,7 +43,20 @@ class MutableDatabase(dataDir: File) : Database {
     }
 
     override fun getDbEntities(attr: Attribute): Sequence<Entity> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val ents = datalog.ents(attr.toKeyword())
+        return ents.mapNotNull { ent ->
+            val data = datalog.attrValues(ent).toMap()
+            // TODO Remove Date dependency
+            val value = data[attr.toKeyword()] as? Date
+            value?.let { value ->
+                val topic = TomeTopic.Trait<Date>(attr)
+                val subject = PageSubject.TraitHolder(Ent(ent), value, topic)
+                Entity.from(
+                    page = pageOf(subject, data),
+                    keyAttr = attr
+                )
+            }
+        }
     }
 
     override fun find(query: Query.Find): FindResult {
