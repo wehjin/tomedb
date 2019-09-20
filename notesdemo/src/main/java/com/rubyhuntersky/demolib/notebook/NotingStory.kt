@@ -6,8 +6,7 @@ import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import java.util.*
 
-class NotingStory(override val sessionChannel: SessionChannel) :
-    SessionScope {
+class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
 
     data class Mdl(val tome: Tome<Date>)
 
@@ -19,8 +18,7 @@ class NotingStory(override val sessionChannel: SessionChannel) :
     }
 
     fun init(): Mdl {
-        val topic =
-            TomeTopic.Trait<Date>(Note.CREATED)
+        val topic = TomeTopic.Trait<Date>(Note.CREATED)
         return Mdl(tome = dbTome(topic))
     }
 
