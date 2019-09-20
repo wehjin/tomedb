@@ -1,9 +1,11 @@
 package com.rubyhuntersky.demolib.notebook
 
+import com.rubyhuntersky.demolib.notebook.NotingStory.Mdl
+import com.rubyhuntersky.demolib.notebook.NotingStory.Msg
 import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.data.*
+import com.rubyhuntersky.tomedb.data.Page
+import com.rubyhuntersky.tomedb.data.invoke
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
-import com.rubyhuntersky.tomedb.scopes.query.dbTome
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
@@ -28,25 +30,16 @@ class NotesDemo(
 
     private val sessionScope = connectToDatabase()
 
-    data class Mdl(val tome: Tome<Date>)
-
-    sealed class Msg {
-        object LIST : Msg()
-        data class ADD(val text: String) : Msg()
-        data class REVISE(val key: Date, val text: String) : Msg()
-        data class DROP(val key: Date) : Msg()
-    }
-
     @ExperimentalCoroutinesApi
     @ObsoleteCoroutinesApi
     fun run() {
         println("Running with data in: ${dbDir.absoluteFile}")
         val mdls = Channel<Mdl>(10)
         val actor = actor<Msg> {
-            var mdl = initMdl()
-            mdls.send(mdl)
+            val story = NotingStory(sessionScope.sessionChannel)
+            var mdl = story.init().also { mdls.send(it) }
             loop@ for (msg in channel) {
-                updateMdl(mdl, msg)?.let { mdl = it }
+                story.update(mdl, msg)?.let { mdl = it }
                 mdls.send(mdl)
             }
         }
@@ -55,39 +48,6 @@ class NotesDemo(
         }
     }
 
-    private fun initMdl(): Mdl {
-        val topic = TomeTopic.Trait<Date>(Note.CREATED)
-        return Mdl(tome = sessionScope { dbTome(topic) })
-    }
-
-    private fun updateMdl(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
-        is Msg.LIST -> null
-        is Msg.ADD -> {
-            val date = Date()
-            val page = pageOf(
-                subject = mdl.tome.newPageSubject(date),
-                data = mapOf(
-                    Note.CREATED to date,
-                    Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
-                )
-            )
-            sessionScope { dbWrite(page) }
-            mdl.copy(tome = mdl.tome + page)
-        }
-        is Msg.REVISE -> {
-            mdl.tome(msg.key)?.let {
-                val textLine = lineOf(Note.TEXT, msg.text)
-                val nextPage = sessionScope { dbWrite(it, textLine) }
-                mdl.copy(tome = mdl.tome + nextPage)
-            } ?: mdl
-        }
-        is Msg.DROP -> {
-            mdl.tome(msg.key)?.let {
-                sessionScope { dbClear(it) }
-                mdl.copy(tome = mdl.tome - msg.key)
-            }
-        }
-    }
 
     @ExperimentalCoroutinesApi
     private suspend fun renderMdl(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
