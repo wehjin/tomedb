@@ -11,7 +11,7 @@ import java.util.*
 class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
 
     data class Mdl(val tome: Tome<Date>) {
-        val entities by lazy { tome.pageList.map { Entity(it, Note.CREATED) } }
+        val entities by lazy { tome.pageList.map { Entity.from(it, Note.CREATED) } }
     }
 
     sealed class Msg {
@@ -29,22 +29,14 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
         is Msg.LIST -> null
         is Msg.ADD -> {
             val date = Date()
-            val page = pageOf(
-                subject = mdl.tome.newPageSubject(date),
-                data = mapOf(
-                    Note.CREATED to date,
-                    Note.TEXT to if (msg.text.isBlank()) "Today is $date" else msg.text
-                )
-            )
-            dbWrite(page)
-            mdl.copy(tome = mdl.tome + page)
+            val text = if (msg.text.isBlank()) "Today is $date" else msg.text
+            val entity = Entity.from(mdl.tome, date, mapOf(Note.CREATED to date, Note.TEXT to text))
+            dbWrite(entity.page)
+            mdl.copy(tome = mdl.tome + entity.page)
         }
         is Msg.REVISE -> {
             mdl.tome(msg.key)?.let {
-                val textLine = lineOf(
-                    Note.TEXT,
-                    msg.text
-                )
+                val textLine = lineOf(Note.TEXT, msg.text)
                 val nextPage = dbWrite(it, textLine)
                 mdl.copy(tome = mdl.tome + nextPage)
             } ?: mdl
