@@ -3,8 +3,7 @@ package com.rubyhuntersky.demolib.notebook
 import com.rubyhuntersky.demolib.notebook.NotingStory.Mdl
 import com.rubyhuntersky.demolib.notebook.NotingStory.Msg
 import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.data.Page
-import com.rubyhuntersky.tomedb.data.invoke
+import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.scopes.client.ClientScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -48,33 +47,30 @@ class NotesDemo(
         }
     }
 
-
     @ExperimentalCoroutinesApi
     private suspend fun renderMdl(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
-        println("Notebook!")
-        println("=========")
+        NotesPrinter.printSessionHeader()
         loop@ while (!mdls.isClosedForReceive) {
             val mdl = mdls.receive()
-            val pageList = mdl.tome.pageList
-            pageList.forEachIndexed { index, page ->
-                println("----------")
-                println(index + 1)
-                val date = page<Date>(Note.CREATED)
-                val text = page<String>(Note.TEXT)
-                println("Created: $date")
-                println("Note: $text")
-            }
-            if (pageList.isEmpty()) {
-                print("--- EMPTY ---\n> ")
+            NotesPrinter.printScreenHeader()
+            val entities = mdl.entities.toList()
+            if (entities.isEmpty()) {
+                NotesPrinter.printEmptyNotes()
             } else {
-                print("----------\n> ")
+                entities.forEachIndexed { index, entity ->
+                    val number = index + 1
+                    val date = entity<Date>(Note.CREATED)
+                    val text = entity<String>(Note.TEXT)
+                    NotesPrinter.printNote(number, date, text)
+                }
             }
-            if (!sendMsg(pageList, actor)) break@loop
+            NotesPrinter.printScreenFooterAndPrompt()
+            if (!sendMsg(entities, actor)) break@loop
         }
-        println("\nUser has left the building.")
+        NotesPrinter.printSessionFooter()
     }
 
-    private tailrec fun sendMsg(pageList: List<Page<Date>>, actor: SendChannel<Msg>): Boolean {
+    private tailrec fun sendMsg(entities: List<Entity>, actor: SendChannel<Msg>): Boolean {
         val userLine = readLine()!!
         when {
             userLine == "list" -> actor.offer(Msg.LIST)
@@ -88,14 +84,14 @@ class NotesDemo(
                 val index = number.toIntOrNull()?.let { it - 1 }
                 val msg = index?.let {
                     val text = numberAndText.substringAfter(' ').trim()
-                    Msg.REVISE(key = pageList[index].key, text = text)
+                    Msg.REVISE(key = entities[index].key, text = text)
                 } ?: Msg.LIST
                 actor.offer(msg)
             }
             userLine.startsWith("drop", true) -> {
                 val number = userLine.substring("drop".length).trim()
                 val index = number.toIntOrNull()?.let { it - 1 }
-                val msg = index?.let { Msg.DROP(key = pageList[index].key) } ?: Msg.LIST
+                val msg = index?.let { Msg.DROP(key = entities[index].key) } ?: Msg.LIST
                 actor.offer(msg)
             }
             userLine == "done" -> {
@@ -104,7 +100,7 @@ class NotesDemo(
             }
             else -> {
                 print("Sumimasen, mou ichido yukkuri itte kudasai.\n> ")
-                return sendMsg(pageList, actor)
+                return sendMsg(entities, actor)
             }
         }
         return true

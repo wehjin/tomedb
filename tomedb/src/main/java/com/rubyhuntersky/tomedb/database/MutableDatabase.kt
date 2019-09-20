@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.database
 
 import com.rubyhuntersky.tomedb.*
+import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.datalog.Datalog
@@ -33,6 +34,10 @@ class MutableDatabase(dataDir: File) : Database {
 
     override fun getUntypedDbValue(entity: Long, attr: Keyword): Any? {
         return datalog.values(entity, attr).firstOrNull()
+    }
+
+    override fun getDbEntities(attr: Attribute): Sequence<Entity> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun find(query: Query.Find): FindResult {

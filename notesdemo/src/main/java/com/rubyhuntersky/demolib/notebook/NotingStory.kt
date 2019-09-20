@@ -1,14 +1,18 @@
 package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.tomedb.data.*
+import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.scopes.query.dbTome
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import java.util.*
 
+
 class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
 
-    data class Mdl(val tome: Tome<Date>)
+    data class Mdl(val tome: Tome<Date>) {
+        val entities by lazy { tome.pageList.map { Entity(it, Note.CREATED) } }
+    }
 
     sealed class Msg {
         object LIST : Msg()
@@ -18,8 +22,7 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
     }
 
     fun init(): Mdl {
-        val topic = TomeTopic.Trait<Date>(Note.CREATED)
-        return Mdl(tome = dbTome(topic))
+        return Mdl(tome = dbTome(TomeTopic.Trait(Note.CREATED)))
     }
 
     fun update(mdl: Mdl, msg: Msg): Mdl? = when (msg) {

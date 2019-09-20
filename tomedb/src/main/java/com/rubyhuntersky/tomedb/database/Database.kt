@@ -23,5 +23,7 @@ interface Database {
     fun find(query: Query.Find): FindResult
 
     fun getUntypedDbValue(entity: Long, attr: Keyword): Any?
+
+    fun getDbEntities(attr: Attribute): Sequence<Entity>
 }
 
