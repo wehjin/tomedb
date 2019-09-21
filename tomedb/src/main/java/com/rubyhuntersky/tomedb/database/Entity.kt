@@ -4,11 +4,10 @@ import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
-import java.util.*
 
-data class Entity(
+data class Entity<KeyT : Any>(
     private val keyAttr: Attribute,
-    val key: Date,
+    val key: KeyT,
     private val otherValues: Map<Keyword, Any>
 ) {
     val ent: Ent by lazy {
@@ -28,20 +27,20 @@ data class Entity(
         }
     }
 
-    fun setValue(attr: Attribute, value: Any): Entity {
+    fun setValue(attr: Attribute, value: Any): Entity<KeyT> {
         require(attr != keyAttr)
         return copy(otherValues = otherValues.toMutableMap().also {
             it[attr.toKeyword()] = value
         })
     }
 
-    fun canReplace(otherEntity: Entity?): Boolean {
+    fun canReplace(otherEntity: Entity<*>?): Boolean {
         return otherEntity?.let {
             ent == otherEntity.ent && keyAttr == otherEntity.keyAttr && key == otherEntity.key
         } ?: true
     }
 
-    operator fun minus(oldEntity: Entity): List<Update> {
+    operator fun minus(oldEntity: Entity<KeyT>): List<Update> {
         require(this.ent == oldEntity.ent)
         val ent = this.ent.long
         val lateData = this.data
@@ -83,8 +82,10 @@ data class Entity(
     }
 
     companion object {
-        fun from(keyAttr: Attribute, key: Date, data: Map<Keyword, Any>): Entity {
-            return Entity(keyAttr, key, data)
-        }
+        fun <KeyT : Any> from(
+            keyAttr: Attribute,
+            key: KeyT,
+            data: Map<Keyword, Any>
+        ): Entity<KeyT> = Entity(keyAttr, key, data)
     }
 }

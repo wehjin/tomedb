@@ -70,7 +70,7 @@ class NotesDemo(
         NotesPrinter.printSessionFooter()
     }
 
-    private tailrec fun sendMsg(entities: List<Entity>, actor: SendChannel<Msg>): Boolean {
+    private tailrec fun sendMsg(entities: List<Entity<Date>>, actor: SendChannel<Msg>): Boolean {
         val userLine = readLine()!!
         when {
             userLine == "list" -> actor.offer(Msg.LIST)

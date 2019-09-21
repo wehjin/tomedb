@@ -9,7 +9,6 @@ import com.rubyhuntersky.tomedb.datalog.Fact
 import com.rubyhuntersky.tomedb.datalog.FileDatalog
 import com.rubyhuntersky.tomedb.datalog.attrValues
 import java.io.File
-import java.util.*
 
 class MutableDatabase(dataDir: File) : Database {
     private var nextEntity: Long = 1
@@ -42,12 +41,14 @@ class MutableDatabase(dataDir: File) : Database {
         return datalog.values(entity, attr).firstOrNull()
     }
 
-    override fun getDbEntities(attr: Attribute): Sequence<Entity> {
+    override fun <KeyT : Any> getDbEntitiesOfClass(
+        attr: Attribute,
+        cls: Class<KeyT>
+    ): Sequence<Entity<KeyT>> {
         val ents = datalog.ents(attr.toKeyword())
         return ents.mapNotNull { ent ->
             val data = datalog.attrValues(ent).toMap()
-            // TODO Remove Date dependency
-            val value = data[attr.toKeyword()] as? Date
+            val value: KeyT? = cls.cast(data[attr.toKeyword()])
             value?.let { Entity.from(attr, it, data) }
         }
     }

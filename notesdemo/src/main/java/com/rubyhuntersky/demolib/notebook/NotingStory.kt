@@ -2,6 +2,7 @@ package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
+import com.rubyhuntersky.tomedb.database.getDbEntities
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import com.rubyhuntersky.tomedb.scopes.session.updateDb
@@ -12,7 +13,7 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
 
     data class Mdl(val db: Database) {
         val entities by lazy {
-            db.getDbEntities(Note.CREATED).toList()
+            db.getDbEntities<Date>(Note.CREATED).toList()
         }
     }
 

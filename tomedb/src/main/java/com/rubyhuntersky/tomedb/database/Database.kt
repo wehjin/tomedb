@@ -9,6 +9,11 @@ inline fun <reified T : Any> Database.getDbValue(attr: Attribute): T? {
     return getUntypedDbValue(0L, attr.toKeyword()) as? T
 }
 
+inline fun <reified KeyT : Any> Database.getDbEntities(attr: Attribute): Sequence<Entity<KeyT>> {
+    return getDbEntitiesOfClass(attr, KeyT::class.java)
+}
+
+
 interface Database {
 
     fun entityExistsWithAttrValue(attr: Keyword, value: Any): Boolean {
@@ -24,6 +29,6 @@ interface Database {
 
     fun getUntypedDbValue(entity: Long, attr: Keyword): Any?
 
-    fun getDbEntities(attr: Attribute): Sequence<Entity>
+    fun <KeyT : Any> getDbEntitiesOfClass(attr: Attribute, cls: Class<KeyT>): Sequence<Entity<KeyT>>
 }
 

@@ -16,7 +16,7 @@ fun Session.updateDb(attr: Attribute, value: Any): Database {
     return getDb()
 }
 
-fun Session.updateDb(newEntity: Entity?, oldEntity: Entity?): Database {
+fun <KeyT : Any> Session.updateDb(newEntity: Entity<KeyT>?, oldEntity: Entity<KeyT>?): Database {
     require(newEntity == null || newEntity.canReplace(oldEntity))
     val updates = when {
         newEntity != null && oldEntity == null -> newEntity.toUpdates()
