@@ -1,9 +1,6 @@
 package com.rubyhuntersky.tomedb.scopes.client
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.TagList
-import com.rubyhuntersky.tomedb.basics.tagOf
 import com.rubyhuntersky.tomedb.connection.FileSession
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
@@ -14,8 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import java.io.File
-import java.math.BigDecimal
-import java.util.*
 
 @ScopeTagMarker
 interface ClientScope : CoroutineScope {
@@ -31,7 +26,7 @@ interface ClientScope : CoroutineScope {
                 processMsg(msg, session)
             }
         }
-        return CommonDbSessionScope(SessionChannel(job, channel))
+        return CommonSessionScope(SessionChannel(job, channel))
     }
 
     suspend fun processMsg(msg: SessionMsg, session: FileSession) {
@@ -51,16 +46,5 @@ interface ClientScope : CoroutineScope {
         }
     }
 
-    private class CommonDbSessionScope(override val sessionChannel: SessionChannel) : SessionScope
-
-    operator fun <T : Any> Keyword.rangeTo(value: T) = tagOf(value, this)
-    operator fun Keyword.rangeTo(v: Boolean) = tagOf(v, this)
-    operator fun Keyword.rangeTo(v: Long) = tagOf(v, this)
-    operator fun Keyword.rangeTo(v: Int) = tagOf(v, this)
-    operator fun Keyword.rangeTo(v: Keyword) = tagOf(v, this)
-    operator fun Keyword.rangeTo(v: String) = tagOf(v, this)
-    operator fun Keyword.rangeTo(v: Date) = tagOf(v, this)
-    operator fun Keyword.rangeTo(v: Double) = tagOf(v, this)
-    operator fun Keyword.rangeTo(v: BigDecimal) = tagOf(v, this)
-    operator fun Keyword.rangeTo(v: TagList) = tagOf(v, this)
+    private class CommonSessionScope(override val sessionChannel: SessionChannel) : SessionScope
 }

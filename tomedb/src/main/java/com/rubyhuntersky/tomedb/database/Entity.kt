@@ -4,10 +4,6 @@ import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.data.Page
-import com.rubyhuntersky.tomedb.data.PageSubject
-import com.rubyhuntersky.tomedb.data.TomeTopic
-import com.rubyhuntersky.tomedb.data.pageOf
 import java.util.*
 
 data class Entity(
@@ -20,14 +16,6 @@ data class Entity(
     }
     val data: Map<Keyword, Any> by lazy {
         otherValues + (keyAttr.toKeyword() to key)
-    }
-    val page: Page<Date> by lazy {
-        val subject = PageSubject.TraitHolder(
-            traitHolder = ent,
-            traitValue = key,
-            topic = TomeTopic.Trait(keyAttr)
-        )
-        pageOf(subject, data)
     }
 
     inline operator fun <reified T : Any> invoke(attr: Attribute): T? {

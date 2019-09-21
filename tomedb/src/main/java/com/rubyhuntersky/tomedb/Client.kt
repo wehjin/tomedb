@@ -8,5 +8,4 @@ class Client {
     fun connect(dataDir: File, spec: List<Attribute>? = null): FileSession {
         return FileSession(dataDir, spec)
     }
-
 }

@@ -58,5 +58,6 @@ data class FindResult(val rows: List<ResultRow>) {
         Projection(ent.long, attr, value)
     }
 
-    fun toEnts(eSlot: Query.Find.Slot): Sequence<Ent> = rows.asSequence().map { it(eSlot) as Long }.map(::Ent)
+    fun toEnts(eSlot: Query.Find.Slot): Sequence<Ent> =
+        rows.asSequence().map { it(eSlot) as Long }.map(::Ent)
 }

@@ -24,9 +24,5 @@ data class Update(
         object Retract : Action()
 
         override fun toString(): String = toGroupedItemString()
-
-        companion object {
-            fun valueOf(assert: Boolean) = if (assert) Declare else Retract
-        }
     }
 }
