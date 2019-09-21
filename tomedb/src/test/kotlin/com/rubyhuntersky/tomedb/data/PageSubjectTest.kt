@@ -14,17 +14,4 @@ class PageSubjectTest {
         val pageTitle = PageSubject.Follower(citizen17, topic)
         assertNotNull(pageTitle)
     }
-
-    @Test
-    fun traitHolder() {
-        val topic = TomeTopic.Trait<String>(Citizen.FullName)
-        val pageTitle = PageSubject.TraitHolder(citizen17, "Frankie", topic)
-        assertNotNull(pageTitle)
-    }
-
-    @Test
-    fun entity() {
-        val pageTitle = PageSubject.Entity(citizen17)
-        assertNotNull(pageTitle)
-    }
 }
