@@ -16,7 +16,11 @@ class MutableDatabase(dataDir: File) : Database {
     internal fun nextEntity(): Long = nextEntity++
 
     internal fun update(updates: List<Update>): List<Fact> {
-        return updates.map(this::update).also { commit() }
+        return updates.map(this::update).also {
+            if (it.isNotEmpty()) {
+                commit()
+            }
+        }
     }
 
     private fun update(update: Update): Fact {

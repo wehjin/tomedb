@@ -1,9 +1,7 @@
 package com.rubyhuntersky.demolib.notebook
 
-import com.rubyhuntersky.tomedb.data.*
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
-import com.rubyhuntersky.tomedb.scopes.query.dbTome
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import com.rubyhuntersky.tomedb.scopes.session.updateDb
@@ -12,7 +10,7 @@ import java.util.*
 
 class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
 
-    data class Mdl(val tome: Tome<Date>, val db: Database) {
+    data class Mdl(val db: Database) {
         val entities by lazy {
             db.getDbEntities(Note.CREATED).toList()
         }
@@ -26,30 +24,28 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
     }
 
     fun init(): Mdl {
-        return Mdl(tome = dbTome(TomeTopic.Trait(Note.CREATED)), db = getDb())
+        return Mdl(db = getDb())
     }
 
     fun update(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
         is Msg.LIST -> null
         is Msg.ADD -> {
-            val date = Date()
-            val text = if (msg.text.isBlank()) "Today is $date" else msg.text
-            val entity = Entity.from(Note.CREATED, date, mapOf(Note.TEXT to text))
-            val newDb = updateDb(entity, null)
-            mdl.copy(tome = mdl.tome + entity.page, db = newDb)
+            val today = Date()
+            val text = if (msg.text.isNotBlank()) msg.text else "Today is $today"
+            val entity = Entity.from(Note.CREATED, today, mapOf(Note.TEXT to text))
+            mdl.copy(db = updateDb(entity, null))
         }
         is Msg.REVISE -> {
             val target = mdl.entities.firstOrNull { it.key == msg.key }
             target?.let { oldEntity ->
                 val newEntity = oldEntity.setValue(Note.TEXT, msg.text)
-                val newDb = updateDb(newEntity, oldEntity)
-                mdl.copy(tome = mdl.tome + newEntity.page, db = newDb)
-            } ?: mdl
+                mdl.copy(db = updateDb(newEntity, oldEntity))
+            }
         }
         is Msg.DROP -> {
-            mdl.tome(msg.key)?.let {
-                dbClear(it)
-                mdl.copy(tome = mdl.tome - msg.key, db = getDb())
+            val target = mdl.entities.firstOrNull { it.key == msg.key }
+            target?.let { oldEntity ->
+                mdl.copy(db = updateDb(null, oldEntity))
             }
         }
     }

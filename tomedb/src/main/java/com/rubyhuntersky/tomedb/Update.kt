@@ -17,6 +17,8 @@ data class Update(
         action: Action = Action.Declare
     ) : this(entity, attr.attrName, value, action)
 
+    fun retract(): Update = copy(action = Action.Retract)
+
     sealed class Action : GroupedItem {
         object Declare : Action()
         object Retract : Action()

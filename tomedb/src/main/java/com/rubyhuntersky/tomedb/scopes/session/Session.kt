@@ -16,9 +16,14 @@ fun Session.updateDb(attr: Attribute, value: Any): Database {
     return getDb()
 }
 
-fun Session.updateDb(entity: Entity, oldEntity: Entity?): Database {
-    require(entity.canReplace(oldEntity))
-    val updates = oldEntity?.let { entity - oldEntity } ?: entity.toUpdates()
+fun Session.updateDb(newEntity: Entity?, oldEntity: Entity?): Database {
+    require(newEntity == null || newEntity.canReplace(oldEntity))
+    val updates = when {
+        newEntity != null && oldEntity == null -> newEntity.toUpdates()
+        newEntity != null && oldEntity != null -> newEntity - oldEntity
+        newEntity == null && oldEntity != null -> oldEntity.toUpdates().map(Update::retract)
+        else -> emptyList()
+    }
     transactDb(updates.toSet())
     return getDb()
 }
