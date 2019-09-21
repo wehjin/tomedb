@@ -16,8 +16,9 @@ fun Session.updateDb(attr: Attribute, value: Any): Database {
     return getDb()
 }
 
-fun Session.updateDb(entity: Entity): Database {
-    val updates = entity.toUpdates()
+fun Session.updateDb(entity: Entity, oldEntity: Entity?): Database {
+    require(entity.canReplace(oldEntity))
+    val updates = oldEntity?.let { entity - oldEntity } ?: entity.toUpdates()
     transactDb(updates.toSet())
     return getDb()
 }

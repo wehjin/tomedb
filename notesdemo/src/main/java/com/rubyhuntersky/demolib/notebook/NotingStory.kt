@@ -35,14 +35,15 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
             val date = Date()
             val text = if (msg.text.isBlank()) "Today is $date" else msg.text
             val entity = Entity.from(Note.CREATED, date, mapOf(Note.TEXT to text))
-            val newDb = updateDb(entity)
+            val newDb = updateDb(entity, null)
             mdl.copy(tome = mdl.tome + entity.page, db = newDb)
         }
         is Msg.REVISE -> {
-            mdl.tome(msg.key)?.let {
-                val textLine = lineOf(Note.TEXT, msg.text)
-                val nextPage = dbWrite(it, textLine)
-                mdl.copy(tome = mdl.tome + nextPage, db = getDb())
+            val target = mdl.entities.firstOrNull { it.key == msg.key }
+            target?.let { oldEntity ->
+                val newEntity = oldEntity.setValue(Note.TEXT, msg.text)
+                val newDb = updateDb(newEntity, oldEntity)
+                mdl.copy(tome = mdl.tome + newEntity.page, db = newDb)
             } ?: mdl
         }
         is Msg.DROP -> {
