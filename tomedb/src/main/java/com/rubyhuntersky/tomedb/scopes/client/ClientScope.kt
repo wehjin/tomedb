@@ -18,7 +18,7 @@ import java.math.BigDecimal
 import java.util.*
 
 @ScopeTagMarker
-interface ClientScope : CoroutineScope, DestructuringScope {
+interface ClientScope : CoroutineScope {
 
     val dbDir: File
     val dbSpec: List<Attribute>
@@ -63,9 +63,4 @@ interface ClientScope : CoroutineScope, DestructuringScope {
     operator fun Keyword.rangeTo(v: Double) = tagOf(v, this)
     operator fun Keyword.rangeTo(v: BigDecimal) = tagOf(v, this)
     operator fun Keyword.rangeTo(v: TagList) = tagOf(v, this)
-}
-
-
-interface DestructuringScope {
-    operator fun Map<Keyword, *>.get(attr: Attribute) = this[attr.attrName]
 }
