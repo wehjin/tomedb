@@ -10,6 +10,6 @@ class DatabaseScope(
     private val sessionTransact: (Set<Update>) -> Unit
 ) : ReadingScope, WritingScope {
 
-    override fun updateDb(updates: Set<Update>) = sessionTransact(updates)
+    override fun transactDb(updates: Set<Update>) = sessionTransact(updates)
 }
 

@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb.database
 
+import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
@@ -12,19 +13,31 @@ import java.util.*
 class Entity(
     private val keyAttr: Attribute,
     val key: Date,
-    val values: Map<Keyword, Any>
+    private val otherValues: Map<Keyword, Any>
 ) {
+    val ent: Ent by lazy {
+        Ent.of(keyAttr, key)
+    }
+    val values: Map<Keyword, Any> by lazy {
+        otherValues + (keyAttr.toKeyword() to key)
+    }
     val page: Page<Date> by lazy {
         val subject = PageSubject.TraitHolder(
-            traitHolder = Ent.of(keyAttr, key),
+            traitHolder = ent,
             traitValue = key,
             topic = TomeTopic.Trait(keyAttr)
         )
-        pageOf(subject, values + (keyAttr.toKeyword() to key))
+        pageOf(subject, values)
     }
 
     inline operator fun <reified T : Any> invoke(attr: Attribute): T? {
         return values[attr.toKeyword()] as? T
+    }
+
+    fun toUpdates(): List<Update> {
+        return values.map { (attr, value) ->
+            Update(ent.long, attr, value)
+        }
     }
 
     companion object {

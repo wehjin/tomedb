@@ -17,7 +17,7 @@ data class SessionChannel(private val job: Job, private val channel: Channel<Ses
             .receive()
     }
 
-    override fun updateDb(updates: Set<Update>) = runBlocking {
+    override fun transactDb(updates: Set<Update>) = runBlocking {
         channel.send(SessionMsg.UpdateDb(updates))
     }
 

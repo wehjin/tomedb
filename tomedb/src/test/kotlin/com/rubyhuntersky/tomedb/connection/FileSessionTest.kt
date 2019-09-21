@@ -51,7 +51,7 @@ class FileSessionTest {
         Client().connect(dataDir, listOf(Movie.Title))
             .also { connection ->
                 val update = Update(1, Movie.Title, ("Return of the King"))
-                connection.updateDb(setOf(update))
+                connection.transactDb(setOf(update))
                 connection.commit()
             }
 

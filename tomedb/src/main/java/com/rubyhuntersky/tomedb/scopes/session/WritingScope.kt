@@ -21,7 +21,7 @@ interface WritingScope {
 
     fun dbWrite(facts: List<Projection<Any>>) {
         val updates = facts.map { Update(it.ent, it.attr, it.value) }
-        updateDb(updates.toSet())
+        transactDb(updates.toSet())
     }
 
     fun <KeyT : Any> dbClear(page: Page<KeyT>) {
@@ -34,12 +34,12 @@ interface WritingScope {
                     subject.keyValue!!,
                     Update.Action.valueOf(false)
                 )
-                updateDb(setOf(update))
+                transactDb(setOf(update))
             }
         }
     }
 
-    fun updateDb(updates: Set<Update>)
+    fun transactDb(updates: Set<Update>)
 
     fun Map<Keyword, Any>.bindEnt(ent: Ent): List<Projection<Any>> =
         this.entries.map { (attr, value) -> Projection(ent.long, attr, value) }

@@ -16,10 +16,9 @@ interface SessionScope : Session, ReadingScope, WritingScope {
 
     override fun getDb() = sessionChannel.getDb()
 
-    override fun updateDb(updates: Set<Update>) = sessionChannel.updateDb(updates)
+    override fun transactDb(updates: Set<Update>) = sessionChannel.transactDb(updates)
 
     operator fun <T> invoke(block: DatabaseScope.() -> T): T {
-        return block(DatabaseScope(databaseChannel, ::updateDb))
+        return block(DatabaseScope(databaseChannel, ::transactDb))
     }
 }
-

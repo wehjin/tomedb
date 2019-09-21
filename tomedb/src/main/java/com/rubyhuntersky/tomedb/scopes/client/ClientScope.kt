@@ -41,7 +41,7 @@ interface ClientScope : CoroutineScope, DestructuringScope {
                 val db = session.getDb()
                 msg.backChannel.send(db)
             }
-            is SessionMsg.UpdateDb -> session.updateDb(msg.updates)
+            is SessionMsg.UpdateDb -> session.transactDb(msg.updates)
             is SessionMsg.FIND -> {
                 val db = session.getDb()
                 val result = db.find(msg.query)

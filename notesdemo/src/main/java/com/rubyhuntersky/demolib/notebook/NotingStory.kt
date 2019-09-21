@@ -6,6 +6,7 @@ import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.scopes.query.dbTome
 import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
+import com.rubyhuntersky.tomedb.scopes.session.updateDb
 import java.util.*
 
 
@@ -34,8 +35,8 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
             val date = Date()
             val text = if (msg.text.isBlank()) "Today is $date" else msg.text
             val entity = Entity.from(Note.CREATED, date, mapOf(Note.TEXT to text))
-            dbWrite(entity.page)
-            mdl.copy(tome = mdl.tome + entity.page, db = getDb())
+            val newDb = updateDb(entity)
+            mdl.copy(tome = mdl.tome + entity.page, db = newDb)
         }
         is Msg.REVISE -> {
             mdl.tome(msg.key)?.let {

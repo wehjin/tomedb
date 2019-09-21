@@ -3,13 +3,21 @@ package com.rubyhuntersky.tomedb.scopes.session
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.database.Database
+import com.rubyhuntersky.tomedb.database.Entity
 
 interface Session {
     fun getDb(): Database
-    fun updateDb(updates: Set<Update>)
+    fun transactDb(updates: Set<Update>)
 }
 
-fun Session.setDbValue(attr: Attribute, value: Any): Database {
-    updateDb(setOf(Update(0, attr.toKeyword(), value)))
+fun Session.updateDb(attr: Attribute, value: Any): Database {
+    val update = Update(0, attr.toKeyword(), value)
+    transactDb(setOf(update))
+    return getDb()
+}
+
+fun Session.updateDb(entity: Entity): Database {
+    val updates = entity.toUpdates()
+    transactDb(updates.toSet())
     return getDb()
 }
