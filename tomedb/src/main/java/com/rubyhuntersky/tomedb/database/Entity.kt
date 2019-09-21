@@ -9,28 +9,27 @@ import com.rubyhuntersky.tomedb.data.TomeTopic
 import com.rubyhuntersky.tomedb.data.pageOf
 import java.util.*
 
-class Entity(val page: Page<Date>, private val keyAttr: Attribute) {
-
-    val key: Date
-        get() = this(keyAttr)!!
+class Entity(
+    private val keyAttr: Attribute,
+    val key: Date,
+    val values: Map<Keyword, Any>
+) {
+    val page: Page<Date> by lazy {
+        val subject = PageSubject.TraitHolder(
+            traitHolder = Ent.of(keyAttr, key),
+            traitValue = key,
+            topic = TomeTopic.Trait(keyAttr)
+        )
+        pageOf(subject, values + (keyAttr.toKeyword() to key))
+    }
 
     inline operator fun <reified T : Any> invoke(attr: Attribute): T? {
-        return page[attr] as? T
+        return values[attr.toKeyword()] as? T
     }
 
     companion object {
-        fun from(page: Page<Date>, keyAttr: Attribute): Entity {
-            return Entity(page, keyAttr)
-        }
-
         fun from(keyAttr: Attribute, key: Date, data: Map<Keyword, Any>): Entity {
-            val subject = PageSubject.TraitHolder(
-                traitHolder = Ent.of(keyAttr, key),
-                traitValue = key,
-                topic = TomeTopic.Trait(keyAttr)
-            )
-            val page = pageOf(subject, data + (keyAttr.toKeyword() to key))
-            return Entity(page, keyAttr)
+            return Entity(keyAttr, key, data)
         }
     }
 }

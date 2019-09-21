@@ -2,12 +2,8 @@ package com.rubyhuntersky.tomedb.database
 
 import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
-import com.rubyhuntersky.tomedb.data.PageSubject
-import com.rubyhuntersky.tomedb.data.TomeTopic
-import com.rubyhuntersky.tomedb.data.pageOf
 import com.rubyhuntersky.tomedb.datalog.Datalog
 import com.rubyhuntersky.tomedb.datalog.Fact
 import com.rubyhuntersky.tomedb.datalog.FileDatalog
@@ -48,14 +44,7 @@ class MutableDatabase(dataDir: File) : Database {
             val data = datalog.attrValues(ent).toMap()
             // TODO Remove Date dependency
             val value = data[attr.toKeyword()] as? Date
-            value?.let { value ->
-                val topic = TomeTopic.Trait<Date>(attr)
-                val subject = PageSubject.TraitHolder(Ent(ent), value, topic)
-                Entity.from(
-                    page = pageOf(subject, data),
-                    keyAttr = attr
-                )
-            }
+            value?.let { Entity.from(attr, it, data) }
         }
     }
 
