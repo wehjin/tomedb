@@ -5,11 +5,11 @@ import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.basics.Keyword
 
-inline fun <reified T : Any> Database.getDbValue(attr: Attribute): T? {
+inline fun <reified T : Any> Database.getDbValue(attr: Attribute<*>): T? {
     return getUntypedDbValue(0L, attr.toKeyword()) as? T
 }
 
-inline fun <reified KeyT : Any> Database.getDbEntities(attr: Attribute): Sequence<Entity<KeyT>> {
+inline fun <reified KeyT : Any> Database.getDbEntities(attr: Attribute<*>): Sequence<Entity<KeyT>> {
     return getDbEntitiesOfClass(attr, KeyT::class.java)
 }
 
@@ -29,6 +29,6 @@ interface Database {
 
     fun getUntypedDbValue(entity: Long, attr: Keyword): Any?
 
-    fun <KeyT : Any> getDbEntitiesOfClass(attr: Attribute, cls: Class<KeyT>): Sequence<Entity<KeyT>>
+    fun <KeyT : Any> getDbEntitiesOfClass(attr: Attribute<*>, cls: Class<KeyT>): Sequence<Entity<KeyT>>
 }
 

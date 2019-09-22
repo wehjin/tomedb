@@ -52,7 +52,7 @@ sealed class Query {
 
             operator fun invoke(rows: FindResult): List<Any> = rows(this)
             infix fun has(attr: Keyword): Rule2.SlotAttr = Rule2.SlotAttr(this, attr)
-            infix fun has(attr: Attribute): Rule2.SlotAttr = Rule2.SlotAttr(this, attr.attrName)
+            infix fun has(attr: Attribute<*>): Rule2.SlotAttr = Rule2.SlotAttr(this, attr.attrName)
             infix fun has(aSlot: Slot): SlotSlot = SlotSlot(this, aSlot)
             operator fun unaryMinus() = Rule2.Slide(listOf(this.slotName))
             operator fun unaryPlus() = Slip(this.slotName)
@@ -62,7 +62,7 @@ sealed class Query {
             override fun toString(): String = "ESlot/$slotName"
         }
 
-        infix fun String.has(attr: Attribute): Rule2.SlotAttr = CommonSlot(this).has(attr.attrName)
+        infix fun String.has(attr: Attribute<*>): Rule2.SlotAttr = CommonSlot(this).has(attr.attrName)
         infix fun String.has(attr: Keyword): Rule2.SlotAttr = CommonSlot(this).has(attr)
         operator fun String.unaryPlus() = Slip(this)
         operator fun String.unaryMinus() = Rule2.Slide(listOf(this))

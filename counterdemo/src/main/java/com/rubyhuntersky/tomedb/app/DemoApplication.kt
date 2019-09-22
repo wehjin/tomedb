@@ -20,8 +20,8 @@ class DemoApplication : Application(), CoroutineScope, ClientScope {
     override val dbDir: File
         get() = File(filesDir, "tome")
 
-    override val dbSpec: List<Attribute>
-        get() = Counter.values().toList()
+    override val dbSpec: List<Attribute<*>>
+        get() = Counter.attrs().toList()
 
     lateinit var sessionScope: SessionScope
 

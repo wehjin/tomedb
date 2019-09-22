@@ -16,4 +16,4 @@ val <T : Any> Line<T>.lineValue: T get() = this.second
 fun <T : Any> Line<T>.bindEnt(ent: Ent): Projection<T> =
     Projection(ent.long, this.first, this.second)
 
-fun <T : Any> lineOf(attr: Attribute, value: T): Line<T> = Pair(attr.attrName, value)
+fun <T : Any> lineOf(attr: Attribute<*>, value: T): Line<T> = Pair(attr.attrName, value)

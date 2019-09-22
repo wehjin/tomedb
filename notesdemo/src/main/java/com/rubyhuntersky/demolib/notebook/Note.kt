@@ -4,22 +4,19 @@ import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.AttributeGroup
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
+import java.util.*
 
 object Note : AttributeGroup {
 
-    object CREATED : Attribute {
-        override val valueType: ValueType =
-            ValueType.INSTANT
-        override val cardinality: Cardinality =
-            Cardinality.ONE
-        override val description: String = "The instant a note was created."
+    object CREATED : Attribute<Date> {
+        override val valueType = ValueType.INSTANT
+        override val cardinality = Cardinality.ONE
+        override val description = "The instant a note was created."
     }
 
-    object TEXT : Attribute {
-        override val valueType: ValueType =
-            ValueType.STRING
-        override val cardinality: Cardinality =
-            Cardinality.ONE
-        override val description: String = "The text of the note."
+    object TEXT : Attribute<String> {
+        override val valueType = ValueType.STRING
+        override val cardinality = Cardinality.ONE
+        override val description = "The text of the note."
     }
 }

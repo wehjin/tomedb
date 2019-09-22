@@ -11,18 +11,18 @@ import com.rubyhuntersky.tomedb.scopes.session.Session
 import java.io.File
 
 
-class FileSession(dataDir: File, spec: List<Attribute>?) : Session {
+class FileSession(dataDir: File, spec: List<Attribute<*>>?) : Session {
 
     val mutDb = MutableDatabase(dataDir)
 
     init {
         spec?.let {
-            val data = it.toNewAttributes().map(Attribute::toSchemeData)
+            val data = it.toNewAttributes().map(Attribute<*>::toSchemeData)
             transactData(data)
         }
     }
 
-    private fun List<Attribute>.toNewAttributes(): List<Attribute> = mapNotNull { attribute ->
+    private fun List<Attribute<*>>.toNewAttributes(): List<Attribute<*>> = mapNotNull { attribute ->
         val nameValue = (attribute.attrName)
         if (mutDb.entityExistsWithAttrValue(Scheme.NAME.attrName, nameValue)) {
             attribute

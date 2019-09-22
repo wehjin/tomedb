@@ -24,7 +24,7 @@ class NotesDemo(
     private val job: Job = Job(),
     override val coroutineContext: CoroutineContext = Dispatchers.Default + job,
     override val dbDir: File = File("data", "notebook"),
-    override val dbSpec: List<Attribute> = emptyList()
+    override val dbSpec: List<Attribute<*>> = emptyList()
 ) : ClientScope {
 
     private val sessionScope = connectToDatabase()

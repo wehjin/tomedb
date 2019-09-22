@@ -16,7 +16,7 @@ import java.io.File
 interface ClientScope : CoroutineScope {
 
     val dbDir: File
-    val dbSpec: List<Attribute>
+    val dbSpec: List<Attribute<*>>
 
     fun connectToDatabase(): SessionScope {
         val channel = Channel<SessionMsg>(10)

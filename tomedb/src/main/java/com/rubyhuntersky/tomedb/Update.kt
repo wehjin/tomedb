@@ -12,7 +12,7 @@ data class Update(
 ) {
     constructor(
         entity: Long,
-        attr: Attribute,
+        attr: Attribute<*>,
         value: Any,
         action: Action = Action.Declare
     ) : this(entity, attr.attrName, value, action)

@@ -42,7 +42,7 @@ class MutableDatabase(dataDir: File) : Database {
     }
 
     override fun <KeyT : Any> getDbEntitiesOfClass(
-        attr: Attribute,
+        attr: Attribute<*>,
         cls: Class<KeyT>
     ): Sequence<Entity<KeyT>> {
         val ents = datalog.ents(attr.toKeyword())

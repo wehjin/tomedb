@@ -5,7 +5,7 @@ import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.basics.tagListOf
 import com.rubyhuntersky.tomedb.basics.tagOf
 
-interface Attribute : GroupedItem {
+interface Attribute<ValueT : Any> : GroupedItem {
 
     val attrName: Keyword
         get() = toKeyword()
@@ -14,7 +14,7 @@ interface Attribute : GroupedItem {
     val cardinality: Cardinality
     val description: String
 
-    infix fun <T : Any> to(other: T) = Pair(attrName, other)
+    infix fun to(value: ValueT) = Pair(attrName, value)
 
     fun toSchemeData(): TagList = tagListOf(
         tagOf(attrName, Scheme.NAME.attrName),

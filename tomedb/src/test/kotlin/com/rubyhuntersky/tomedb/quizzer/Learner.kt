@@ -4,14 +4,19 @@ import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
 
-enum class Learner(
-    override val valueType: ValueType<*>,
+sealed class Learner<T : Any>(
+    override val valueType: ValueType<T>,
     override val cardinality: Cardinality,
     override val description: String
-) : Attribute {
-    Name(ValueType.STRING, Cardinality.ONE, "The name of the learner"),
-    Selected(ValueType.BOOLEAN, Cardinality.ONE, "The selected learner"),
-    Quiz(ValueType.LONG, Cardinality.MANY, "A quiz held by the learner");
+) : Attribute<T> {
 
     override fun toString(): String = attrName.toString()
+
+    companion object {
+        fun attrs() = arrayOf(Name, Selected, Quiz)
+    }
+
+    object Name : Learner<String>(ValueType.STRING, Cardinality.ONE, "The name of the learner")
+    object Selected : Learner<Boolean>(ValueType.BOOLEAN, Cardinality.ONE, "The selected learner")
+    object Quiz : Learner<Long>(ValueType.LONG, Cardinality.MANY, "A quiz held by the learner")
 }

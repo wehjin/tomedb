@@ -2,7 +2,7 @@ package com.rubyhuntersky.tomedb.attributes
 
 import com.rubyhuntersky.tomedb.basics.Keyword
 
-sealed class Scheme : Attribute {
+sealed class Scheme<T : Any> : Attribute<T> {
 
     override fun toString(): String = attrName.toString()
 
@@ -12,25 +12,25 @@ sealed class Scheme : Attribute {
         }
 
         val cardinalities: Map<Keyword, Cardinality> by lazy {
-            attrs.associateBy(Scheme::attrName, Scheme::cardinality)
+            attrs.associateBy(Attribute<*>::attrName, Attribute<*>::cardinality)
         }
     }
 
-    object NAME : Scheme() {
+    object NAME : Scheme<Keyword>() {
         override val valueType = ValueType.KEYWORD
         override val cardinality = Cardinality.ONE
         override val description = "The unique name of an attribute."
 
     }
 
-    object VALUETYPE : Scheme() {
+    object VALUETYPE : Scheme<Keyword>() {
         override val valueType = ValueType.KEYWORD
         override val cardinality = Cardinality.ONE
         override val description = "The type of the value that can be associated with a value."
 
     }
 
-    object CARDINALITY : Scheme() {
+    object CARDINALITY : Scheme<Keyword>() {
         override val valueType = ValueType.KEYWORD
         override val cardinality = Cardinality.ONE
         override val description =
@@ -38,7 +38,7 @@ sealed class Scheme : Attribute {
 
     }
 
-    object DESCRIPTION : Scheme() {
+    object DESCRIPTION : Scheme<String>() {
         override val valueType = ValueType.STRING
         override val cardinality = Cardinality.ONE
         override val description = "Specifies a documentation string"

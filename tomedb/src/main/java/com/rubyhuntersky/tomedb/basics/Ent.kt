@@ -17,7 +17,7 @@ data class Ent(val long: Long) {
             return Ident.Local(group.groupName, index).toEnt()
         }
 
-        fun <T : Any> of(attr: Attribute, value: T): Ent {
+        fun <T : Any> of(attr: Attribute<*>, value: T): Ent {
             return of(attr.attrName, value)
         }
 

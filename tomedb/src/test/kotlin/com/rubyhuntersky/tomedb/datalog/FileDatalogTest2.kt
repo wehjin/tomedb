@@ -12,26 +12,27 @@ import java.io.File
 
 class FileDatalogTest2 {
 
-    enum class Counter : Attribute {
-        COUNT {
+    sealed class Counter<T : Any> : Attribute<T> {
+
+        override fun toString(): String = attrName.toString()
+
+        object COUNT : Counter<Long>() {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
             override val description = "The count associated with a counter."
-        },
+        }
 
-        MAXCOUNT {
+        object MAXCOUNT : Counter<Long>() {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
             override val description = "The maximum value of the counter."
-        },
+        }
 
-        COUNTSET {
+        object COUNTSET : Counter<Long>() {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.MANY
             override val description = "A count that accumulates values."
-        };
-
-        override fun toString(): String = attrName.toString()
+        }
     }
 
     private lateinit var folderPath: File

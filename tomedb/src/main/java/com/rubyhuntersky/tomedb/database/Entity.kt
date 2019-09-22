@@ -6,7 +6,7 @@ import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 
 data class Entity<KeyT : Any>(
-    private val keyAttr: Attribute,
+    private val keyAttr: Attribute<*>,
     val key: KeyT,
     private val otherValues: Map<Keyword, Any>
 ) {
@@ -17,7 +17,7 @@ data class Entity<KeyT : Any>(
         otherValues + (keyAttr.toKeyword() to key)
     }
 
-    inline operator fun <reified T : Any> invoke(attr: Attribute): T? {
+    inline operator fun <reified T : Any> invoke(attr: Attribute<*>): T? {
         return data[attr.toKeyword()] as? T
     }
 
@@ -27,7 +27,7 @@ data class Entity<KeyT : Any>(
         }
     }
 
-    fun setValue(attr: Attribute, value: Any): Entity<KeyT> {
+    fun setValue(attr: Attribute<*>, value: Any): Entity<KeyT> {
         require(attr != keyAttr)
         return copy(otherValues = otherValues.toMutableMap().also {
             it[attr.toKeyword()] = value
@@ -83,7 +83,7 @@ data class Entity<KeyT : Any>(
 
     companion object {
         fun <KeyT : Any> from(
-            keyAttr: Attribute,
+            keyAttr: Attribute<*>,
             key: KeyT,
             data: Map<Keyword, Any>
         ): Entity<KeyT> = Entity(keyAttr, key, data)

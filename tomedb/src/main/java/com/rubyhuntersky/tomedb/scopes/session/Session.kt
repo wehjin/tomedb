@@ -10,7 +10,7 @@ interface Session {
     fun transactDb(updates: Set<Update>)
 }
 
-fun Session.updateDb(attr: Attribute, value: Any): Database {
+fun Session.updateDb(attr: Attribute<*>, value: Any): Database {
     val update = Update(0, attr.toKeyword(), value)
     transactDb(setOf(update))
     return getDb()

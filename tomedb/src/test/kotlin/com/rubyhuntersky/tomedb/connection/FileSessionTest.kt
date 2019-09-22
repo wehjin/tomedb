@@ -17,21 +17,21 @@ class FileSessionTest {
 
     object Movie {
 
-        object Title : Attribute {
+        object Title : Attribute<String> {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The title of the movie"
             override fun toString(): String = attrName.toString()
         }
 
-        object Genre : Attribute {
+        object Genre : Attribute<String> {
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The genre of the movie"
             override fun toString(): String = attrName.toString()
         }
 
-        object ReleaseYear : Attribute {
+        object ReleaseYear : Attribute<Long> {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
             override val description = "The year the movie was released in theaters"

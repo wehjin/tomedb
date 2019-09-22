@@ -5,13 +5,15 @@ import com.rubyhuntersky.tomedb.attributes.AttributeGroup
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
 
-enum class Counter : Attribute {
+sealed class Counter<T : Any> : Attribute<T> {
 
-    Count {
-        override val valueType: ValueType = ValueType.LONG
-        override val cardinality: Cardinality = Cardinality.ONE
-        override val description: String = "The current count of a counter"
-    };
+    companion object : AttributeGroup {
+        fun attrs() = arrayOf(Count)
+    }
 
-    companion object : AttributeGroup
+    object Count : Counter<Long>() {
+        override val valueType = ValueType.LONG
+        override val cardinality = Cardinality.ONE
+        override val description = "The current count of a counter"
+    }
 }

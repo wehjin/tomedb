@@ -13,7 +13,10 @@ class TomeTest {
         val topic = TomeTopic.Leader(norway, Citizen.Country)
         val page1 = pageOf(
             subject = PageSubject.Follower(citizen17, topic),
-            lines = setOf(Citizen.Country to norway, Citizen.FullName to "Benjy")
+            lines = setOf(
+                lineOf(Citizen.Country, norway),
+                lineOf(Citizen.FullName, "Benjy")
+            )
         )
         val tome = tomeOf(topic, setOf(page1))
         assertEquals(topic, tome.topic)

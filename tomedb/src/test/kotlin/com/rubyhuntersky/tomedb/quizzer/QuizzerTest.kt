@@ -30,7 +30,7 @@ class QuizzerTest {
 
     @Test
     fun happy() {
-        val spec: List<Attribute> = listOf(*Lesson.values(), *Quiz.values(), *Learner.values())
+        val spec: List<Attribute<*>> = listOf(*Lesson.attrs(), *Quiz.attrs(), *Learner.attrs())
         val conn = Client().connect(dataDir, spec)
 
         val findSelectedLearners = queryOf {
@@ -60,7 +60,8 @@ class QuizzerTest {
         assertEquals(2, quizResults.size)
         assertEquals(setOf("Basics", "Advanced"), quizResults.map { it["name"] as String }.toSet())
 
-        val selectedQuizEntity = quizResults.first { it["name"] as String == "Basics" }["quiz"] as Long
+        val selectedQuizEntity =
+            quizResults.first { it["name"] as String == "Basics" }["quiz"] as Long
         assertNotNull(selectedQuizEntity)
 
         val lessonResults = conn.mutDb(queryOf {

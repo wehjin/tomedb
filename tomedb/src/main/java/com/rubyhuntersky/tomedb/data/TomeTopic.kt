@@ -16,7 +16,7 @@ sealed class TomeTopic<KeyT : Any> {
      * the parent is (Norway, Citizen/Country), then the topic describes
      * all entities with a Norway value at Citizen/Country.
      */
-    data class Leader(val leader: Ent, val childAttr: Attribute) : TomeTopic<Ent>() {
+    data class Leader(val leader: Ent, val childAttr: Attribute<*>) : TomeTopic<Ent>() {
         override fun toSubject(key: Ent): PageSubject.Follower {
             return PageSubject.Follower(follower = key, topic = this)
         }

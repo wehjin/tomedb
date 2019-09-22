@@ -10,7 +10,7 @@ import org.junit.Test
 
 class IdentTest {
 
-    enum class Counter : Attribute {
+    enum class Counter : Attribute<Long> {
         COUNT {
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
