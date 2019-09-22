@@ -7,11 +7,7 @@ enum class ValueType {
     LONG,
     STRING,
     ATTR,
-    INSTANT,
-    DOUBLE,
-    BIGDEC,
-    VALUE,
-    DATA;
+    INSTANT;
 
     val keyword: Keyword
             by lazy { Keyword(this.name, ValueType::class.java.simpleName) }
