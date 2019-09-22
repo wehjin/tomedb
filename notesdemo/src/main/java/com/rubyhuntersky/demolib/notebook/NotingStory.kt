@@ -13,7 +13,7 @@ class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
 
     data class Mdl(val db: Database) {
         val entities by lazy {
-            db.getDbEntities<Date>(Note.CREATED).toList()
+            db.getDbEntities(Note.CREATED).toList()
         }
     }
 
