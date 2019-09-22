@@ -10,7 +10,7 @@ interface Attribute : GroupedItem {
     val attrName: Keyword
         get() = toKeyword()
 
-    val valueType: ValueType
+    val valueType: ValueType<*>
     val cardinality: Cardinality
     val description: String
 

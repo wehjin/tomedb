@@ -8,10 +8,8 @@ import com.rubyhuntersky.tomedb.attributes.ValueType
 @Suppress("unused")
 object Norway : AttributeGroup {
     object Fjords : Attribute {
-        override val valueType: ValueType =
-            ValueType.LONG
-        override val cardinality: Cardinality =
-            Cardinality.ONE
-        override val description: String = "The number of fjords in a Norway."
+        override val valueType = ValueType.LONG
+        override val cardinality = Cardinality.ONE
+        override val description = "The number of fjords in a Norway."
     }
 }

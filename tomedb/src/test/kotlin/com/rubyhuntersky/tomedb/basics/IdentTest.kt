@@ -12,9 +12,9 @@ class IdentTest {
 
     enum class Counter : Attribute {
         COUNT {
-            override val valueType: ValueType = ValueType.LONG
-            override val cardinality: Cardinality = Cardinality.ONE
-            override val description: String = "The count of a counter."
+            override val valueType = ValueType.LONG
+            override val cardinality = Cardinality.ONE
+            override val description = "The count of a counter."
         };
 
         companion object : AttributeGroup

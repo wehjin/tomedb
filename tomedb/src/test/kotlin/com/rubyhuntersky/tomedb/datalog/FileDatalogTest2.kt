@@ -14,21 +14,21 @@ class FileDatalogTest2 {
 
     enum class Counter : Attribute {
         COUNT {
-            override val valueType: ValueType = ValueType.LONG
-            override val cardinality: Cardinality = Cardinality.ONE
-            override val description: String = "The count associated with a counter."
+            override val valueType = ValueType.LONG
+            override val cardinality = Cardinality.ONE
+            override val description = "The count associated with a counter."
         },
 
         MAXCOUNT {
-            override val valueType: ValueType = ValueType.LONG
-            override val cardinality: Cardinality = Cardinality.ONE
-            override val description: String = "The maximum value of the counter."
+            override val valueType = ValueType.LONG
+            override val cardinality = Cardinality.ONE
+            override val description = "The maximum value of the counter."
         },
 
         COUNTSET {
-            override val valueType: ValueType = ValueType.LONG
-            override val cardinality: Cardinality = Cardinality.MANY
-            override val description: String = "A count that accumulates values."
+            override val valueType = ValueType.LONG
+            override val cardinality = Cardinality.MANY
+            override val description = "A count that accumulates values."
         };
 
         override fun toString(): String = attrName.toString()

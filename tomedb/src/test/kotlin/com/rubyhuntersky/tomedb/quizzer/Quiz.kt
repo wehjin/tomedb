@@ -5,7 +5,7 @@ import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
 
 enum class Quiz(
-    override val valueType: ValueType,
+    override val valueType: ValueType<*>,
     override val cardinality: Cardinality,
     override val description: String
 ) : Attribute {
