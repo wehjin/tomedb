@@ -17,7 +17,7 @@ data class Entity<KeyT : Any>(
         otherValues + (keyAttr.toKeyword() to key)
     }
 
-    inline operator fun <reified T : Any> invoke(attr: Attribute<*>): T? {
+    inline operator fun <reified T : Any> invoke(attr: Attribute<T>): T? {
         return data[attr.toKeyword()] as? T
     }
 

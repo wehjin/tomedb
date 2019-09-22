@@ -16,7 +16,7 @@ data class Page<KeyT : Any>(
     val key: KeyT get() = subject.key
 }
 
-inline operator fun <reified T : Any> Page<*>.invoke(attr: Attribute<*>): T =
+inline operator fun <reified T : Any> Page<*>.invoke(attr: Attribute<T>): T =
     this.data[attr.attrName] as T
 
 fun <KeyT : Any> pageOf(subject: PageSubject<KeyT>, lines: Set<Line<Any>>) =
