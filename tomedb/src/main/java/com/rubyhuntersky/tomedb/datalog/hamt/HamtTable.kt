@@ -6,6 +6,7 @@ import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+
 class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
     init {
         require(isMap(map))
@@ -61,8 +62,6 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
 
         object Empty : Slot()
 
-        data class KeyValue(val key: Long, val value: Long) : Slot()
-
         data class MapBase(val map: Long, val base: Long) : Slot() {
             init {
                 require(base >= 0) { "Sub-table base must not be negative: $base" }
@@ -73,6 +72,8 @@ class HamtTable private constructor(val bytes: ByteArray, val map: Long) {
                 return HamtTable(bytes, map)
             }
         }
+
+        data class KeyValue(val key: Long, val value: Long) : Slot()
     }
 
     companion object {
