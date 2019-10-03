@@ -1,103 +1,207 @@
 package com.rubyhuntersky.tomedb.datalog.hamt
 
+import com.rubyhuntersky.tomedb.basics.bytesFromLong
+import com.rubyhuntersky.tomedb.basics.longFromBytes
+import java.io.File
+import java.io.FileOutputStream
+import java.io.RandomAccessFile
 
-sealed class Slot2 {
+interface SubTableReader {
+    fun readSlot(position: Long): Slot2
+    fun readSlots(slotMap: SlotMap, base: Long): ArrayList<Slot2>
+}
 
-    object Empty : Slot2()
-    data class KeyValue(val key: Long, val value: Long) : Slot2()
-    data class SoftLink(val subTable: SubTable) : Slot2()
+class SubTableReadWrite(private val file: File) {
+
+    private var end = file.length()
+    private val fileOutputStream = FileOutputStream(file)
+
+    val reader = object : SubTableReader {
+        private val randomAccessFile = RandomAccessFile(file, "r")
+
+        override fun readSlot(position: Long): Slot2 {
+            randomAccessFile.seek(position)
+            return readSlot()
+        }
+
+        private fun readSlot(): Slot2 {
+            val bytes = ByteArray(Long.SIZE_BYTES)
+            randomAccessFile.read(bytes)
+            val mapOrKey = longFromBytes(bytes)
+            return if (SlotMap.isMap(mapOrKey)) {
+                randomAccessFile.read(bytes)
+                val base = longFromBytes(bytes)
+                Slot2.HardLink(SlotMap(mapOrKey), base, this)
+            } else {
+                randomAccessFile.read(bytes)
+                val value = longFromBytes(bytes)
+                Slot2.KeyValue(mapOrKey, value)
+            }
+        }
+
+        override fun readSlots(slotMap: SlotMap, base: Long): ArrayList<Slot2> {
+            randomAccessFile.seek(base)
+            return (0 until SubTable.slotCount).fold(
+                initial = SubTable.emptySlots(),
+                operation = { slots, index ->
+                    if (slotMap.isSlotPresent(index)) {
+                        slots[index] = readSlot()
+                    }
+                    slots
+                }
+            )
+        }
+    }
+
+    fun writeSlots(slots: List<Slot2>): Pair<SlotMap, Long> {
+        require(slots.size == SubTable.slotCount)
+        val base = end
+        val slotMap = slots.foldIndexed(
+            initial = SlotMap.empty(),
+            operation = { index, slotMap, slot ->
+                when (slot) {
+                    Slot2.Empty -> slotMap
+                    is Slot2.KeyValue -> {
+                        writeBytes(bytesFromLong(slot.key) + bytesFromLong(slot.value))
+                        slotMap.setIndex(index)
+                    }
+                    is Slot2.HardLink -> {
+                        writeBytes(slot.slotMap.toBytes() + bytesFromLong(slot.base))
+                        slotMap.setIndex(index)
+                    }
+                    is Slot2.SoftLink -> error("SoftLinks are un-writable.")
+                }
+            }
+        )
+        return Pair(slotMap, base)
+    }
+
+    private fun writeBytes(byteArray: ByteArray): Long {
+        val start = end
+        if (byteArray.isNotEmpty()) {
+            fileOutputStream.write(byteArray)
+            end += byteArray.size
+        }
+        return start
+    }
+
+    companion object {
+        const val slotBytes = Long.SIZE_BYTES * 2
+    }
 }
 
 sealed class SubTable(val depth: Int) {
 
-    fun getValue(key: Long): Long? = getValue(Hamt, key)
-    fun postValue(key: Long, value: Long): SubTable = postValue(Hamt, key, value)
-
-    abstract fun getValue(keyBreaker: KeyBreaker, key: Long): Long?
-    abstract fun postValue(keyBreaker: KeyBreaker, key: Long, value: Long): SubTable
-
-    companion object {
-
-        fun new(): SubTable = emptySubTable(0)
-        fun emptySubTable(depth: Int): SubTable = Soft(depth, emptySlots)
-
-        private val emptySlots = arrayListOf<Slot2>()
-            .apply { addAll((0 until slotCount).map { Slot2.Empty }) }
-
-        fun isKey(candidate: Long) = !isMap(candidate)
-        private fun isMap(candidate: Long) = (candidate and slotMapBit) == slotMapBit
-        private const val slotBytes = Long.SIZE_BYTES * 2
-        private const val slotMapBit = 1L shl (Long.SIZE_BITS - 1)
-        const val slotCount = 32
-    }
-}
-
-class Hard(depth: Int, base: Long, slotMap: SlotMap) : SubTable(depth) {
-    override fun getValue(keyBreaker: KeyBreaker, key: Long): Long? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun postValue(keyBreaker: KeyBreaker, key: Long, value: Long): SubTable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-}
-
-class Soft(depth: Int, private val slots: List<Slot2>) : SubTable(depth) {
-
-    override fun getValue(keyBreaker: KeyBreaker, key: Long): Long? {
+    fun getValue(key: Long) = getValue(Hamt, key)
+    fun getValue(keyBreaker: KeyBreaker, key: Long): Long? {
         require(isKey(key))
         val index = keyBreaker.slotIndex(key, depth)
-        return when (val slot = slots[index]) {
-            Slot2.Empty -> {
-                null
-            }
-            is Slot2.KeyValue -> {
-                when (key) {
-                    slot.key -> slot.value
-                    else -> null
-                }
-            }
-            is Slot2.SoftLink -> {
-                slot.subTable.getValue(keyBreaker, key)
+        return when (val slot = getSlot(index)) {
+            is Slot2.Empty -> null
+            is Slot2.KeyValue -> if (key == slot.key) slot.value else null
+            is Slot2.SoftLink, is Slot2.HardLink -> {
+                slot.asSubTable(depth + 1).getValue(keyBreaker, key)
             }
         }
     }
 
-    override fun postValue(keyBreaker: KeyBreaker, key: Long, value: Long): SubTable {
+    fun setValue(key: Long, value: Long) = setValue(Hamt, key, value)
+    fun setValue(keyBreaker: KeyBreaker, key: Long, value: Long): SubTable {
         require(isKey(key))
         val index = keyBreaker.slotIndex(key, depth)
-        return when (val slot = slots[index]) {
-            Slot2.Empty -> Soft(depth, slots.replaceSlot(index, Slot2.KeyValue(key, value)))
+        return when (val slot = getSlot(index)) {
+            Slot2.Empty -> setSlot(index, Slot2.KeyValue(key, value))
             is Slot2.KeyValue -> {
                 if (key == slot.key) {
                     if (value == slot.value) {
-                        this@Soft
+                        this@SubTable
                     } else {
-                        Soft(depth, slots.replaceSlot(index, Slot2.KeyValue(key, value)))
+                        setSlot(index, Slot2.KeyValue(key, value))
                     }
                 } else {
                     val keyValues = mapOf(slot.key to slot.value, key to value)
                     val subTable = keyValues.entries.fold(
-                        initial = emptySubTable(depth + 1),
+                        initial = emptySubTable(depth + 1) as SubTable,
                         operation = { subTable, (key, value) ->
-                            subTable.postValue(keyBreaker, key, value)
+                            subTable.setValue(keyBreaker, key, value)
                         }
-                    )
-                    Soft(depth, slots.replaceSlot(index, Slot2.SoftLink(subTable)))
+                    ) as Soft
+                    setSlot(index, subTable.asSoftLink())
                 }
             }
-            is Slot2.SoftLink -> {
-                val subTable = slot.subTable.postValue(keyBreaker, key, value)
-                if (slot.subTable == subTable) {
-                    this
-                } else {
-                    Soft(depth, slots.replaceSlot(index, Slot2.SoftLink(subTable)))
+            is Slot2.SoftLink, is Slot2.HardLink -> {
+                val oldSub = slot.asSubTable(depth + 1)
+                when (val newSub = oldSub.setValue(keyBreaker, key, value)) {
+                    is Soft -> setSlot(index, newSub.asSoftLink())
+                    is Hard -> this
                 }
             }
         }
     }
 
-    private fun List<Slot2>.replaceSlot(index: Int, slot: Slot2): List<Slot2> {
-        return toMutableList().also { it[index] = slot }
+    abstract fun getSlot(index: Int): Slot2
+    abstract fun setSlot(index: Int, slot: Slot2): Soft
+    abstract fun harden(readWrite: SubTableReadWrite): Hard
+
+    class Soft(depth: Int, private val slots: ArrayList<Slot2>) : SubTable(depth) {
+
+        override fun getSlot(index: Int): Slot2 = slots[index]
+
+        override fun setSlot(index: Int, slot: Slot2) = Soft(
+            depth = depth,
+            slots = ArrayList<Slot2>(slots.size).also {
+                it.addAll(slots)
+                it[index] = slot
+            }
+        )
+
+        override fun harden(readWrite: SubTableReadWrite): Hard {
+            val hardSlots = slots.map {
+                when (it) {
+                    Slot2.Empty -> it
+                    is Slot2.KeyValue -> it
+                    is Slot2.HardLink -> it
+                    is Slot2.SoftLink -> it.subTable.harden(readWrite).asHardLink()
+                }
+            }
+            val (slotMap, base) = readWrite.writeSlots(hardSlots)
+            return Hard(depth, slotMap, base, readWrite.reader)
+        }
+
+        fun asSoftLink() = Slot2.SoftLink(this)
+    }
+
+    class Hard(
+        depth: Int,
+        private val slotMap: SlotMap,
+        private val base: Long,
+        private val reader: SubTableReader
+    ) : SubTable(depth) {
+
+        override fun getSlot(index: Int): Slot2 {
+            return slotMap.getOffsetToSlot(index)?.let { reader.readSlot(base + it) } ?: Slot2.Empty
+        }
+
+        override fun setSlot(index: Int, slot: Slot2): Soft {
+            return Soft(depth, reader.readSlots(slotMap, base)).setSlot(index, slot)
+        }
+
+        override fun harden(readWrite: SubTableReadWrite): Hard = this
+
+        fun asHardLink() = Slot2.HardLink(slotMap, base, reader)
+    }
+
+    companion object {
+
+        fun new() = emptySubTable(0)
+        fun emptySubTable(depth: Int) = Soft(depth, emptySlots())
+        fun isKey(candidate: Long) = !SlotMap.isMap(candidate)
+
+        fun emptySlots() =
+            arrayListOf<Slot2>().apply { addAll((0 until slotCount).map { Slot2.Empty }) }
+
+        const val slotCount = 32
+
     }
 }
+

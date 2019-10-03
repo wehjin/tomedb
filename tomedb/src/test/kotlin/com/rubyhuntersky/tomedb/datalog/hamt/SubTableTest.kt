@@ -1,20 +1,35 @@
 package com.rubyhuntersky.tomedb.datalog.hamt
 
+import com.rubyhuntersky.tomedb.TempDirFixture
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.io.File
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 
 class SubTableTest {
 
     @Test
+    fun harden() {
+        val file = TempDirFixture.initDir("harden").toFile()
+            .also { it.mkdirs() }
+            .let { dir -> File(dir, "save").also { it.delete(); it.createNewFile() } }
+
+        val softTable = SubTable.new().setValue(1L, 1L)
+        val readWrite = SubTableReadWrite(file)
+        val hardTable = softTable.harden(readWrite)
+        val value = hardTable.getValue(1L)
+        assertEquals(1L, value)
+    }
+
+    @Test
     fun dissimilarKeysExceedingSubTableSize() {
         val testCount = SubTable.slotCount * SubTable.slotCount
         val tests = (0L until testCount).associateWith { key -> 2 * key }
         val final = tests.entries.fold(
-            initial = SubTable.new(),
+            initial = SubTable.new() as SubTable,
             operation = { subTable, (key, value) ->
-                subTable.postValue(key, value)
+                subTable.setValue(key, value)
             }
         )
         tests.forEach { (key, expected) ->
@@ -31,9 +46,9 @@ class SubTableTest {
         }
         val tests = mapOf(1L to 1L, 2L to 2L)
         val final = tests.entries.fold(
-            initial = SubTable.new(),
+            initial = SubTable.new() as SubTable,
             operation = { subTable, (key, value) ->
-                subTable.postValue(keyBreaker, key, value)
+                subTable.setValue(keyBreaker, key, value)
             }
         )
         tests.forEach { (key, expected) ->
@@ -45,7 +60,7 @@ class SubTableTest {
     @Test
     fun rewriteValueSameKey() {
         val key: Long = Random.nextLong().absoluteValue
-        val subTable = SubTable.new().postValue(key, 24L).postValue(key, 48L)
+        val subTable = SubTable.new().setValue(key, 24L).setValue(key, 48L)
         val value = subTable.getValue(key)
         assertEquals(48L, value)
 
@@ -53,13 +68,13 @@ class SubTableTest {
 
     @Test
     fun maxKey() {
-        val subTable = SubTable.new().postValue(Long.MAX_VALUE, 24L)
+        val subTable = SubTable.new().setValue(Long.MAX_VALUE, 24L)
         val value = subTable.getValue(Long.MAX_VALUE)
         assertEquals(24L, value)
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun negativeKey() {
-        SubTable.new().postValue(-1, 24L)
+        SubTable.new().setValue(-1, 24L)
     }
 }
