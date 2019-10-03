@@ -1,6 +1,12 @@
 package com.rubyhuntersky.tomedb.datalog.hamt
 
-object Hamt {
+object Hamt : KeyBreaker {
+
+    override fun slotIndex(key: Long, depth: Int): Int {
+        // TODO Replace with efficient function
+        val first = toIndices(key).drop(depth).firstOrNull()
+        return first?.toInt() ?: error("Too few indices for key $key at depth $depth")
+    }
 
     fun toIndices(key: Long): Sequence<Byte> {
         val hash = UniHash.hashLong(key)

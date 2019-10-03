@@ -18,4 +18,12 @@ class HamtTest {
         val indices = Hamt.indicesFromHash(hash).toList()
         assertEquals((0..60 step 5).map { 31.toByte() }, indices)
     }
+
+    @Test
+    fun slotIndexRemainsTheSame() {
+        val key = 0L
+        val slotIndex = Hamt.slotIndex(key, 0)
+        val again = Hamt.slotIndex(key, 0)
+        assertEquals(slotIndex, again)
+    }
 }
