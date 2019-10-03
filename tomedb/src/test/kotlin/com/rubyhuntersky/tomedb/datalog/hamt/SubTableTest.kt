@@ -15,11 +15,15 @@ class SubTableTest {
             .also { it.mkdirs() }
             .let { dir -> File(dir, "save").also { it.delete(); it.createNewFile() } }
 
+        // TODO Expanding number of writes
         val softTable = SubTable.new().setValue(1L, 1L)
         val readWrite = SubTableReadWrite(file)
         val hardTable = softTable.harden(readWrite)
         val value = hardTable.getValue(1L)
         assertEquals(1L, value)
+
+        // TODO Reload from file and check values.
+        // Modify reloaded table, reload a second time and check values.
     }
 
     @Test

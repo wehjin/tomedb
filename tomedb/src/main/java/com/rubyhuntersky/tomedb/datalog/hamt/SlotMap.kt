@@ -13,9 +13,12 @@ data class SlotMap(val bits: Long) {
 
     fun getOffsetToSlot(index: Int): Int? {
         return if (isSlotPresent(index)) {
-            val indent = (0..index).fold(
+            val indent = (0 until index).fold(
                 initial = 0,
-                operation = { count, next -> if (isSlotPresent(next)) count + 1 else count }
+                operation = { count, next ->
+                    val slotPresent = isSlotPresent(next)
+                    if (slotPresent) count + 1 else count
+                }
             )
             indent * SubTableReadWrite.slotBytes
         } else null
