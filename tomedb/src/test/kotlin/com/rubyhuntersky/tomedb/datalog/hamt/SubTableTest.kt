@@ -2,20 +2,10 @@ package com.rubyhuntersky.tomedb.datalog.hamt
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import kotlin.math.absoluteValue
+import kotlin.random.Random
 
 class SubTableTest {
-
-    @Test(expected = IllegalArgumentException::class)
-    fun negativeKey() {
-        SubTable.new().postValue(-1, 24L)
-    }
-
-    @Test
-    fun maxKey() {
-        val subTable = SubTable.new().postValue(Long.MAX_VALUE, 24L)
-        val value = subTable.getValue(Long.MAX_VALUE)
-        assertEquals(24L, value)
-    }
 
     @Test
     fun dissimilarKeysExceedingSubTableSize() {
@@ -50,5 +40,26 @@ class SubTableTest {
             val value = final.getValue(keyBreaker, key)
             assertEquals("key $key", expected, value)
         }
+    }
+
+    @Test
+    fun rewriteValueSameKey() {
+        val key: Long = Random.nextLong().absoluteValue
+        val subTable = SubTable.new().postValue(key, 24L).postValue(key, 48L)
+        val value = subTable.getValue(key)
+        assertEquals(48L, value)
+
+    }
+
+    @Test
+    fun maxKey() {
+        val subTable = SubTable.new().postValue(Long.MAX_VALUE, 24L)
+        val value = subTable.getValue(Long.MAX_VALUE)
+        assertEquals(24L, value)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun negativeKey() {
+        SubTable.new().postValue(-1, 24L)
     }
 }
