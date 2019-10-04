@@ -20,7 +20,7 @@ data class SlotMap(val bits: Long) {
                     if (slotPresent) count + 1 else count
                 }
             )
-            indent * SubTableReadWrite.slotBytes
+            indent * SubTableIo.slotBytes
         } else null
     }
 

@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb.datalog.hamt
 
 import com.rubyhuntersky.tomedb.TempDirFixture
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.io.File
 import kotlin.math.absoluteValue
@@ -11,23 +12,50 @@ class SubTableTest {
 
     @Test
     fun harden() {
-        val file = TempDirFixture.initDir("harden").toFile()
-            .also { it.mkdirs() }
-            .let { dir -> File(dir, "save").also { it.delete(); it.createNewFile() } }
+        val saveFile = createSaveFile("harden")
+        val io = SubTableIo(saveFile)
 
+        // Creating a table, modifying it, and hardening it should produce a hard table.
         val tests = (0 until 50L).map { Pair(it, it) }
-        val softTable = tests.fold(
-            initial = SubTable.new() as SubTable,
-            operation = { sub, (key, value) -> sub.setValue(key, value) }
-        )
-        val readWrite = SubTableReadWrite(file)
-        val hardTable = softTable.harden(readWrite)
+        val softTable = SubTable.new().setValues(tests)
+        val hardTable = softTable.harden(io)
+        SubTable.load(hardTable.slotMap, hardTable.base, subTableReader(saveFile))
+            .assertKeyValues(tests)
+
+        // Loading a table, modifying it, and hardening it should produce a different hard table.
+        val expansion = (51L until 100L).map { Pair(it, it) }
+        val expansionTable =
+            SubTable.load(hardTable.slotMap, hardTable.base, subTableReader(saveFile))
+                .setValues(expansion)
+        val hardTable2 = expansionTable.harden(io)
+        SubTable.load(hardTable2.slotMap, hardTable2.base, subTableReader(saveFile))
+            .assertKeyValues(tests + expansion)
+
+        // The first hard table should remain viable.
+        SubTable.load(hardTable.slotMap, hardTable.base, subTableReader(saveFile)).apply {
+            assertKeyValues(tests)
+            assertNoKeyValues(expansion)
+        }
+    }
+
+    private fun SubTable.assertKeyValues(tests: List<Pair<Long, Long>>) {
         tests.forEach { (key, expectedValue) ->
-            val value = hardTable.getValue(key)
+            val value = getValue(key)
             assertEquals("key: $key", expectedValue, value)
         }
-        // TODO Reload from file and check values.
-        // Modify reloaded table, reload a second time and check values.
+    }
+
+    private fun SubTable.assertNoKeyValues(tests: List<Pair<Long, Long>>) {
+        tests.forEach { (key, _) ->
+            val value = getValue(key)
+            assertNull("key: $key", value)
+        }
+    }
+
+    private fun createSaveFile(name: String): File {
+        return TempDirFixture.initDir(name).toFile()
+            .also { it.mkdirs() }
+            .let { dir -> File(dir, "save").also { it.delete(); it.createNewFile() } }
     }
 
     @Test
