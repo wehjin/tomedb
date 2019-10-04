@@ -15,13 +15,17 @@ class SubTableTest {
             .also { it.mkdirs() }
             .let { dir -> File(dir, "save").also { it.delete(); it.createNewFile() } }
 
-        // TODO Expanding number of writes
-        val softTable = SubTable.new().setValue(1L, 1L)
+        val tests = (0 until 50L).map { Pair(it, it) }
+        val softTable = tests.fold(
+            initial = SubTable.new() as SubTable,
+            operation = { sub, (key, value) -> sub.setValue(key, value) }
+        )
         val readWrite = SubTableReadWrite(file)
         val hardTable = softTable.harden(readWrite)
-        val value = hardTable.getValue(1L)
-        assertEquals(1L, value)
-
+        tests.forEach { (key, expectedValue) ->
+            val value = hardTable.getValue(key)
+            assertEquals("key: $key", expectedValue, value)
+        }
         // TODO Reload from file and check values.
         // Modify reloaded table, reload a second time and check values.
     }

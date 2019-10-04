@@ -161,7 +161,10 @@ sealed class SubTable(val depth: Int) {
                     Slot2.Empty -> it
                     is Slot2.KeyValue -> it
                     is Slot2.HardLink -> it
-                    is Slot2.SoftLink -> it.subTable.harden(readWrite).asHardLink()
+                    is Slot2.SoftLink -> {
+                        val hardTable = it.subTable.harden(readWrite)
+                        hardTable.asHardLink()
+                    }
                 }
             }
             val (slotMap, base) = readWrite.writeSlots(hardSlots)

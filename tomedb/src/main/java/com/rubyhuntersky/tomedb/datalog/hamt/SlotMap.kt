@@ -9,7 +9,7 @@ data class SlotMap(val bits: Long) {
 
     fun setIndex(index: Int) = copy(bits = bits or 1L.shl(index))
 
-    fun toBytes() = bytesFromLong(bits and flag)
+    fun toBytes() = bytesFromLong(bits or flag)
 
     fun getOffsetToSlot(index: Int): Int? {
         return if (isSlotPresent(index)) {
