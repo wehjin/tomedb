@@ -5,7 +5,11 @@ import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
 
 @ScopeTagMarker
 interface SessionScope : Session {
-    val sessionChannel: SessionChannel
-    override fun getDb() = sessionChannel.getDb()
-    override fun transactDb(updates: Set<Update>) = sessionChannel.transactDb(updates)
+    val channel: SessionChannel
+    override fun getDb() = channel.getDb()
+    override fun transactDb(updates: Set<Update>) = channel.transactDb(updates)
+}
+
+fun SessionScope.cancel() {
+    channel.close()
 }

@@ -26,6 +26,6 @@ class CountingStory(private val application: DemoApplication) : SessionScope {
         return mdl.copy(db = updateDb(Counter.Count, newCount))
     }
 
-    override val sessionChannel
-        get() = application.session.sessionChannel
+    override val channel
+        get() = application.session.channel
 }

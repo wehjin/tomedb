@@ -1,8 +1,9 @@
 package com.rubyhuntersky.tomedb.app
 
 import android.app.Application
-import com.rubyhuntersky.tomedb.data.tomeConnect
+import com.rubyhuntersky.tomedb.data.launchSession
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
+import com.rubyhuntersky.tomedb.scopes.session.cancel
 import java.io.File
 
 class DemoApplication : Application() {
@@ -11,11 +12,11 @@ class DemoApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        session = tomeConnect(File(filesDir, "tome"), Counter.attrs().toList())
+        session = launchSession(File(filesDir, "tome"), Counter.attrs().toList())
     }
 
     override fun onTerminate() {
-        session.sessionChannel.close()
+        session.cancel()
         super.onTerminate()
     }
 }

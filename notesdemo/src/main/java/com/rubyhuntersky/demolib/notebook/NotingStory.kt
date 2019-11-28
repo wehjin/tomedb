@@ -9,7 +9,7 @@ import com.rubyhuntersky.tomedb.scopes.session.updateDb
 import java.util.*
 
 
-class NotingStory(override val sessionChannel: SessionChannel) : SessionScope {
+class NotingStory(override val channel: SessionChannel) : SessionScope {
 
     data class Mdl(val db: Database) {
         val entities by lazy {

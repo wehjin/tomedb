@@ -32,7 +32,7 @@ fun <KeyT : Any> tomeOf(topic: TomeTopic<KeyT>, pages: Set<Page<KeyT>>): Tome<Ke
     return Tome(topic, pages.associateBy { it.key })
 }
 
-fun tomeConnect(dbDir: File, dbSpec: List<Attribute<*>>): SessionScope {
+fun launchSession(dbDir: File, dbSpec: List<Attribute<*>>): SessionScope {
     val channel = Channel<SessionMsg>(10)
     val job = GlobalScope.launch(Dispatchers.IO) {
         val session = FileSession(dbDir, dbSpec)
@@ -56,4 +56,4 @@ fun tomeConnect(dbDir: File, dbSpec: List<Attribute<*>>): SessionScope {
     return CommonSessionScope(SessionChannel(job, channel))
 }
 
-private class CommonSessionScope(override val sessionChannel: SessionChannel) : SessionScope
+private class CommonSessionScope(override val channel: SessionChannel) : SessionScope
