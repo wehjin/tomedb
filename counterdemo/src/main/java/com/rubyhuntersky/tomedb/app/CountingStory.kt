@@ -27,5 +27,5 @@ class CountingStory(private val application: DemoApplication) : SessionScope {
     }
 
     override val sessionChannel
-        get() = application.sessionScope.sessionChannel
+        get() = application.session.sessionChannel
 }

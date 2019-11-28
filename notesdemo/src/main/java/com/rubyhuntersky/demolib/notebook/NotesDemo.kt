@@ -2,8 +2,8 @@ package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.demolib.notebook.NotingStory.Mdl
 import com.rubyhuntersky.demolib.notebook.NotingStory.Msg
+import com.rubyhuntersky.tomedb.data.tomeConnect
 import com.rubyhuntersky.tomedb.database.Entity
-import com.rubyhuntersky.tomedb.scopes.client.tomeClient
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -16,15 +16,13 @@ import java.util.*
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 fun main() {
-    val client = File("data", "notebook").let { dir ->
-        println("Running with data in: ${dir.absoluteFile}")
-        tomeClient(dir, emptyList())
-    }
+    val dir = File("data", "notebook").apply { println("Running with data in: $absoluteFile") }
+    val session = tomeConnect(dir, emptyList())
+    run {  }
     runBlocking {
-        val store = client.connect()
         val mdls = Channel<Mdl>(10)
         val actor = actor<Msg> {
-            val story = NotingStory(store.sessionChannel)
+            val story = NotingStory(session.sessionChannel)
             var mdl = story.init().also { mdls.send(it) }
             loop@ for (msg in channel) {
                 story.update(mdl, msg)?.let { mdl = it }

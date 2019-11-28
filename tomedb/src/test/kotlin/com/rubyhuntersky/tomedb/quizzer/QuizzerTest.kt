@@ -1,6 +1,5 @@
 package com.rubyhuntersky.tomedb.quizzer
 
-import com.rubyhuntersky.tomedb.Client
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.attributes.Attribute
@@ -8,6 +7,7 @@ import com.rubyhuntersky.tomedb.basics.invoke
 import com.rubyhuntersky.tomedb.basics.queryOf
 import com.rubyhuntersky.tomedb.basics.tagListOf
 import com.rubyhuntersky.tomedb.basics.tagOf
+import com.rubyhuntersky.tomedb.connection.FileSession
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
@@ -31,7 +31,7 @@ class QuizzerTest {
     @Test
     fun happy() {
         val spec: List<Attribute<*>> = listOf(*Lesson.attrs(), *Quiz.attrs(), *Learner.attrs())
-        val conn = Client().connect(dataDir, spec)
+        val conn = FileSession(dataDir, spec)
 
         val findSelectedLearners = queryOf {
             rules = listOf(

@@ -1,6 +1,5 @@
 package com.rubyhuntersky.tomedb.connection
 
-import com.rubyhuntersky.tomedb.Client
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
@@ -48,14 +47,14 @@ class FileSessionTest {
 
     @Test
     fun reconnectionLoadsDataFromLedger() {
-        Client().connect(dataDir, listOf(Movie.Title))
+        FileSession(dataDir, listOf(Movie.Title))
             .also { connection ->
                 val update = Update(1, Movie.Title, ("Return of the King"))
                 connection.transactDb(setOf(update))
                 connection.commit()
             }
 
-        val conn = Client().connect(dataDir)
+        val conn = FileSession(dataDir, null)
         val result = conn.mutDb {
             rules = listOf(
                 "movie" has Movie.Title eq "title",
@@ -69,7 +68,7 @@ class FileSessionTest {
     @Test
     fun happy() {
         val spec = listOf(Movie.Title, Movie.Genre, Movie.ReleaseYear)
-        val conn = Client().connect(dataDir, spec)
+        val conn = FileSession(dataDir, spec)
         val firstMovies = listOf(
             tagListOf(
                 tagOf("The Goonies", Movie.Title.attrName),
