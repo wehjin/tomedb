@@ -8,9 +8,19 @@ import com.rubyhuntersky.tomedb.scopes.session.SessionMsg
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import java.io.File
+
+fun tomeClient(dbDir: File, dbSpec: List<Attribute<*>>): ClientScope {
+    val job = Job()
+    return object : ClientScope {
+        override val dbDir = dbDir
+        override val dbSpec = dbSpec
+        override val coroutineContext = Dispatchers.Default + job
+    }
+}
 
 @ScopeTagMarker
 interface ClientScope : CoroutineScope {
@@ -18,7 +28,7 @@ interface ClientScope : CoroutineScope {
     val dbDir: File
     val dbSpec: List<Attribute<*>>
 
-    fun connectToDatabase(): SessionScope {
+    fun connect(): SessionScope {
         val channel = Channel<SessionMsg>(10)
         val job = launch(Dispatchers.IO) {
             val session = FileSession(dbDir, dbSpec)
@@ -29,7 +39,7 @@ interface ClientScope : CoroutineScope {
         return CommonSessionScope(SessionChannel(job, channel))
     }
 
-    suspend fun processMsg(msg: SessionMsg, session: FileSession) {
+    private suspend fun processMsg(msg: SessionMsg, session: FileSession) {
         @Suppress("REDUNDANT_ELSE_IN_WHEN")
         when (msg) {
             is SessionMsg.GetDb -> {

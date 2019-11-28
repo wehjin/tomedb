@@ -27,7 +27,7 @@ class DemoApplication : Application(), CoroutineScope, ClientScope {
 
     override fun onCreate() {
         super.onCreate()
-        sessionScope = connectToDatabase()
+        sessionScope = connect()
     }
 
     override fun onTerminate() {
