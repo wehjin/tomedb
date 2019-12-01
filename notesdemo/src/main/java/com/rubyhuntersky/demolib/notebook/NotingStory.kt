@@ -3,13 +3,13 @@ package com.rubyhuntersky.demolib.notebook
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.database.getDbEntities
-import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
+import com.rubyhuntersky.tomedb.scopes.session.Session
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import com.rubyhuntersky.tomedb.scopes.session.updateDb
 import java.util.*
 
 
-class NotingStory(override val channel: SessionChannel) : SessionScope {
+class NotingStory(override val session: Session) : SessionScope {
 
     data class Mdl(val db: Database) {
         val entities by lazy {

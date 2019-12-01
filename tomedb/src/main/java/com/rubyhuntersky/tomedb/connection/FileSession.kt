@@ -22,6 +22,8 @@ class FileSession(dataDir: File, spec: List<Attribute<*>>?) : Session {
         }
     }
 
+    override fun close() = Unit
+
     private fun List<Attribute<*>>.toNewAttributes(): List<Attribute<*>> = mapNotNull { attribute ->
         val nameValue = (attribute.attrName)
         if (mutDb.entityExistsWithAttrValue(Scheme.NAME.attrName, nameValue)) {

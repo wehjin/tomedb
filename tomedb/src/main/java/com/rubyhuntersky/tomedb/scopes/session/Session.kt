@@ -8,6 +8,7 @@ import com.rubyhuntersky.tomedb.database.Entity
 interface Session {
     fun getDb(): Database
     fun transactDb(updates: Set<Update>)
+    fun close()
 }
 
 fun Session.updateDb(attr: Attribute<*>, value: Any): Database {

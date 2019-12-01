@@ -5,7 +5,8 @@ import com.rubyhuntersky.tomedb.database.getDbValue
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import com.rubyhuntersky.tomedb.scopes.session.updateDb
 
-class CountingStory(private val application: DemoApplication) : SessionScope {
+class CountingStory(application: DemoApplication) : SessionScope {
+    override val session = application.session
 
     data class Mdl(val db: Database) {
         val count: Long by lazy { db.getDbValue(Counter.Count) ?: 42L }
@@ -25,7 +26,4 @@ class CountingStory(private val application: DemoApplication) : SessionScope {
         }
         return mdl.copy(db = updateDb(Counter.Count, newCount))
     }
-
-    override val channel
-        get() = application.session.channel
 }

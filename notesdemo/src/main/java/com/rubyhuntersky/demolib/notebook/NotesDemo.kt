@@ -2,7 +2,7 @@ package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.demolib.notebook.NotingStory.Mdl
 import com.rubyhuntersky.demolib.notebook.NotingStory.Msg
-import com.rubyhuntersky.tomedb.data.launchSession
+import com.rubyhuntersky.tomedb.data.startSession
 import com.rubyhuntersky.tomedb.database.Entity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -17,24 +17,23 @@ import java.util.*
 @ObsoleteCoroutinesApi
 fun main() {
     val dir = File("data", "notebook").apply { println("Running with data in: $absoluteFile") }
-    val session = launchSession(dir, emptyList())
-    run { }
+    val session = startSession(dir, emptyList())
     runBlocking {
         val mdls = Channel<Mdl>(10)
         val actor = actor<Msg> {
-            val story = NotingStory(session.channel)
+            val story = NotingStory(session)
             var mdl = story.init().also { mdls.send(it) }
             loop@ for (msg in channel) {
                 story.update(mdl, msg)?.let { mdl = it }
                 mdls.send(mdl)
             }
         }
-        renderMdl(mdls, actor)
+        printMdls(mdls, actor)
     }
 }
 
 @ExperimentalCoroutinesApi
-private suspend fun renderMdl(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
+private suspend fun printMdls(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
     NotesPrinter.printSessionHeader()
     loop@ while (!mdls.isClosedForReceive) {
         val mdl = mdls.receive()

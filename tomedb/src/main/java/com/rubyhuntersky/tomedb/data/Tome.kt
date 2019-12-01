@@ -2,9 +2,9 @@ package com.rubyhuntersky.tomedb.data
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.connection.FileSession
-import com.rubyhuntersky.tomedb.scopes.session.SessionChannel
+import com.rubyhuntersky.tomedb.scopes.session.ChannelSession
+import com.rubyhuntersky.tomedb.scopes.session.Session
 import com.rubyhuntersky.tomedb.scopes.session.SessionMsg
-import com.rubyhuntersky.tomedb.scopes.session.SessionScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
@@ -32,7 +32,7 @@ fun <KeyT : Any> tomeOf(topic: TomeTopic<KeyT>, pages: Set<Page<KeyT>>): Tome<Ke
     return Tome(topic, pages.associateBy { it.key })
 }
 
-fun launchSession(dbDir: File, dbSpec: List<Attribute<*>>): SessionScope {
+fun startSession(dbDir: File, dbSpec: List<Attribute<*>>): Session {
     val channel = Channel<SessionMsg>(10)
     val job = GlobalScope.launch(Dispatchers.IO) {
         val session = FileSession(dbDir, dbSpec)
@@ -52,8 +52,7 @@ fun launchSession(dbDir: File, dbSpec: List<Attribute<*>>): SessionScope {
                 else -> TODO()
             }
         }
+        session.close()
     }
-    return CommonSessionScope(SessionChannel(job, channel))
+    return ChannelSession(job, channel)
 }
-
-private class CommonSessionScope(override val channel: SessionChannel) : SessionScope

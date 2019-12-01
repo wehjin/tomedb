@@ -1,22 +1,21 @@
 package com.rubyhuntersky.tomedb.app
 
 import android.app.Application
-import com.rubyhuntersky.tomedb.data.launchSession
-import com.rubyhuntersky.tomedb.scopes.session.SessionScope
-import com.rubyhuntersky.tomedb.scopes.session.cancel
+import com.rubyhuntersky.tomedb.data.startSession
+import com.rubyhuntersky.tomedb.scopes.session.Session
 import java.io.File
 
 class DemoApplication : Application() {
 
-    lateinit var session: SessionScope
+    lateinit var session: Session
 
     override fun onCreate() {
         super.onCreate()
-        session = launchSession(File(filesDir, "tome"), Counter.attrs().toList())
+        session = startSession(File(filesDir, "tome"), Counter.attrs().toList())
     }
 
     override fun onTerminate() {
-        session.cancel()
+        session.close()
         super.onTerminate()
     }
 }
