@@ -11,13 +11,13 @@ interface Session {
     fun close()
 }
 
-fun Session.updateDb(attr: Attribute<*>, value: Any): Database {
+fun Session.transact(attr: Attribute<*>, value: Any): Database {
     val update = Update(0, attr.toKeyword(), value)
     transactDb(setOf(update))
     return getDb()
 }
 
-fun <KeyT : Any> Session.updateDb(newEntity: Entity<KeyT>?, oldEntity: Entity<KeyT>?): Database {
+fun <KeyT : Any> Session.transact(newEntity: Entity<KeyT>?, oldEntity: Entity<KeyT>?): Database {
     require(newEntity == null || newEntity.canReplace(oldEntity))
     val updates = when {
         newEntity != null && oldEntity == null -> newEntity.toUpdates()

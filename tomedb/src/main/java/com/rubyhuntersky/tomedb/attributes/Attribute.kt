@@ -4,6 +4,8 @@ import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.basics.tagListOf
 import com.rubyhuntersky.tomedb.basics.tagOf
+import com.rubyhuntersky.tomedb.database.Database
+import com.rubyhuntersky.tomedb.database.getDbValue
 
 interface Attribute<ValueT : Any> : GroupedItem {
 
@@ -22,5 +24,10 @@ interface Attribute<ValueT : Any> : GroupedItem {
         tagOf(cardinality.keyword, Scheme.CARDINALITY.attrName),
         tagOf(description, Scheme.DESCRIPTION.attrName)
     )
+}
+
+
+inline operator fun <reified T : Any> Attribute<T>.invoke(db: Database): T? {
+    return db.getDbValue(this)
 }
 

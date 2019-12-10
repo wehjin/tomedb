@@ -1,29 +1,33 @@
 package com.rubyhuntersky.tomedb.app
 
+import com.rubyhuntersky.tomedb.attributes.invoke
 import com.rubyhuntersky.tomedb.database.Database
-import com.rubyhuntersky.tomedb.database.getDbValue
-import com.rubyhuntersky.tomedb.scopes.session.SessionScope
-import com.rubyhuntersky.tomedb.scopes.session.updateDb
+import com.rubyhuntersky.tomedb.scopes.session.Session
+import com.rubyhuntersky.tomedb.scopes.session.sessionScope
+import com.rubyhuntersky.tomedb.scopes.session.transact
 
-class CountingStory(application: DemoApplication) : SessionScope {
-    override val session = application.session
+data class CountingMdl(val db: Database) {
+    val count: Long by lazy { Counter.Count(db) ?: 42L }
+}
 
-    data class Mdl(val db: Database) {
-        val count: Long by lazy { db.getDbValue(Counter.Count) ?: 42L }
-    }
+sealed class CountingMsg {
+    object Incr : CountingMsg()
+    object Decr : CountingMsg()
+}
 
-    sealed class Msg {
-        object Incr : Msg()
-        object Decr : Msg()
-    }
-
-    fun init(): Mdl = Mdl(db = getDb())
-
-    fun update(mdl: Mdl, msg: Msg): Mdl {
-        val newCount = when (msg) {
-            Msg.Incr -> mdl.count + 1
-            Msg.Decr -> mdl.count - 1
+fun countingStory(session: Session): Pair<CountingMdl, (CountingMdl, CountingMsg) -> CountingMdl> {
+    return sessionScope(session) {
+        val init = CountingMdl(db = getDb())
+        fun update(mdl: CountingMdl, msg: CountingMsg): CountingMdl {
+            transact(
+                attr = Counter.Count,
+                value = when (msg) {
+                    CountingMsg.Incr -> mdl.count + 1
+                    CountingMsg.Decr -> mdl.count - 1
+                }
+            )
+            return mdl.copy(db = getDb())
         }
-        return mdl.copy(db = updateDb(Counter.Count, newCount))
+        Pair(init, ::update)
     }
 }

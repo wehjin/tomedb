@@ -2,8 +2,6 @@ package com.rubyhuntersky.tomedb.app
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.rubyhuntersky.tomedb.app.CountingStory.Mdl
-import com.rubyhuntersky.tomedb.app.CountingStory.Msg
 import kotlinx.android.synthetic.main.activity_counter.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
@@ -25,18 +23,18 @@ class CounterActivity : AppCompatActivity(), CoroutineScope {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_counter)
 
-        val actor = actor<Msg> {
-            val story = CountingStory(application as DemoApplication)
-            var mdl = story.init().also { render(it) }
-            for (msg in channel) {
-                mdl = story.update(mdl, msg).also { render(it) }
+        val actor = actor<CountingMsg> {
+            val (init, next) = countingStory(DemoApplication.session)
+            var latest = init.also { render(it) }
+            for (change in channel) {
+                latest = next(latest, change).also { render(it) }
             }
         }
-        plusButton.setOnClickListener { _ -> actor.offer(Msg.Incr) }
-        minusButton.setOnClickListener { _ -> actor.offer(Msg.Decr) }
+        plusButton.setOnClickListener { _ -> actor.offer(CountingMsg.Incr) }
+        minusButton.setOnClickListener { _ -> actor.offer(CountingMsg.Decr) }
     }
 
-    private fun render(mdl: Mdl) {
+    private fun render(mdl: CountingMdl) {
         this@CounterActivity.textView.text = "${mdl.count}"
     }
 }

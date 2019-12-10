@@ -5,7 +5,7 @@ import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.database.getDbEntities
 import com.rubyhuntersky.tomedb.scopes.session.Session
 import com.rubyhuntersky.tomedb.scopes.session.SessionScope
-import com.rubyhuntersky.tomedb.scopes.session.updateDb
+import com.rubyhuntersky.tomedb.scopes.session.transact
 import java.util.*
 
 
@@ -34,19 +34,19 @@ class NotingStory(override val session: Session) : SessionScope {
             val today = Date()
             val text = if (msg.text.isNotBlank()) msg.text else "Today is $today"
             val entity = Entity.from(Note.CREATED, today, mapOf(Note.TEXT to text))
-            mdl.copy(db = updateDb(entity, null))
+            mdl.copy(db = transact(entity, null))
         }
         is Msg.REVISE -> {
             val target = mdl.entities.firstOrNull { it.key == msg.key }
             target?.let { oldEntity ->
                 val newEntity = oldEntity.setValue(Note.TEXT, msg.text)
-                mdl.copy(db = updateDb(newEntity, oldEntity))
+                mdl.copy(db = transact(newEntity, oldEntity))
             }
         }
         is Msg.DROP -> {
             val target = mdl.entities.firstOrNull { it.key == msg.key }
             target?.let { oldEntity ->
-                mdl.copy(db = updateDb(null, oldEntity))
+                mdl.copy(db = transact(null, oldEntity))
             }
         }
     }

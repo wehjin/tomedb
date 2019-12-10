@@ -10,3 +10,10 @@ interface SessionScope : Session {
     override fun transactDb(updates: Set<Update>) = session.transactDb(updates)
     override fun close() = session.close()
 }
+
+fun <T> sessionScope(session: Session, block: SessionScope.() -> T): T {
+    val scope = object : SessionScope {
+        override val session = session
+    }
+    return scope.run(block)
+}

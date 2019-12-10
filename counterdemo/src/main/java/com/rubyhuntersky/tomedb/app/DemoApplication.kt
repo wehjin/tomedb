@@ -7,8 +7,6 @@ import java.io.File
 
 class DemoApplication : Application() {
 
-    lateinit var session: Session
-
     override fun onCreate() {
         super.onCreate()
         session = startSession(File(filesDir, "tome"), Counter.attrs().toList())
@@ -17,5 +15,9 @@ class DemoApplication : Application() {
     override fun onTerminate() {
         session.close()
         super.onTerminate()
+    }
+
+    companion object {
+        lateinit var session: Session
     }
 }
