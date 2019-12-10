@@ -24,7 +24,7 @@ class CounterActivity : AppCompatActivity(), CoroutineScope {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_counter)
-        this@CounterActivity.textView.text = getString(R.string.loading)
+
         val actor = actor<Msg> {
             val story = CountingStory(application as DemoApplication)
             var mdl = story.init().also { render(it) }
