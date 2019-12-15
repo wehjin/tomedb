@@ -1,8 +1,6 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.attributes.GroupedItem
-import com.rubyhuntersky.tomedb.attributes.attrName
+import com.rubyhuntersky.tomedb.attributes.*
 import com.rubyhuntersky.tomedb.basics.Keyword
 
 data class Update(
@@ -21,6 +19,11 @@ data class Update(
     fun retract(): Update = copy(action = Action.Retract)
 
     sealed class Action : GroupedItem {
+        override val groupName: String
+            get() = fallbackGroupName
+        override val itemName: String
+            get() = fallbackItemName
+
         object Declare : Action()
         object Retract : Action()
 

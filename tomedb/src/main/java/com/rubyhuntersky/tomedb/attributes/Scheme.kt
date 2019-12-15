@@ -5,6 +5,8 @@ import com.rubyhuntersky.tomedb.basics.Keyword
 sealed class Scheme<T : Any> : Attribute<T> {
 
     override fun toString(): String = attrName.toString()
+    override val itemName: String get() = fallbackItemName
+    override val groupName: String get() = fallbackGroupName
 
     companion object {
         private val attrs by lazy {

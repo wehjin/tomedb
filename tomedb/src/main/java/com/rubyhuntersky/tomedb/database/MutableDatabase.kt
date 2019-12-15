@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb.database
 
 import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.datalog.Datalog

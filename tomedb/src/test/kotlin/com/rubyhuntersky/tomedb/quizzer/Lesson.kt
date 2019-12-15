@@ -1,9 +1,6 @@
 package com.rubyhuntersky.tomedb.quizzer
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.attributes.Cardinality
-import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.attributes.attrName
+import com.rubyhuntersky.tomedb.attributes.*
 
 sealed class Lesson<T : Any>(
     override val valueType: ValueType<T>,
@@ -12,6 +9,8 @@ sealed class Lesson<T : Any>(
 ) : Attribute<T> {
 
     override fun toString(): String = attrName.toString()
+    override val itemName: String get() = fallbackItemName
+    override val groupName: String get() = fallbackGroupName
 
     companion object {
         fun attrs() = arrayOf(Question, Answer)

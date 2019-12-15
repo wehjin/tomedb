@@ -14,6 +14,9 @@ class IdentTest {
             override val description = "The count of a counter."
         };
 
+        override val itemName: String get() = fallbackItemName
+        override val groupName: String get() = fallbackGroupName
+
         companion object : AttributeGroup
     }
 

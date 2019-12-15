@@ -1,9 +1,6 @@
 package com.rubyhuntersky.tomedb.quizzer
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.attributes.Cardinality
-import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.attributes.attrName
+import com.rubyhuntersky.tomedb.attributes.*
 import java.util.*
 
 sealed class Quiz<T : Any>(
@@ -13,6 +10,8 @@ sealed class Quiz<T : Any>(
 ) : Attribute<T> {
 
     override fun toString(): String = attrName.toString()
+    override val itemName: String get() = fallbackItemName
+    override val groupName: String get() = fallbackGroupName
 
     companion object {
         fun attrs() = arrayOf(Name, Publisher, Lesson, CompletedOn)

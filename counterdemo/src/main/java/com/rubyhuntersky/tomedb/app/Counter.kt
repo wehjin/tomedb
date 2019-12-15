@@ -1,11 +1,10 @@
 package com.rubyhuntersky.tomedb.app
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.attributes.AttributeGroup
-import com.rubyhuntersky.tomedb.attributes.Cardinality
-import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.attributes.*
 
 sealed class Counter<T : Any> : Attribute<T> {
+    override val itemName: String get() = fallbackItemName
+    override val groupName: String get() = fallbackGroupName
 
     companion object : AttributeGroup {
         fun attrs() = arrayOf(Count)

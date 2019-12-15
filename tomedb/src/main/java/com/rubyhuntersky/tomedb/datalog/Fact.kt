@@ -1,6 +1,9 @@
 package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.attributes.GroupedItem
+import com.rubyhuntersky.tomedb.attributes.fallbackGroupName
+import com.rubyhuntersky.tomedb.attributes.fallbackItemName
+import com.rubyhuntersky.tomedb.attributes.toGroupedItemString
 import com.rubyhuntersky.tomedb.basics.Keyword
 import java.util.*
 
@@ -13,6 +16,8 @@ data class Fact(
     val txn: TxnId
 ) {
     sealed class Standing : GroupedItem {
+        override val itemName: String get() = fallbackItemName
+        override val groupName: String get() = fallbackGroupName
 
         object Asserted : Standing()
         object Retracted : Standing()

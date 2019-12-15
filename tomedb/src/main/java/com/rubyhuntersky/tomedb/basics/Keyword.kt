@@ -1,6 +1,9 @@
 package com.rubyhuntersky.tomedb.basics
 
 import com.rubyhuntersky.tomedb.attributes.GroupedItem
+import com.rubyhuntersky.tomedb.attributes.groupedItemEquals
+import com.rubyhuntersky.tomedb.attributes.groupedItemHashCode
+import com.rubyhuntersky.tomedb.attributes.toGroupedItemString
 
 data class Keyword(
     val keywordName: String,

@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb.scopes.session
 
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
 

@@ -31,6 +31,9 @@ class FileDatalogTest2 {
             override val cardinality = Cardinality.MANY
             override val description = "A count that accumulates values."
         }
+
+        override val itemName: String get() = fallbackItemName
+        override val groupName: String get() = fallbackGroupName
     }
 
     private lateinit var folderPath: File

@@ -2,10 +2,7 @@ package com.rubyhuntersky.tomedb.connection
 
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.Update
-import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.attributes.Cardinality
-import com.rubyhuntersky.tomedb.attributes.ValueType
-import com.rubyhuntersky.tomedb.attributes.attrName
+import com.rubyhuntersky.tomedb.attributes.*
 import com.rubyhuntersky.tomedb.basics.tagListOf
 import com.rubyhuntersky.tomedb.basics.tagOf
 import com.rubyhuntersky.tomedb.database.query
@@ -19,6 +16,8 @@ class FileSessionTest {
     object Movie {
 
         object Title : Attribute<String> {
+            override val itemName: String get() = fallbackItemName
+            override val groupName: String get() = fallbackGroupName
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The title of the movie"
@@ -26,6 +25,8 @@ class FileSessionTest {
         }
 
         object Genre : Attribute<String> {
+            override val itemName: String get() = fallbackItemName
+            override val groupName: String get() = fallbackGroupName
             override val valueType = ValueType.STRING
             override val cardinality = Cardinality.ONE
             override val description = "The genre of the movie"
@@ -33,6 +34,8 @@ class FileSessionTest {
         }
 
         object ReleaseYear : Attribute<Long> {
+            override val itemName: String get() = fallbackItemName
+            override val groupName: String get() = fallbackGroupName
             override val valueType = ValueType.LONG
             override val cardinality = Cardinality.ONE
             override val description = "The year the movie was released in theaters"

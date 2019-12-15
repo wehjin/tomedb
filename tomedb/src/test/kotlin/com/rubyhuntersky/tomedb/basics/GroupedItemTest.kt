@@ -1,31 +1,45 @@
 package com.rubyhuntersky.tomedb.basics
 
 import com.rubyhuntersky.tomedb.attributes.GroupedItem
+import com.rubyhuntersky.tomedb.attributes.fallbackGroupName
+import com.rubyhuntersky.tomedb.attributes.fallbackItemName
+import com.rubyhuntersky.tomedb.attributes.toGroupedItemString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class GroupedItemTest {
 
     enum class A : GroupedItem {
-        U
+        U;
+
+        override val itemName: String get() = fallbackItemName
+        override val groupName: String get() = fallbackGroupName
     }
 
     enum class B(val typeId: Int) : GroupedItem {
-        V(1)
+        V(1);
+
+        override val itemName: String get() = fallbackItemName
+        override val groupName: String get() = fallbackGroupName
     }
 
     object C {
-        object W : GroupedItem
+        object W : GroupedItem {
+            override val itemName: String get() = fallbackItemName
+            override val groupName: String get() = fallbackGroupName
+        }
     }
 
     interface GroupedItemItem : GroupedItem {
         val hello: Int
+        override val itemName: String get() = fallbackItemName
+        override val groupName: String get() = fallbackGroupName
     }
 
     enum class D : GroupedItemItem {
         X {
             override val hello: Int = 3
-        }
+        };
     }
 
 

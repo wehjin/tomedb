@@ -3,6 +3,7 @@ package com.rubyhuntersky.tomedb.database
 import com.rubyhuntersky.tomedb.FindResult
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.basics.Keyword
 
 inline fun <reified T : Any> Database.getDbValue(attr: Attribute<T>): T? {
