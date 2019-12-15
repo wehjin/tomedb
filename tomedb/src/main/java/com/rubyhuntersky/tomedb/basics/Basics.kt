@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb.basics
 
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.ResultRow
+import com.rubyhuntersky.tomedb.project
 import java.util.*
 
 fun stringToFolderName(string: String): String =
@@ -25,6 +26,7 @@ fun tagListOf(vararg tag: Tag<*>): TagList = TagList(tag.toList())
 
 fun queryOf(init: Query.Find.() -> Unit): Query.Find = Query.Find(init)
 
-operator fun List<Map<String, Any>>.invoke(slot: Query.Find.Slot): List<Any> = slot(this)
+fun List<Map<String, Any>>.project(slot: Query.Find.Slot): List<Any> = slot.project(this)
+
 operator fun List<ResultRow>.get(slot: Query.Find.Slot): List<Any> =
     this.mapNotNull { it.row[slot] }

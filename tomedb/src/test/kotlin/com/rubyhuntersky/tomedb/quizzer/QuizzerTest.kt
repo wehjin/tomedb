@@ -1,10 +1,9 @@
 package com.rubyhuntersky.tomedb.quizzer
 
-import com.rubyhuntersky.tomedb.Query
-import com.rubyhuntersky.tomedb.TempDirFixture
+import com.rubyhuntersky.tomedb.*
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.attrName
-import com.rubyhuntersky.tomedb.basics.invoke
+import com.rubyhuntersky.tomedb.basics.project
 import com.rubyhuntersky.tomedb.basics.queryOf
 import com.rubyhuntersky.tomedb.basics.tagListOf
 import com.rubyhuntersky.tomedb.basics.tagOf
@@ -42,12 +41,12 @@ class QuizzerTest {
             )
         }
         val selectedLearnersResult1 = conn.mutDb.query(findSelectedLearners)
-        println("SELECTED LEARNERS 1: ${selectedLearnersResult1(SelectedLearnerSlot)}")
+        println("SELECTED LEARNERS 1: ${selectedLearnersResult1.project(SelectedLearnerSlot)}")
         assertEquals(0, selectedLearnersResult1.size)
 
         conn.transactData(listOf(learnerData))
         val selectedLearnersResult2 = conn.mutDb.query(findSelectedLearners)
-        println("SELECTED LEARNERS 2: ${SelectedLearnerSlot(selectedLearnersResult2)}")
+        println("SELECTED LEARNERS 2: ${SelectedLearnerSlot.project(selectedLearnersResult2)}")
         assertEquals(1, selectedLearnersResult2.size)
 
         val quizResults = conn.mutDb.query(query = queryOf {
