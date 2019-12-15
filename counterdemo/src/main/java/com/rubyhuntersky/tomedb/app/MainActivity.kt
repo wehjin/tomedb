@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         setContentView(R.layout.activity_counter)
 
         val actor = actor<CountingMsg> {
-            val (init, next) = countingStory(CounterApplication.session)
+            val (init, next) = countingStory(CounterApplication.tomic)
             var latest = init.also { render(it) }
             for (change in channel) {
                 latest = next(latest, change).also { render(it) }

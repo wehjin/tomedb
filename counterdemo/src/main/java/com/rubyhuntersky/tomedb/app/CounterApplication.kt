@@ -1,23 +1,28 @@
 package com.rubyhuntersky.tomedb.app
 
 import android.app.Application
-import com.rubyhuntersky.tomedb.data.startSession
-import com.rubyhuntersky.tomedb.scopes.session.Session
 import java.io.File
 
 class CounterApplication : Application() {
 
+    sealed class Edit {
+        data class Count(val count: Long) : Edit()
+    }
+
     override fun onCreate() {
         super.onCreate()
-        session = startSession(File(filesDir, "tome"), Counter.attrs().toList())
+        tomic = tomicOf(dir = File(filesDir, "tome")) {
+            on(Edit.Count::class.java) { write(Counter.Count, edit.count) }
+            Counter.attrs().toList()
+        }
     }
 
     override fun onTerminate() {
-        session.close()
+        tomic.close()
         super.onTerminate()
     }
 
     companion object {
-        lateinit var session: Session
+        lateinit var tomic: Tomic<Edit>
     }
 }
