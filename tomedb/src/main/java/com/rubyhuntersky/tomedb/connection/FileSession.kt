@@ -6,6 +6,7 @@ import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.MutableDatabase
+import com.rubyhuntersky.tomedb.database.entityExistsWithAttrValue
 import com.rubyhuntersky.tomedb.datalog.Fact
 import com.rubyhuntersky.tomedb.scopes.session.Session
 import java.io.File

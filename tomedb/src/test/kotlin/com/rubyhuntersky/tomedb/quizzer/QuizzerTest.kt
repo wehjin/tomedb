@@ -8,6 +8,7 @@ import com.rubyhuntersky.tomedb.basics.queryOf
 import com.rubyhuntersky.tomedb.basics.tagListOf
 import com.rubyhuntersky.tomedb.basics.tagOf
 import com.rubyhuntersky.tomedb.connection.FileSession
+import com.rubyhuntersky.tomedb.database.query
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
@@ -39,16 +40,16 @@ class QuizzerTest {
                 -SelectedLearnerSlot
             )
         }
-        val selectedLearnersResult1 = conn.mutDb(findSelectedLearners)
+        val selectedLearnersResult1 = conn.mutDb.query(findSelectedLearners)
         println("SELECTED LEARNERS 1: ${selectedLearnersResult1(SelectedLearnerSlot)}")
         assertEquals(0, selectedLearnersResult1.size)
 
         conn.transactData(listOf(learnerData))
-        val selectedLearnersResult2 = conn.mutDb(findSelectedLearners)
+        val selectedLearnersResult2 = conn.mutDb.query(findSelectedLearners)
         println("SELECTED LEARNERS 2: ${SelectedLearnerSlot(selectedLearnersResult2)}")
         assertEquals(1, selectedLearnersResult2.size)
 
-        val quizResults = conn.mutDb(queryOf {
+        val quizResults = conn.mutDb.query(query = queryOf {
             rules = listOf(
                 SelectedLearnerSlot has Learner.Selected eq true,
                 SelectedLearnerSlot has Learner.Quiz eq !"quiz",
@@ -64,7 +65,7 @@ class QuizzerTest {
             quizResults.first { it["name"] as String == "Basics" }["quiz"] as Long
         assertNotNull(selectedQuizEntity)
 
-        val lessonResults = conn.mutDb(queryOf {
+        val lessonResults = conn.mutDb.query(query = queryOf {
             rules = listOf(
                 +"selectedQuiz" put selectedQuizEntity,
                 "selectedQuiz" has Quiz.Lesson eq !"lesson",

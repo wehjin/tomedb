@@ -14,16 +14,19 @@ inline fun <reified KeyT : Any> Database.entitiesWith(attr: Attribute<KeyT>): Se
 }
 
 
+fun Database.entityExistsWithAttrValue(attr: Keyword, value: Any): Boolean {
+    return query { rules = listOf(-"e", "e" has attr eq value) }.isEmpty()
+}
+
+fun Database.query(init: Query.Find.() -> Unit) =
+    this.query(Query.build(init))
+
+fun Database.query(query: Query): List<Map<String, Any>> {
+    return find(query as Query.Find).toLegacy()
+}
+
+
 interface Database {
-
-    fun entityExistsWithAttrValue(attr: Keyword, value: Any): Boolean {
-        return this { rules = listOf(-"e", "e" has attr eq value) }.isEmpty()
-    }
-
-    operator fun invoke(init: Query.Find.() -> Unit): List<Map<String, Any>> =
-        this(Query.build(init))
-
-    operator fun invoke(query: Query): List<Map<String, Any>> = find(query as Query.Find).toLegacy()
 
     fun find(query: Query.Find): FindResult
 

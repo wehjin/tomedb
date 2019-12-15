@@ -7,6 +7,7 @@ import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
 import com.rubyhuntersky.tomedb.basics.tagListOf
 import com.rubyhuntersky.tomedb.basics.tagOf
+import com.rubyhuntersky.tomedb.database.query
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -55,7 +56,7 @@ class FileSessionTest {
             }
 
         val conn = FileSession(dataDir, null)
-        val result = conn.mutDb {
+        val result = conn.mutDb.query {
             rules = listOf(
                 "movie" has Movie.Title eq "title",
                 -"movie" and "title"
@@ -89,7 +90,7 @@ class FileSessionTest {
         conn.transactData(firstMovies)
 
         val db = conn.mutDb
-        val allMovies = db {
+        val allMovies = db.query {
             rules = listOf(
                 "e" has Movie.Title,
                 -"e"
