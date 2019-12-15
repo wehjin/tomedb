@@ -8,15 +8,10 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.actor
-import kotlin.coroutines.CoroutineContext
 
-class CounterActivity : AppCompatActivity(), CoroutineScope {
-
-    private var job: Job = Job()
-
-    override val coroutineContext: CoroutineContext
-        get() = Main + job
-
+class MainActivity : AppCompatActivity(), CoroutineScope {
+    private var job = Job()
+    override val coroutineContext = Main + job
 
     @ObsoleteCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +19,7 @@ class CounterActivity : AppCompatActivity(), CoroutineScope {
         setContentView(R.layout.activity_counter)
 
         val actor = actor<CountingMsg> {
-            val (init, next) = countingStory(DemoApplication.session)
+            val (init, next) = countingStory(CounterApplication.session)
             var latest = init.also { render(it) }
             for (change in channel) {
                 latest = next(latest, change).also { render(it) }
@@ -35,6 +30,6 @@ class CounterActivity : AppCompatActivity(), CoroutineScope {
     }
 
     private fun render(mdl: CountingMdl) {
-        this@CounterActivity.textView.text = "${mdl.count}"
+        this@MainActivity.textView.text = "${mdl.count}"
     }
 }

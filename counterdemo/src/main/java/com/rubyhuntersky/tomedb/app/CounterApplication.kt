@@ -5,7 +5,7 @@ import com.rubyhuntersky.tomedb.data.startSession
 import com.rubyhuntersky.tomedb.scopes.session.Session
 import java.io.File
 
-class DemoApplication : Application() {
+class CounterApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
