@@ -3,6 +3,7 @@ package com.rubyhuntersky.tomedb.quizzer
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.attributes.attrName
 
 sealed class Learner<T : Any>(
     override val valueType: ValueType<T>,

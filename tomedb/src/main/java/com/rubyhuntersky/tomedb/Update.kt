@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.GroupedItem
+import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.basics.Keyword
 
 data class Update(

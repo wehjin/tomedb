@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.scopes.ScopeTagMarker
 

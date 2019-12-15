@@ -1,9 +1,7 @@
 package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.TempDirFixture
-import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.attributes.Cardinality
-import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.attributes.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Before

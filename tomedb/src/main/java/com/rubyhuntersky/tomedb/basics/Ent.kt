@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb.basics
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.AttributeGroup
+import com.rubyhuntersky.tomedb.attributes.attrName
 import kotlin.math.absoluteValue
 
 data class Ent(val long: Long) {

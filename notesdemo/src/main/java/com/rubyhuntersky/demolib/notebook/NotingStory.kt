@@ -1,6 +1,7 @@
 package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.tomedb.Tomic
+import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.database.entitiesWith
@@ -31,7 +32,7 @@ class NotingStory(private val tomic: Tomic<Edit>) {
         is Msg.ADD -> {
             val today = Date()
             val text = if (msg.text.isNotBlank()) msg.text else "Today is $today"
-            val entity = Entity.from(Note.CREATED, today, mapOf(Note.TEXT to text))
+            val entity = Entity.from(Note.CREATED, today, mapOf(Note.TEXT.attrName to text))
             tomic.write(edit = Edit.WriteNote(entity, null))
             mdl.copy(db = tomic.readLatest())
         }

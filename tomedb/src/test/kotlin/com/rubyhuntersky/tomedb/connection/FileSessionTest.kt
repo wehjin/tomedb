@@ -5,6 +5,7 @@ import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.ValueType
+import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.basics.tagListOf
 import com.rubyhuntersky.tomedb.basics.tagOf
 import com.rubyhuntersky.tomedb.database.query

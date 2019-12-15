@@ -7,25 +7,26 @@ import com.rubyhuntersky.tomedb.basics.tagOf
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.getDbValue
 
-interface Attribute<ValueT : Any> : GroupedItem {
+val <ValueT : Any> Attribute<ValueT>.attrName: Keyword
+    get() = toKeyword()
 
-    val attrName: Keyword
-        get() = toKeyword()
+
+operator fun <ValueT : Any> Attribute<ValueT>.plus(value: ValueT) = Pair(attrName, value)
+
+fun <ValueT : Any> Attribute<ValueT>.toSchemeData(): TagList = tagListOf(
+    tagOf(attrName, Scheme.NAME.attrName),
+    tagOf(valueType.keyword, Scheme.VALUETYPE.attrName),
+    tagOf(cardinality.keyword, Scheme.CARDINALITY.attrName),
+    tagOf(description, Scheme.DESCRIPTION.attrName)
+)
+
+interface Attribute<ValueT : Any> : GroupedItem {
 
     val valueType: ValueType<ValueT>
     val cardinality: Cardinality
     val description: String
 
-    infix fun to(value: ValueT) = Pair(attrName, value)
-
-    fun toSchemeData(): TagList = tagListOf(
-        tagOf(attrName, Scheme.NAME.attrName),
-        tagOf(valueType.keyword, Scheme.VALUETYPE.attrName),
-        tagOf(cardinality.keyword, Scheme.CARDINALITY.attrName),
-        tagOf(description, Scheme.DESCRIPTION.attrName)
-    )
 }
-
 
 inline operator fun <reified T : Any> Attribute<T>.invoke(db: Database): T? {
     return db.getDbValue(this)

@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.attributes.Cardinality
 import com.rubyhuntersky.tomedb.attributes.Scheme
+import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.bytesFromLong
 import com.rubyhuntersky.tomedb.basics.longFromBytes

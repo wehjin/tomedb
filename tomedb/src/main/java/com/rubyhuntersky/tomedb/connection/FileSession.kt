@@ -3,6 +3,8 @@ package com.rubyhuntersky.tomedb.connection
 import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Scheme
+import com.rubyhuntersky.tomedb.attributes.attrName
+import com.rubyhuntersky.tomedb.attributes.toSchemeData
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.MutableDatabase

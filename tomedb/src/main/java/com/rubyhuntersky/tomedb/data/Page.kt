@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.data
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.basics.Keyword
 
 /**

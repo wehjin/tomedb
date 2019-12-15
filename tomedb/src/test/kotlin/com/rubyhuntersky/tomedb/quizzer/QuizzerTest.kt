@@ -3,6 +3,7 @@ package com.rubyhuntersky.tomedb.quizzer
 import com.rubyhuntersky.tomedb.Query
 import com.rubyhuntersky.tomedb.TempDirFixture
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.basics.invoke
 import com.rubyhuntersky.tomedb.basics.queryOf
 import com.rubyhuntersky.tomedb.basics.tagListOf
