@@ -9,7 +9,7 @@ inline fun <reified T : Any> Database.getDbValue(attr: Attribute<T>): T? {
     return getUntypedDbValue(0L, attr.toKeyword()) as? T
 }
 
-inline fun <reified KeyT : Any> Database.getDbEntities(attr: Attribute<KeyT>): Sequence<Entity<KeyT>> {
+inline fun <reified KeyT : Any> Database.entitiesWith(attr: Attribute<KeyT>): Sequence<Entity<KeyT>> {
     return getDbEntitiesOfClass(attr, KeyT::class.java)
 }
 

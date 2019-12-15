@@ -2,8 +2,8 @@ package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.demolib.notebook.NotingStory.Mdl
 import com.rubyhuntersky.demolib.notebook.NotingStory.Msg
-import com.rubyhuntersky.tomedb.data.startSession
 import com.rubyhuntersky.tomedb.database.Entity
+import com.rubyhuntersky.tomedb.tomicOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -13,15 +13,22 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.*
 
+sealed class Edit {
+    data class WriteNote(val new: Entity<Date>?, val old: Entity<Date>?) : Edit()
+}
+
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 fun main() {
     val dir = File("data", "notebook").apply { println("Running with data in: $absoluteFile") }
-    val session = startSession(dir, emptyList())
+    val tomic = tomicOf<Edit>(dir) {
+        on(Edit.WriteNote::class.java) { write(edit.new, edit.old) }
+        emptyList()
+    }
     runBlocking {
         val mdls = Channel<Mdl>(10)
         val actor = actor<Msg> {
-            val story = NotingStory(session)
+            val story = NotingStory(tomic)
             var mdl = story.init().also { mdls.send(it) }
             loop@ for (msg in channel) {
                 story.update(mdl, msg)?.let { mdl = it }

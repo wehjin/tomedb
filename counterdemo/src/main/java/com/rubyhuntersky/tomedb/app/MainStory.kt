@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb.app
 
+import com.rubyhuntersky.tomedb.Tomic
 import com.rubyhuntersky.tomedb.app.CounterApplication.Edit
 import com.rubyhuntersky.tomedb.attributes.invoke
 import com.rubyhuntersky.tomedb.database.Database

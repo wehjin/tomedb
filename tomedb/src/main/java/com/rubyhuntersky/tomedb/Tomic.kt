@@ -1,9 +1,11 @@
-package com.rubyhuntersky.tomedb.app
+package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.Update
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.data.startSession
 import com.rubyhuntersky.tomedb.database.Database
+import com.rubyhuntersky.tomedb.database.Entity
+import com.rubyhuntersky.tomedb.scopes.session.Session
+import com.rubyhuntersky.tomedb.scopes.session.transact
 import java.io.File
 
 interface Tomic<E : Any> {
@@ -16,7 +18,12 @@ fun <E : Any> tomicOf(dir: File, init: TomicScope<E>.() -> List<Attribute<*>>): 
     val handlers = mutableSetOf<EditHandler<*>>()
     val spec = object : TomicScope<E> {
         override fun <E1 : E> on(editClass: Class<E1>, handler: EditScope<E1>.() -> Unit) {
-            handlers.add(EditHandler(editClass, handler))
+            handlers.add(
+                EditHandler(
+                    editClass,
+                    handler
+                )
+            )
         }
     }.init()
     val session = startSession(dir, spec)
@@ -26,12 +33,7 @@ fun <E : Any> tomicOf(dir: File, init: TomicScope<E>.() -> List<Attribute<*>>): 
         override fun readLatest(): Database = session.getDb()
         override fun <E1 : E> write(edit: E1) {
             val handler = handlerMap[edit::class.java]
-            handler?.handle(edit, ::transact)
-        }
-
-        private fun transact(attr: Attribute<*>, value: Any) {
-            val update = Update(0, attr.toKeyword(), value)
-            session.transactDb(setOf(update))
+            handler?.handle(edit, session)
         }
     }
 }
@@ -45,18 +47,34 @@ interface TomicScope<E : Any> {
 
 interface EditScope<E1 : Any> {
     val edit: E1
-    val write: (attr: Attribute<*>, value: Any) -> Unit
+    fun write(attr: Attribute<*>, value: Any)
+    fun write(updates: Set<Update>)
+    fun <KeyT : Any> EditScope<E1>.write(newEntity: Entity<KeyT>?, oldEntity: Entity<KeyT>?)
 }
 
 data class EditHandler<E1 : Any>(
     val editClass: Class<E1>,
     val handler: EditScope<E1>.() -> Unit
 ) {
-    fun handle(anyEdit: Any, transact: (attr: Attribute<*>, value: Any) -> Unit) {
+    fun handle(anyEdit: Any, session: Session) {
         val typedEdit = editClass.cast(anyEdit)!!
+
         object : EditScope<E1> {
             override val edit: E1 = typedEdit
-            override val write = transact
+            override fun write(attr: Attribute<*>, value: Any) {
+                session.transact(attr, value)
+            }
+
+            override fun <KeyT : Any> EditScope<E1>.write(
+                newEntity: Entity<KeyT>?,
+                oldEntity: Entity<KeyT>?
+            ) {
+                session.transact(newEntity, oldEntity)
+            }
+
+            override fun write(updates: Set<Update>) {
+                session.transactDb(updates)
+            }
         }.apply(handler)
     }
 }

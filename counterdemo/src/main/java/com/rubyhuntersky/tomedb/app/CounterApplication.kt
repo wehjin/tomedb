@@ -1,6 +1,8 @@
 package com.rubyhuntersky.tomedb.app
 
 import android.app.Application
+import com.rubyhuntersky.tomedb.Tomic
+import com.rubyhuntersky.tomedb.tomicOf
 import java.io.File
 
 class CounterApplication : Application() {

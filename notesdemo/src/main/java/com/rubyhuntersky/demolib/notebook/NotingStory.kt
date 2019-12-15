@@ -1,19 +1,17 @@
 package com.rubyhuntersky.demolib.notebook
 
+import com.rubyhuntersky.tomedb.Tomic
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
-import com.rubyhuntersky.tomedb.database.getDbEntities
-import com.rubyhuntersky.tomedb.scopes.session.Session
-import com.rubyhuntersky.tomedb.scopes.session.SessionScope
-import com.rubyhuntersky.tomedb.scopes.session.transact
+import com.rubyhuntersky.tomedb.database.entitiesWith
 import java.util.*
 
 
-class NotingStory(override val session: Session) : SessionScope {
+class NotingStory(private val tomic: Tomic<Edit>) {
 
     data class Mdl(val db: Database) {
         val entities by lazy {
-            db.getDbEntities(Note.CREATED).toList()
+            db.entitiesWith(Note.CREATED).toList()
         }
     }
 
@@ -25,7 +23,7 @@ class NotingStory(override val session: Session) : SessionScope {
     }
 
     fun init(): Mdl {
-        return Mdl(db = getDb())
+        return Mdl(db = tomic.readLatest())
     }
 
     fun update(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
@@ -34,19 +32,22 @@ class NotingStory(override val session: Session) : SessionScope {
             val today = Date()
             val text = if (msg.text.isNotBlank()) msg.text else "Today is $today"
             val entity = Entity.from(Note.CREATED, today, mapOf(Note.TEXT to text))
-            mdl.copy(db = transact(entity, null))
+            tomic.write(edit = Edit.WriteNote(entity, null))
+            mdl.copy(db = tomic.readLatest())
         }
         is Msg.REVISE -> {
             val target = mdl.entities.firstOrNull { it.key == msg.key }
             target?.let { oldEntity ->
                 val newEntity = oldEntity.setValue(Note.TEXT, msg.text)
-                mdl.copy(db = transact(newEntity, oldEntity))
+                tomic.write(edit = Edit.WriteNote(newEntity, oldEntity))
+                mdl.copy(db = tomic.readLatest())
             }
         }
         is Msg.DROP -> {
             val target = mdl.entities.firstOrNull { it.key == msg.key }
             target?.let { oldEntity ->
-                mdl.copy(db = transact(null, oldEntity))
+                tomic.write(edit = Edit.WriteNote(null, oldEntity))
+                mdl.copy(db = tomic.readLatest())
             }
         }
     }
