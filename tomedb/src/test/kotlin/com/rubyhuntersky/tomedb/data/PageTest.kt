@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb.data
 
+import com.rubyhuntersky.tomedb.attributes.toEnt
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
