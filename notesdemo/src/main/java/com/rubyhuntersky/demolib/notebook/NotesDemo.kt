@@ -1,7 +1,7 @@
 package com.rubyhuntersky.demolib.notebook
 
-import com.rubyhuntersky.demolib.notebook.NotingStory.Mdl
-import com.rubyhuntersky.demolib.notebook.NotingStory.Msg
+import com.rubyhuntersky.demolib.notebook.NotesStory.Mdl
+import com.rubyhuntersky.demolib.notebook.NotesStory.Msg
 import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.tomicOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +28,7 @@ fun main() {
     runBlocking {
         val mdls = Channel<Mdl>(10)
         val actor = actor<Msg> {
-            val story = NotingStory(tomic)
+            val story = NotesStory(tomic)
             var mdl = story.init().also { mdls.send(it) }
             loop@ for (msg in channel) {
                 story.update(mdl, msg)?.let { mdl = it }

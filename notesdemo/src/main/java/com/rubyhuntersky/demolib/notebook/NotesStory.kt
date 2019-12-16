@@ -8,7 +8,7 @@ import com.rubyhuntersky.tomedb.database.entitiesWith
 import java.util.*
 
 
-class NotingStory(private val tomic: Tomic<Edit>) {
+class NotesStory(private val tomic: Tomic<Edit>) {
 
     data class Mdl(val db: Database) {
         val entities by lazy {

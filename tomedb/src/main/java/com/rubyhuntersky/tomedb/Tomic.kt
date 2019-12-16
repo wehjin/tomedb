@@ -9,9 +9,9 @@ import com.rubyhuntersky.tomedb.scopes.session.transact
 import java.io.File
 
 interface Tomic<E : Any> {
-    fun close()
     fun readLatest(): Database
     fun <E1 : E> write(edit: E1)
+    fun close()
 }
 
 fun <E : Any> tomicOf(dir: File, init: TomicScope<E>.() -> List<Attribute<*>>): Tomic<E> {
