@@ -60,7 +60,7 @@ class FileSessionTest {
             }
 
         val conn = FileSession(dataDir, null)
-        val result = conn.mutDb.query {
+        val result = conn.transactor.getDb().query {
             rules = listOf(
                 "movie" has Movie.Title eq "title",
                 -"movie" and "title"
@@ -93,8 +93,8 @@ class FileSessionTest {
         )
         conn.transactData(firstMovies)
 
-        val db = conn.mutDb
-        val allMovies = db.query {
+        val transactor = conn.transactor
+        val allMovies = transactor.getDb().query {
             rules = listOf(
                 "e" has Movie.Title,
                 -"e"

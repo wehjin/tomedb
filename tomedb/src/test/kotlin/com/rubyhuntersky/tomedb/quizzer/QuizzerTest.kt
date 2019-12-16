@@ -40,16 +40,17 @@ class QuizzerTest {
                 -SelectedLearnerSlot
             )
         }
-        val selectedLearnersResult1 = conn.mutDb.query(findSelectedLearners)
+        val db = conn.transactor.getDb()
+        val selectedLearnersResult1 = db.query(findSelectedLearners)
         println("SELECTED LEARNERS 1: ${selectedLearnersResult1.project(SelectedLearnerSlot)}")
         assertEquals(0, selectedLearnersResult1.size)
 
         conn.transactData(listOf(learnerData))
-        val selectedLearnersResult2 = conn.mutDb.query(findSelectedLearners)
+        val selectedLearnersResult2 = db.query(findSelectedLearners)
         println("SELECTED LEARNERS 2: ${SelectedLearnerSlot.project(selectedLearnersResult2)}")
         assertEquals(1, selectedLearnersResult2.size)
 
-        val quizResults = conn.mutDb.query(query = queryOf {
+        val quizResults = db.query(query = queryOf {
             rules = listOf(
                 SelectedLearnerSlot has Learner.Selected eq true,
                 SelectedLearnerSlot has Learner.Quiz eq !"quiz",
@@ -65,7 +66,7 @@ class QuizzerTest {
             quizResults.first { it["name"] as String == "Basics" }["quiz"] as Long
         assertNotNull(selectedQuizEntity)
 
-        val lessonResults = conn.mutDb.query(query = queryOf {
+        val lessonResults = db.query(query = queryOf {
             rules = listOf(
                 +"selectedQuiz" put selectedQuizEntity,
                 "selectedQuiz" has Quiz.Lesson eq !"lesson",

@@ -2,6 +2,7 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.*
 import com.rubyhuntersky.tomedb.basics.Keyword
+import com.rubyhuntersky.tomedb.datalog.Standing
 
 data class Update(
     val entity: Long,
@@ -28,5 +29,10 @@ data class Update(
         object Retract : Action()
 
         override fun toString(): String = toGroupedItemString()
+
+        fun toStanding(): Standing = when (this) {
+            Declare -> Standing.Asserted
+            Retract -> Standing.Retracted
+        }
     }
 }

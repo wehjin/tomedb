@@ -6,6 +6,18 @@ import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.basics.Keyword
 
+interface Database {
+
+    fun find(query: Query.Find): FindResult
+
+    fun getUntypedDbValue(entity: Long, attr: Keyword): Any?
+
+    fun <KeyT : Any> getDbEntitiesOfClass(
+        attr: Attribute<*>,
+        cls: Class<KeyT>
+    ): Sequence<Entity<KeyT>>
+}
+
 inline fun <reified T : Any> Database.getDbValue(attr: Attribute<T>): T? {
     return getUntypedDbValue(0L, attr.toKeyword()) as? T
 }
@@ -26,16 +38,4 @@ fun Database.query(query: Query): List<Map<String, Any>> {
     return find(query as Query.Find).toLegacy()
 }
 
-
-interface Database {
-
-    fun find(query: Query.Find): FindResult
-
-    fun getUntypedDbValue(entity: Long, attr: Keyword): Any?
-
-    fun <KeyT : Any> getDbEntitiesOfClass(
-        attr: Attribute<*>,
-        cls: Class<KeyT>
-    ): Sequence<Entity<KeyT>>
-}
 

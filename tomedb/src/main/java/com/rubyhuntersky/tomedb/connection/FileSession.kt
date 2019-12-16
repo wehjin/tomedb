@@ -7,7 +7,7 @@ import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.attributes.toSchemeData
 import com.rubyhuntersky.tomedb.basics.TagList
 import com.rubyhuntersky.tomedb.database.Database
-import com.rubyhuntersky.tomedb.database.MutableDatabase
+import com.rubyhuntersky.tomedb.database.FileTransactor
 import com.rubyhuntersky.tomedb.database.entityExistsWithAttrValue
 import com.rubyhuntersky.tomedb.datalog.Fact
 import com.rubyhuntersky.tomedb.scopes.session.Session
@@ -16,7 +16,7 @@ import java.io.File
 
 class FileSession(dataDir: File, spec: List<Attribute<*>>?) : Session {
 
-    val mutDb = MutableDatabase(dataDir)
+    val transactor = FileTransactor(dataDir)
 
     init {
         spec?.let {
@@ -29,7 +29,7 @@ class FileSession(dataDir: File, spec: List<Attribute<*>>?) : Session {
 
     private fun List<Attribute<*>>.toNewAttributes(): List<Attribute<*>> = mapNotNull { attribute ->
         val nameValue = (attribute.attrName)
-        if (mutDb.entityExistsWithAttrValue(Scheme.NAME.attrName, nameValue)) {
+        if (transactor.getDb().entityExistsWithAttrValue(Scheme.NAME.attrName, nameValue)) {
             attribute
         } else {
             println("SKIPPED: Existing attribute: ${attribute.attrName}")
@@ -37,18 +37,18 @@ class FileSession(dataDir: File, spec: List<Attribute<*>>?) : Session {
         }
     }
 
-    override fun getDb(): Database = mutDb
+    override fun getDb(): Database = transactor.getDb()
 
     override fun transactDb(updates: Set<Update>) {
         val expanded = updates.flatMap(this::expandDataValues)
-        mutDb.update(expanded)
+        transactor.update(expanded)
     }
 
     fun transactData(tagLists: List<TagList>): List<Long> {
         val updates = tagLists.flatMap {
-            expandTagList(it, mutDb.nextEntity(), Update.Action.Declare)
+            expandTagList(it, transactor.nextEnt(), Update.Action.Declare)
         }
-        return mutDb.update(updates).map(Fact::entity).distinctBy { it }
+        return transactor.update(updates).map(Fact::entity).distinctBy { it }
     }
 
     private fun expandTagList(tagList: TagList, entity: Long, action: Update.Action): List<Update> {
@@ -60,12 +60,12 @@ class FileSession(dataDir: File, spec: List<Attribute<*>>?) : Session {
     private fun expandDataValues(update: Update): List<Update> {
         val (entity, attr, value, type) = update
         return if (value is TagList) {
-            val subEntity = mutDb.nextEntity()
+            val subEntity = transactor.nextEnt()
             expandTagList(value, subEntity, type) + Update(entity, attr, subEntity, type)
         } else {
             listOf(update)
         }
     }
 
-    fun commit() = mutDb.commit()
+    fun commit() = transactor.commit()
 }

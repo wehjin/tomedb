@@ -1,7 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.datalog.Fact.Standing
 
 interface Datalog {
 

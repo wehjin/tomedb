@@ -88,7 +88,7 @@ class FileDatalog(rootDir: File) : Datalog {
         }
     }
 
-    override fun append(entity: Long, attr: Keyword, value: Any, standing: Fact.Standing): Fact {
+    override fun append(entity: Long, attr: Keyword, value: Any, standing: Standing): Fact {
         updateCardMap(entity, attr, value, cardinalityMap)
         val instant = Date()
         val fact = Fact(entity, attr, value, standing, instant, nextHeight++)
@@ -160,7 +160,7 @@ class FileDatalog(rootDir: File) : Datalog {
 
     private data class ValueLine(
         val value: Any,
-        val standing: Fact.Standing,
+        val standing: Standing,
         val instant: Date,
         val height: TxnId
     ) {
@@ -191,7 +191,7 @@ class FileDatalog(rootDir: File) : Datalog {
                 val value = valueOfFolderName(String(valueBytes))
                 return ValueLine(
                     value = value,
-                    standing = Fact.Standing.from(standingByte),
+                    standing = Standing.from(standingByte),
                     instant = Date(longFromBytes(instantBytes)),
                     height = TxnId.from(heightBytes)
                 )

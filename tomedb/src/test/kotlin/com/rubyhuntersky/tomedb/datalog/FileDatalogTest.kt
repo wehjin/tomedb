@@ -38,7 +38,7 @@ class FileDatalogTest {
     @Test
     fun appendRetract() {
         datalog.append(entity, attr, value)
-        datalog.append(entity, attr, value, Fact.Standing.Retracted)
+        datalog.append(entity, attr, value, Standing.Retracted)
         assertEquals(emptySet<Any>(), datalog.values().toSet())
     }
 }
