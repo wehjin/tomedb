@@ -7,6 +7,16 @@ import com.rubyhuntersky.tomedb.basics.tagOf
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.getDbValue
 
+interface Scriber<T> {
+    fun scribe(quant: T): String
+    fun unscribe(script: String): T
+}
+
+interface Attribute2<T> : GroupedItem {
+    val description: String
+    val scriber: Scriber<T>
+}
+
 interface Attribute<ValueT : Any> : GroupedItem {
     val valueType: ValueType<ValueT>
     val cardinality: Cardinality

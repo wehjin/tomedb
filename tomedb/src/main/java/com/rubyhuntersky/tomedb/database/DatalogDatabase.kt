@@ -62,8 +62,8 @@ class DatalogDatabase(private val datalog: Datalog) :
         return FindResult(found.map(ResultRow.Companion::valueOf))
     }
 
-    override fun getUntypedDbValue(entity: Long, attr: Keyword): Any? {
-        return datalog.values(entity, attr).firstOrNull()
+    override fun getUntypedDbValue(ent: Long, attr: Keyword): Any? {
+        return datalog.values(ent, attr).firstOrNull()
     }
 
     override fun <KeyT : Any> getDbEntitiesOfClass(

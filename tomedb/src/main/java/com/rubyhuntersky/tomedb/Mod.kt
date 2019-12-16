@@ -1,16 +1,33 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.Attribute2
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.database.entitiesWith
 
 sealed class Mod<T> {
     data class Set<T : Any>(
-        val entity: Long,
-        val attribute: Attribute<T>,
+        val ent: Long,
+        val attribute: Attribute2<T>,
         val value: T
-    ) : Mod<T>()
+    ) : Mod<T>() {
+        fun asScription(): String = attribute.scriber.scribe(value)
+    }
+}
+
+fun entMods(ent: Long, init: EntModScope.() -> Unit): List<Mod<*>> {
+    return mutableListOf<Mod<*>>().also { mods ->
+        object : EntModScope {
+            override fun <T : Any> bind(attr: Attribute2<T>, value: T) {
+                mods.add(Mod.Set(ent, attr, value))
+            }
+        }.init()
+    }
+}
+
+interface EntModScope {
+    fun <T : Any> bind(attr: Attribute2<T>, value: T)
 }
 
 interface WrappingAttribute<S : Any, W> : Attribute<S> {
@@ -18,35 +35,6 @@ interface WrappingAttribute<S : Any, W> : Attribute<S> {
     fun unwrap(wrapped: W): S
 }
 
-inline fun <reified S : Any, T> projectValue(
-    entity: Entity<S>,
-    attribute: WrappingAttribute<S, T>
-): T? = entity(attribute)?.let { attribute.wrap(it) }
-
-interface EntityModScope {
-    fun <T : Any> bind(attr: Attribute<T>, value: T)
-    fun <T : Any, W> bind(attribute: WrappingAttribute<T, W>, value: W)
-}
-
-fun modsWithEntity(entity: Long, init: EntityModScope.() -> Unit): Set<Mod<*>> {
-    val mods = mutableSetOf<Mod<*>>()
-    object : EntityModScope {
-        override fun <T : Any> bind(attr: Attribute<T>, value: T) {
-            mods.add(
-                Mod.Set(
-                    entity,
-                    attr,
-                    value
-                )
-            )
-        }
-
-        override fun <T : Any, W> bind(attribute: WrappingAttribute<T, W>, value: W) {
-            bind(attribute, attribute.unwrap(value))
-        }
-    }.init()
-    return mods
-}
 
 interface Owner<S : Any> {
     operator fun <W> get(attribute: WrappingAttribute<S, W>): W?
@@ -65,3 +53,8 @@ inline fun <reified T : Any> Database.getOwners(propertyAttribute: Attribute<T>)
         }
     }
 }
+
+inline fun <reified S : Any, T> projectValue(
+    entity: Entity<S>,
+    attribute: WrappingAttribute<S, T>
+): T? = entity(attribute)?.let { attribute.wrap(it) }

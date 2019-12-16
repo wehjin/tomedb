@@ -1,18 +1,13 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.data.startSession
 import com.rubyhuntersky.tomedb.database.Database
 import com.rubyhuntersky.tomedb.database.Entity
 import com.rubyhuntersky.tomedb.scopes.session.Session
 import com.rubyhuntersky.tomedb.scopes.session.transact
 import java.io.File
-
-interface Tomic<E : Any> {
-    fun readLatest(): Database
-    fun <E1 : E> write(edit: E1)
-    fun close()
-}
 
 fun <E : Any> tomicOf(dir: File, init: TomicScope<E>.() -> List<Attribute<*>>): Tomic<E> {
     val handlers = mutableSetOf<EditHandler<*>>()
@@ -31,12 +26,31 @@ fun <E : Any> tomicOf(dir: File, init: TomicScope<E>.() -> List<Attribute<*>>): 
     return object : Tomic<E> {
         override fun close() = session.close()
         override fun readLatest(): Database = session.getDb()
+
         override fun <E1 : E> write(edit: E1) {
             val handler = handlerMap[edit::class.java]
             handler?.handle(edit, session)
         }
+
+        override fun write(mods: List<Mod<*>>) {
+            val updates = mods.map {
+                when (it) {
+                    is Mod.Set -> Update(it.ent, it.attribute.toKeyword(), it.asScription())
+                }
+            }
+            session.transactDb(updates.toSet())
+        }
     }
 }
+
+interface Tomic<E : Any> {
+    fun readLatest(): Database
+    fun <E1 : E> write(edit: E1)
+    fun write(mods: List<Mod<*>>)
+    fun close()
+}
+
+fun <E : Any> Tomic<E>.write(ent: Long, init: EntModScope.() -> Unit) = write(entMods(ent, init))
 
 interface TomicScope<E : Any> {
     fun <E1 : E> on(

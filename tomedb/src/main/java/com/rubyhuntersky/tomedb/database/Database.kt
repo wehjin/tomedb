@@ -10,7 +10,7 @@ interface Database {
 
     fun find(query: Query.Find): FindResult
 
-    fun getUntypedDbValue(entity: Long, attr: Keyword): Any?
+    fun getUntypedDbValue(ent: Long, attr: Keyword): Any?
 
     fun <KeyT : Any> getDbEntitiesOfClass(
         attr: Attribute<*>,

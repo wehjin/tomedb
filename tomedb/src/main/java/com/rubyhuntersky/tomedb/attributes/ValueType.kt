@@ -10,6 +10,5 @@ sealed class ValueType<T : Any> {
     object KEYWORD : ValueType<Keyword>()
     object INSTANT : ValueType<Date>()
 
-    val keyword: Keyword
-            by lazy { Keyword(this::class.java.simpleName, ValueType::class.java.simpleName) }
+    val keyword by lazy { Keyword(this::class.java.simpleName, ValueType::class.java.simpleName) }
 }

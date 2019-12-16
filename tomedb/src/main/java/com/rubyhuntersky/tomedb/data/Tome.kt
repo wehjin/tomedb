@@ -22,7 +22,9 @@ fun startSession(dbDir: File, dbSpec: List<Attribute<*>>): Session {
                     val db = session.getDb()
                     msg.backChannel.send(db)
                 }
-                is SessionMsg.UpdateDb -> session.transactDb(msg.updates)
+                is SessionMsg.UpdateDb -> {
+                    session.transactDb(msg.updates)
+                }
                 is SessionMsg.FIND -> {
                     val db = session.getDb()
                     val result = db.find(msg.query)
