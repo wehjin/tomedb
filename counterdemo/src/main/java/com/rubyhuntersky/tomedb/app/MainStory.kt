@@ -15,14 +15,14 @@ sealed class CountingMsg {
 }
 
 fun countingStory(tomic: Tomic<Edit>): Pair<CountingMdl, (CountingMdl, CountingMsg) -> CountingMdl> {
-    val init = CountingMdl(db = tomic.readLatest())
+    val init = CountingMdl(db = tomic.getDb())
     fun update(mdl: CountingMdl, msg: CountingMsg): CountingMdl {
         val newCount = when (msg) {
             CountingMsg.Incr -> mdl.count + 1
             CountingMsg.Decr -> mdl.count - 1
         }
         tomic.write(Edit.Count(newCount))
-        return mdl.copy(db = tomic.readLatest())
+        return mdl.copy(db = tomic.getDb())
     }
     return Pair(init, ::update)
 }

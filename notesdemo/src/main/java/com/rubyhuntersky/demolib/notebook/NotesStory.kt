@@ -24,7 +24,7 @@ class NotesStory(private val tomic: Tomic<Edit>) {
     }
 
     fun init(): Mdl {
-        return Mdl(db = tomic.readLatest())
+        return Mdl(db = tomic.getDb())
     }
 
     fun update(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
@@ -34,21 +34,21 @@ class NotesStory(private val tomic: Tomic<Edit>) {
             val text = if (msg.text.isNotBlank()) msg.text else "Today is $today"
             val entity = Entity.from(Note.CREATED, today, mapOf(Note.TEXT.attrName to text))
             tomic.write(edit = Edit.WriteNote(entity, null))
-            mdl.copy(db = tomic.readLatest())
+            mdl.copy(db = tomic.getDb())
         }
         is Msg.REVISE -> {
             val target = mdl.entities.firstOrNull { it.key == msg.key }
             target?.let { oldEntity ->
                 val newEntity = oldEntity.setValue(Note.TEXT, msg.text)
                 tomic.write(edit = Edit.WriteNote(newEntity, oldEntity))
-                mdl.copy(db = tomic.readLatest())
+                mdl.copy(db = tomic.getDb())
             }
         }
         is Msg.DROP -> {
             val target = mdl.entities.firstOrNull { it.key == msg.key }
             target?.let { oldEntity ->
                 tomic.write(edit = Edit.WriteNote(null, oldEntity))
-                mdl.copy(db = tomic.readLatest())
+                mdl.copy(db = tomic.getDb())
             }
         }
     }

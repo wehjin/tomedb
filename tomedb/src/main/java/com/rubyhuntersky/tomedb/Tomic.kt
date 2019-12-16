@@ -25,7 +25,7 @@ fun <E : Any> tomicOf(dir: File, init: TomicScope<E>.() -> List<Attribute<*>>): 
     val handlerMap = handlers.associateBy { it.editClass }
     return object : Tomic<E> {
         override fun close() = session.close()
-        override fun readLatest(): Database = session.getDb()
+        override fun getDb(): Database = session.getDb()
 
         override fun <E1 : E> write(edit: E1) {
             val handler = handlerMap[edit::class.java]
@@ -44,7 +44,7 @@ fun <E : Any> tomicOf(dir: File, init: TomicScope<E>.() -> List<Attribute<*>>): 
 }
 
 interface Tomic<E : Any> {
-    fun readLatest(): Database
+    fun getDb(): Database
     fun <E1 : E> write(edit: E1)
     fun write(mods: List<Mod<*>>)
     fun close()

@@ -29,7 +29,7 @@ class TomicKtTest {
         tomic.write(ent) {
             bind(Wallet.Dollars, Amount(100))
         }
-        val reading = tomic.readLatest().getUntypedDbValue(ent, Wallet.Dollars.toKeyword())
+        val reading = tomic.getDb().getUntypedDbValue(ent, Wallet.Dollars.toKeyword())
         assertEquals(100, reading)
     }
 }
