@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.connection
 
 import com.rubyhuntersky.tomedb.Update
+import com.rubyhuntersky.tomedb.UpdateType
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.attributes.attrName
@@ -46,12 +47,12 @@ class FileSession(dataDir: File, spec: List<Attribute<*>>?) : Session {
 
     fun transactData(tagLists: List<TagList>): List<Long> {
         val updates = tagLists.flatMap {
-            expandTagList(it, transactor.nextEnt(), Update.Action.Declare)
+            expandTagList(it, transactor.nextEnt(), UpdateType.Declare)
         }
         return transactor.update(updates).map(Fact::entity).distinctBy { it }
     }
 
-    private fun expandTagList(tagList: TagList, entity: Long, action: Update.Action): List<Update> {
+    private fun expandTagList(tagList: TagList, entity: Long, action: UpdateType): List<Update> {
         return tagList.flatMap { (value, attr) ->
             expandDataValues(Update(entity, attr, value, action))
         }

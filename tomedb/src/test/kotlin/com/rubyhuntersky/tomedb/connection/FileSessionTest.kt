@@ -54,7 +54,7 @@ class FileSessionTest {
     fun reconnectionLoadsDataFromLedger() {
         FileSession(dataDir, listOf(Movie.Title))
             .also { connection ->
-                val update = Update(1, Movie.Title, ("Return of the King"))
+                val update = Update(1, Movie.Title.attrName, ("Return of the King"))
                 connection.transactDb(setOf(update))
                 connection.commit()
             }

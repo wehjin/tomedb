@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb.database
 
 import com.rubyhuntersky.tomedb.Update
+import com.rubyhuntersky.tomedb.UpdateType
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.basics.Ent
@@ -52,13 +53,13 @@ data class Entity<KeyT : Any>(
         )
         val dropUpdates = dropAttrs.mapNotNull { attr ->
             earlyData[attr]?.let { earlyValue ->
-                Update(ent, attr, earlyValue, Update.Action.Retract)
+                Update(ent, attr, earlyValue, UpdateType.Retract)
             }
         }
         val modUpdates = modAttrs.mapNotNull { attr ->
             lateData[attr]?.let { lateValue ->
                 if (lateValue != earlyData[attr]) {
-                    Update(ent, attr, lateValue, Update.Action.Declare)
+                    Update(ent, attr, lateValue, UpdateType.Declare)
                 } else {
                     null
                 }
@@ -66,7 +67,7 @@ data class Entity<KeyT : Any>(
         }
         val addUpdates = addAttrs.mapNotNull { attr ->
             lateData[attr]?.let { lateValue ->
-                Update(ent, attr, lateValue, Update.Action.Declare)
+                Update(ent, attr, lateValue, UpdateType.Declare)
             }
         }
         return dropUpdates + modUpdates + addUpdates
