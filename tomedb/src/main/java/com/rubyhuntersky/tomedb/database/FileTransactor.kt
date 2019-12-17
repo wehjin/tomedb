@@ -33,7 +33,7 @@ class FileTransactor(dataDir: File) : Transactor {
 
     override fun commit() = datalog.commit()
 
-    override fun getDb(): Database = DatalogDatabase(datalog)
+    override fun getDb(): Database = DatalogDatabase(datalog.toDatalist())
 
     private var nextEnt: Long = 1
     override fun nextEnt(): Long = nextEnt++

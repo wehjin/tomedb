@@ -2,8 +2,7 @@ package com.rubyhuntersky.tomedb.datalog
 
 import com.rubyhuntersky.tomedb.basics.Keyword
 
-interface Datalog {
-
+interface Datalist {
     fun ents(attr: Keyword): Sequence<Long>
     fun ents(): Sequence<Long>
 
@@ -15,6 +14,9 @@ interface Datalog {
 
     fun isAsserted(entity: Long, attr: Keyword, value: Any): Boolean
     fun isAsserted(entity: Long, attr: Keyword): Boolean
+}
+
+interface Datalog : Datalist {
 
     fun append(
         entity: Long,
@@ -24,12 +26,14 @@ interface Datalog {
     ): Fact
 
     fun commit()
+
+    fun toDatalist(): Datalist
 }
 
-fun Datalog.value(entity: Long, attr: Keyword): Any? =
+fun Datalist.value(entity: Long, attr: Keyword): Any? =
     values(entity, attr).asSequence().firstOrNull { isAsserted(entity, attr, it) }
 
-fun Datalog.attrValues(entity: Long): Sequence<Pair<Keyword, Any>> {
+fun Datalist.attrValues(entity: Long): Sequence<Pair<Keyword, Any>> {
     val attrs = attrs(entity)
     return attrs.mapNotNull { attr ->
         value(entity, attr)?.let { value ->

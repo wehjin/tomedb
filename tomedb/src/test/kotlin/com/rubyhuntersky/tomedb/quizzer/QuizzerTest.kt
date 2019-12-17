@@ -40,17 +40,17 @@ class QuizzerTest {
                 -SelectedLearnerSlot
             )
         }
-        val db = conn.transactor.getDb()
-        val selectedLearnersResult1 = db.query(findSelectedLearners)
+        val tx = conn.transactor
+        val selectedLearnersResult1 = tx.getDb().query(findSelectedLearners)
         println("SELECTED LEARNERS 1: ${selectedLearnersResult1.project(SelectedLearnerSlot)}")
         assertEquals(0, selectedLearnersResult1.size)
 
         conn.transactData(listOf(learnerData))
-        val selectedLearnersResult2 = db.query(findSelectedLearners)
+        val selectedLearnersResult2 = tx.getDb().query(findSelectedLearners)
         println("SELECTED LEARNERS 2: ${SelectedLearnerSlot.project(selectedLearnersResult2)}")
         assertEquals(1, selectedLearnersResult2.size)
 
-        val quizResults = db.query(query = queryOf {
+        val quizResults = tx.getDb().query(query = queryOf {
             rules = listOf(
                 SelectedLearnerSlot has Learner.Selected eq true,
                 SelectedLearnerSlot has Learner.Quiz eq !"quiz",
@@ -66,7 +66,7 @@ class QuizzerTest {
             quizResults.first { it["name"] as String == "Basics" }["quiz"] as Long
         assertNotNull(selectedQuizEntity)
 
-        val lessonResults = db.query(query = queryOf {
+        val lessonResults = tx.getDb().query(query = queryOf {
             rules = listOf(
                 +"selectedQuiz" put selectedQuizEntity,
                 "selectedQuiz" has Quiz.Lesson eq !"lesson",

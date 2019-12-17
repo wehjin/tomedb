@@ -5,8 +5,6 @@ import com.rubyhuntersky.tomedb.attributes.Scheme
 import com.rubyhuntersky.tomedb.attributes.attrName
 import com.rubyhuntersky.tomedb.attributes.groupedItemHashCode
 import com.rubyhuntersky.tomedb.basics.Keyword
-import com.rubyhuntersky.tomedb.basics.bytesFromLong
-import com.rubyhuntersky.tomedb.basics.longFromBytes
 import com.rubyhuntersky.tomedb.datalog.framing.FramePosition
 import com.rubyhuntersky.tomedb.datalog.framing.FrameReader
 import com.rubyhuntersky.tomedb.datalog.framing.FrameWriter
@@ -19,7 +17,8 @@ import java.io.File
 import java.io.RandomAccessFile
 import java.util.*
 
-class FileDatalog(rootDir: File) : Datalog {
+class FileDatalog(private val rootDir: File) : Datalog {
+    // TODO Refactor with FileDatalist
 
     private var nextHeight = TxnId(0)
     private var entTableBase: Long? = null
@@ -158,47 +157,6 @@ class FileDatalog(rootDir: File) : Datalog {
             ).write(attrKey, newEvtBase)
     }
 
-    private data class ValueLine(
-        val value: Any,
-        val standing: Standing,
-        val instant: Date,
-        val height: TxnId
-    ) {
-        fun flip(instant: Date, height: TxnId): ValueLine {
-            return copy(standing = standing.flip(), instant = instant, height = height)
-        }
-
-        fun toBytes(): ByteArray {
-            val valueBytes = value.toFolderName().toByteArray()
-            val standingByte = standing.asByte()
-            val instantBytes = bytesFromLong(instant.time)
-            val heightBytes = height.toBytes()
-            return valueBytes + standingByte + instantBytes + heightBytes
-        }
-
-        companion object {
-            fun from(fact: Fact): ValueLine =
-                ValueLine(fact.value, fact.standing, fact.inst, fact.txn)
-
-            fun from(byteArray: ByteArray): ValueLine {
-                val valueLen = byteArray.size - 1 - Long.SIZE_BYTES - TxnId.bytesLen
-                val instantStart = valueLen + 1
-                val heightStart = instantStart + TxnId.bytesLen
-                val valueBytes = byteArray.sliceArray(0 until valueLen)
-                val standingByte = byteArray[valueLen]
-                val instantBytes = byteArray.sliceArray(instantStart until heightStart)
-                val heightBytes = byteArray.sliceArray(heightStart until byteArray.size)
-                val value = valueOfFolderName(String(valueBytes))
-                return ValueLine(
-                    value = value,
-                    standing = Standing.from(standingByte),
-                    instant = Date(longFromBytes(instantBytes)),
-                    height = TxnId.from(heightBytes)
-                )
-            }
-        }
-    }
-
     override fun commit() {
         with(headFile) {
             seek(0)
@@ -208,6 +166,10 @@ class FileDatalog(rootDir: File) : Datalog {
             writeLong(eavtBase ?: -1L)
             writeLong(aevtBase ?: -1L)
         }
+    }
+
+    override fun toDatalist(): Datalist {
+        return FileDatalist(rootDir, entTableBase, attrTableBase, eavtBase, aevtBase)
     }
 
     override fun ents(attr: Keyword): Sequence<Long> {
