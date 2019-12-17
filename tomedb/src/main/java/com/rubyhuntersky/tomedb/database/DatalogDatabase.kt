@@ -70,17 +70,23 @@ class DatalogDatabase(private val datalog: Datalog) :
         attr: Attribute<*>,
         cls: Class<KeyT>
     ): Sequence<Entity<KeyT>> {
-        val ents = datalog.ents(attr.toKeyword())
+        val keyword = attr.toKeyword()
+
+        val ents = datalog.ents(keyword)
         return ents.mapNotNull { ent ->
             val data = datalog.attrValues(ent).toMap()
-            val value: KeyT? = cls.cast(data[attr.toKeyword()])
+            val value: KeyT? = cls.cast(data[keyword])
             value?.let {
-                Entity.from(
-                    attr,
-                    it,
-                    data
-                )
+                Entity.from(attr, it, data)
             }
+        }
+    }
+
+    override fun getOwners(attrName: Keyword): Sequence<Pair<Long, Map<Keyword, Any>>> {
+        val ents = datalog.ents(attrName)
+        return ents.mapNotNull { ent ->
+            val data = datalog.attrValues(ent).toMap()
+            data[attrName]?.let { Pair(ent, data) }
         }
     }
 }

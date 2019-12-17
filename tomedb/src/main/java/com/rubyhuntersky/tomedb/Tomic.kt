@@ -50,8 +50,6 @@ interface Tomic<E : Any> {
     fun close()
 }
 
-fun <E : Any> Tomic<E>.write(ent: Long, init: EntModScope.() -> Unit) = write(entMods(ent, init))
-
 interface TomicScope<E : Any> {
     fun <E1 : E> on(
         editClass: Class<E1>,

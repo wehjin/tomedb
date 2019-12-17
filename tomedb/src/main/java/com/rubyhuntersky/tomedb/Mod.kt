@@ -1,10 +1,6 @@
 package com.rubyhuntersky.tomedb
 
-import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.Attribute2
-import com.rubyhuntersky.tomedb.database.Database
-import com.rubyhuntersky.tomedb.database.Entity
-import com.rubyhuntersky.tomedb.database.entitiesWith
 
 sealed class Mod<T> {
     data class Set<T : Any>(
@@ -16,45 +12,22 @@ sealed class Mod<T> {
     }
 }
 
-fun entMods(ent: Long, init: EntModScope.() -> Unit): List<Mod<*>> {
+fun modEnt(ent: Long, init: EntModScope.() -> Unit): List<Mod<*>> {
     return mutableListOf<Mod<*>>().also { mods ->
         object : EntModScope {
-            override fun <T : Any> bind(attr: Attribute2<T>, value: T) {
-                mods.add(Mod.Set(ent, attr, value))
+            override fun <T : Any> bind(attribute: Attribute2<T>, quant: T) {
+                mods.add(Mod.Set(ent, attribute, quant))
+            }
+
+            override infix fun <T : Any> Attribute2<T>.set(quant: T) {
+                bind(this, quant)
             }
         }.init()
     }
 }
 
 interface EntModScope {
-    fun <T : Any> bind(attr: Attribute2<T>, value: T)
+    fun <T : Any> bind(attribute: Attribute2<T>, quant: T)
+    infix fun <T : Any> Attribute2<T>.set(quant: T)
 }
 
-interface WrappingAttribute<S : Any, W> : Attribute<S> {
-    fun wrap(source: S): W?
-    fun unwrap(wrapped: W): S
-}
-
-
-interface Owner<S : Any> {
-    operator fun <W> get(attribute: WrappingAttribute<S, W>): W?
-}
-
-inline fun <reified T : Any> Database.getOwners(propertyAttribute: Attribute<T>): List<Owner<T>> {
-    val entities = entitiesWith(propertyAttribute).toList()
-    return entities.map<Entity<T>, Owner<T>> { entity ->
-        object : Owner<T> {
-            override fun <W> get(attribute: WrappingAttribute<T, W>): W? {
-                return projectValue(
-                    entity,
-                    attribute
-                )
-            }
-        }
-    }
-}
-
-inline fun <reified S : Any, T> projectValue(
-    entity: Entity<S>,
-    attribute: WrappingAttribute<S, T>
-): T? = entity(attribute)?.let { attribute.wrap(it) }

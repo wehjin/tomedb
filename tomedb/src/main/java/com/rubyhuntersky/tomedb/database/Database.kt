@@ -16,6 +16,8 @@ interface Database {
         attr: Attribute<*>,
         cls: Class<KeyT>
     ): Sequence<Entity<KeyT>>
+
+    fun getOwners(attrName: Keyword): Sequence<Pair<Long, Map<Keyword, Any>>>
 }
 
 inline fun <reified T : Any> Database.getDbValue(attr: Attribute<T>): T? {
