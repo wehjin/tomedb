@@ -12,6 +12,7 @@ interface Database {
 
     fun getUntypedDbValue(ent: Long, attr: Keyword): Any?
 
+    @Deprecated("Use getOwners, etc.")
     fun <KeyT : Any> getDbEntitiesOfClass(
         attr: Attribute<*>,
         cls: Class<KeyT>
