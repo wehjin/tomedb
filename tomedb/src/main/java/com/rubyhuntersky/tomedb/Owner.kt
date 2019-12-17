@@ -9,8 +9,11 @@ interface Owner<T : Any> {
     operator fun <U : Any> get(attribute: Attribute2<U>): U?
 }
 
-inline fun <reified T : Any> Database.getOwners(property: Attribute2<T>): List<Owner<T>> {
-    val entDataPairs = this.getOwners(property.toKeyword()).toList()
+inline fun <reified T : Any> getOwners(
+    database: Database,
+    property: Attribute2<T>
+): List<Owner<T>> {
+    val entDataPairs = database.getOwners(property.toKeyword()).toList()
     return entDataPairs.map { (ent, data) ->
         object : Owner<T> {
             override val ent: Long = ent
@@ -23,4 +26,4 @@ inline fun <reified T : Any> Database.getOwners(property: Attribute2<T>): List<O
     }
 }
 
-fun <T : Any> Owner<T>.getMods(init: EntModScope.() -> Unit): List<Mod<*>> = modEnt(ent, init)
+fun <T : Any> Owner<T>.mod(init: EntModScope.() -> Unit): List<Mod<*>> = modEnt(ent, init)

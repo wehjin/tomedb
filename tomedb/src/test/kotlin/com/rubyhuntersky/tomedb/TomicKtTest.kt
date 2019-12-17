@@ -23,33 +23,47 @@ class TomicKtTest {
         }
     }
 
+    private fun startTome() = tomicOf<Unit>(
+        dir = createTempDir("tomicTest").also { println("Location: $it") },
+        init = { emptyList() }
+    )
+
+    @Test
+    fun sequence() {
+        val tome = startTome()
+        tome.write(listOf(
+            modEnt(ent = Random.nextLong().absoluteValue) { Wallet.Dollars set Amount(100) },
+            modEnt(ent = Random.nextLong().absoluteValue) { Wallet.Dollars set Amount(200) }
+        ).flatten())
+
+        val amounts = sequenceOwners(tome, Wallet.Dollars).map { it[Wallet.Dollars]!! }
+        assertEquals(setOf(Amount(100), Amount(200)), amounts.toSet())
+    }
+
     @Test
     fun main() {
-        val dir = createTempDir("tomicTest").also { println("Location: $it") }
-        val tomic = tomicOf<Unit>(dir) { emptyList() }
-
-        // Construct entity
+        val tome = startTome()
         val ent = Random.nextLong().absoluteValue
-        modEnt(ent) { Wallet.Dollars set Amount(100) }.also { tomic.write(it) }
+        modEnt(ent) { Wallet.Dollars set Amount(100) }.also { tome.write(it) }
 
         // Entity has initial value
-        val db1 = tomic.getDb()
-        val owner1 = db1.getOwners(Wallet.Dollars)
-            .also { assertEquals(1, it.size) }
-            .first().also { assertEquals(Amount(100), it[Wallet.Dollars]) }
-
-        // Modify entity
-        owner1.getMods { Wallet.Dollars set Amount(200) }.also {
-            tomic.write(it)
+        val hive = tome.collectOwners(Wallet.Dollars) {
+            assertEquals(1, owners.size)
+            assertEquals(Amount(100), first[Wallet.Dollars])
+            mods = first.mod { Wallet.Dollars set Amount(200) }
         }
 
-        // Entity has changed value
-        tomic.getDb().getOwners(Wallet.Dollars)
-            .also { assertEquals(1, it.size) }
-            .first().also { assertEquals(Amount(200), it[Wallet.Dollars]) }
+        // Entity in latest hive has changed value
+        val dollars = tome.visitOwners(Wallet.Dollars) {
+            assertEquals(1, owners.size)
+            first[Wallet.Dollars]
+        }
+        assertEquals(Amount(200), dollars)
 
-        // Entity in first db remains unchanged
-        db1.getOwners(Wallet.Dollars).also { assertEquals(1, it.size) }
-            .first().also { assertEquals(Amount(100), it[Wallet.Dollars]) }
+        // Entity in original hive remains unchanged
+        hive.visit {
+            assertEquals(1, owners.size)
+            assertEquals(Amount(100), first[Wallet.Dollars])
+        }
     }
 }

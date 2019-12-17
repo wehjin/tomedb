@@ -1,6 +1,7 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
+import com.rubyhuntersky.tomedb.attributes.Attribute2
 import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.data.startSession
 import com.rubyhuntersky.tomedb.database.Database
@@ -49,6 +50,55 @@ interface Tomic<E : Any> {
     fun write(mods: List<Mod<*>>)
     fun close()
 }
+
+class TomicOwnerHive<T : Any>(
+    override val basis: Database,
+    override val owners: List<Owner<T>>,
+    private val writeMods: (List<Mod<*>>) -> Unit
+) : OwnerHive<T> {
+    override val first: Owner<T> by lazy { owners.first() }
+    override var mods: List<Mod<*>>? = null
+        set(value) {
+            require(field == null)
+            field = value?.also { writeMods(it) }
+        }
+}
+
+inline fun <reified T : Any> sequenceOwners(
+    tome: Tomic<*>,
+    property: Attribute2<T>
+): Sequence<Owner<T>> = tome.visitOwners(property) { this.owners.asSequence() }
+
+inline fun <reified T : Any, R> Tomic<*>.visitOwners(
+    property: Attribute2<T>,
+    noinline block: OwnerHive<T>.() -> R
+): R {
+    var result = Result.failure<R>(Exception("Empty"))
+    return collectOwners(property) {
+        result = Result.success(this.run(block))
+    }.let {
+        result.getOrThrow()
+    }
+}
+
+inline fun <reified T : Any> Tomic<*>.collectOwners(
+    property: Attribute2<T>,
+    noinline init: OwnerHive<T>.() -> Unit
+): OwnerHive<T> {
+    val basis = getDb()
+    val owners = getOwners(basis, property)
+    val hive = TomicOwnerHive(basis, owners, writeMods = { write(it) })
+    return hive.apply(init)
+}
+
+interface OwnerHive<T : Any> {
+    val basis: Database
+    val owners: List<Owner<T>>
+    val first: Owner<T>
+    var mods: List<Mod<*>>?
+}
+
+fun <T : Any, R> OwnerHive<T>.visit(block: OwnerHive<T>.() -> R) = this.run(block)
 
 interface TomicScope<E : Any> {
     fun <E1 : E> on(
