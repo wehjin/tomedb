@@ -2,6 +2,11 @@ package com.rubyhuntersky.tomedb.attributes
 
 import com.rubyhuntersky.tomedb.basics.Keyword
 
+interface GroupedItem {
+    val itemName: String
+    val groupName: String
+}
+
 val GroupedItem.fallbackItemName: String
     get() = (this as? Enum<*>)?.let { this.name } ?: this::class.java.simpleName
 
@@ -30,7 +35,9 @@ fun GroupedItem.groupedItemHashCode(): Int {
 
 fun GroupedItem.toKeyword(): Keyword = Keyword(itemName, groupName)
 
-interface GroupedItem {
-    val itemName: String
-    val groupName: String
+open class ObjectGroupedItem : GroupedItem {
+    override val itemName: String
+        get() = this::class.java.simpleName
+    override val groupName: String
+        get() = this::class.java.declaringClass?.simpleName ?: ""
 }

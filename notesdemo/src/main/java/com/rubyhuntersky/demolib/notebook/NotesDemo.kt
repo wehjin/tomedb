@@ -2,7 +2,7 @@ package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.demolib.notebook.NotesStory.Mdl
 import com.rubyhuntersky.demolib.notebook.NotesStory.Msg
-import com.rubyhuntersky.tomedb.database.Entity
+import com.rubyhuntersky.tomedb.Owner
 import com.rubyhuntersky.tomedb.tomicOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -13,18 +13,11 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.*
 
-sealed class Edit {
-    data class WriteNote(val new: Entity<Date>?, val old: Entity<Date>?) : Edit()
-}
-
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 fun main() {
     val dir = File("data", "notebook").apply { println("Running with data in: $absoluteFile") }
-    val tomic = tomicOf<Edit>(dir) {
-        on(Edit.WriteNote::class.java) { write(edit.new, edit.old) }
-        emptyList()
-    }
+    val tomic = tomicOf(dir) { emptyList() }
     runBlocking {
         val mdls = Channel<Mdl>(10)
         val actor = actor<Msg> {
@@ -45,14 +38,14 @@ private suspend fun printMdls(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
     loop@ while (!mdls.isClosedForReceive) {
         val mdl = mdls.receive()
         NotesPrinter.printScreenHeader()
-        val entities = mdl.entities.toList()
+        val entities = mdl.notes.toList()
         if (entities.isEmpty()) {
             NotesPrinter.printEmptyNotes()
         } else {
             entities.forEachIndexed { index, entity ->
                 val number = index + 1
-                val date = entity(Note.CREATED)
-                val text = entity(Note.TEXT)
+                val date = entity[Note.CREATED]!!
+                val text = entity[Note.TEXT]!!
                 NotesPrinter.printNote(number, date, text)
             }
         }
@@ -62,7 +55,7 @@ private suspend fun printMdls(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
     NotesPrinter.printSessionFooter()
 }
 
-private tailrec fun sendMsg(entities: List<Entity<Date>>, actor: SendChannel<Msg>): Boolean {
+private tailrec fun sendMsg(entities: List<Owner<Date>>, actor: SendChannel<Msg>): Boolean {
     val userLine = readLine()!!
     when {
         userLine == "list" -> actor.offer(Msg.LIST)
@@ -76,14 +69,14 @@ private tailrec fun sendMsg(entities: List<Entity<Date>>, actor: SendChannel<Msg
             val index = number.toIntOrNull()?.let { it - 1 }
             val msg = index?.let {
                 val text = numberAndText.substringAfter(' ').trim()
-                Msg.REVISE(key = entities[index].key, text = text)
+                Msg.REVISE(key = entities[index][Note.CREATED]!!, text = text)
             } ?: Msg.LIST
             actor.offer(msg)
         }
         userLine.startsWith("drop", true) -> {
             val number = userLine.substring("drop".length).trim()
             val index = number.toIntOrNull()?.let { it - 1 }
-            val msg = index?.let { Msg.DROP(key = entities[index].key) } ?: Msg.LIST
+            val msg = index?.let { Msg.DROP(key = entities[index][Note.CREATED]!!) } ?: Msg.LIST
             actor.offer(msg)
         }
         userLine == "done" -> {

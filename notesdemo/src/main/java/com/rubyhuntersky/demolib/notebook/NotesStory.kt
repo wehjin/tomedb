@@ -1,20 +1,14 @@
 package com.rubyhuntersky.demolib.notebook
 
-import com.rubyhuntersky.tomedb.Tomic
-import com.rubyhuntersky.tomedb.attributes.attrName
-import com.rubyhuntersky.tomedb.database.Database
-import com.rubyhuntersky.tomedb.database.Entity
-import com.rubyhuntersky.tomedb.database.entitiesWith
+import com.rubyhuntersky.tomedb.*
 import java.util.*
+import kotlin.math.absoluteValue
+import kotlin.random.Random
 
 
-class NotesStory(private val tomic: Tomic<Edit>) {
+class NotesStory(private val tomic: Tomic) {
 
-    data class Mdl(val db: Database) {
-        val entities by lazy {
-            db.entitiesWith(Note.CREATED).toList()
-        }
-    }
+    data class Mdl(val notes: List<Owner<Date>>)
 
     sealed class Msg {
         object LIST : Msg()
@@ -23,32 +17,36 @@ class NotesStory(private val tomic: Tomic<Edit>) {
         data class DROP(val key: Date) : Msg()
     }
 
-    fun init(): Mdl {
-        return Mdl(db = tomic.getDb())
-    }
+    fun init(): Mdl = Mdl(notes = tomic.ownerList(Note.CREATED))
 
     fun update(mdl: Mdl, msg: Msg): Mdl? = when (msg) {
         is Msg.LIST -> null
         is Msg.ADD -> {
             val today = Date()
             val text = if (msg.text.isNotBlank()) msg.text else "Today is $today"
-            val entity = Entity.from(Note.CREATED, today, mapOf(Note.TEXT.attrName to text))
-            tomic.write(edit = Edit.WriteNote(entity, null))
-            mdl.copy(db = tomic.getDb())
+            val ent = Random.nextLong().absoluteValue
+            tomic.write(mods = modEnt(ent) {
+                Note.CREATED set today
+                Note.TEXT set text
+            })
+            mdl.copy(notes = tomic.ownerList(Note.CREATED))
         }
         is Msg.REVISE -> {
-            val target = mdl.entities.firstOrNull { it.key == msg.key }
-            target?.let { oldEntity ->
-                val newEntity = oldEntity.setValue(Note.TEXT, msg.text)
-                tomic.write(edit = Edit.WriteNote(newEntity, oldEntity))
-                mdl.copy(db = tomic.getDb())
+            tomic.modOwnersOf(Note.CREATED) {
+                val target = owners.values.firstOrNull { it[Note.CREATED] == msg.key }
+                target?.let { owner ->
+                    mods = owner.mod { Note.TEXT set msg.text }
+                }
+                mdl.copy(notes = ownerList)
             }
         }
         is Msg.DROP -> {
-            val target = mdl.entities.firstOrNull { it.key == msg.key }
-            target?.let { oldEntity ->
-                tomic.write(edit = Edit.WriteNote(null, oldEntity))
-                mdl.copy(db = tomic.getDb())
+            tomic.modOwnersOf(Note.CREATED) {
+                val target = owners.values.firstOrNull { it[Note.CREATED] == msg.key }
+                target?.let { owner ->
+                    mods = owner.mod { Note.CREATED set null }
+                }
+                mdl.copy(notes = ownerList)
             }
         }
     }

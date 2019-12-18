@@ -1,28 +1,34 @@
 package com.rubyhuntersky.tomedb.app
 
 import com.rubyhuntersky.tomedb.Tomic
-import com.rubyhuntersky.tomedb.app.CounterApplication.Edit
-import com.rubyhuntersky.tomedb.attributes.invoke
-import com.rubyhuntersky.tomedb.database.Database
+import com.rubyhuntersky.tomedb.modEnt
+import com.rubyhuntersky.tomedb.modOwnersOf
+import com.rubyhuntersky.tomedb.visitOwnersOf
 
-data class CountingMdl(val db: Database) {
-    val count: Long by lazy { Counter.Count(db) ?: 42L }
-}
+data class CountingMdl(val count: Long)
 
 sealed class CountingMsg {
     object Incr : CountingMsg()
     object Decr : CountingMsg()
 }
 
-fun countingStory(tomic: Tomic<Edit>): Pair<CountingMdl, (CountingMdl, CountingMsg) -> CountingMdl> {
-    val init = CountingMdl(db = tomic.getDb())
+private const val counterEnt: Long = 123456
+
+fun countingStory(tomic: Tomic): Pair<CountingMdl, (CountingMdl, CountingMsg) -> CountingMdl> {
+    val init = CountingMdl(
+        count = tomic.visitOwnersOf(Counter.Count2) { any?.let { it[Counter.Count2] } ?: 42L }
+    )
+
+
     fun update(mdl: CountingMdl, msg: CountingMsg): CountingMdl {
         val newCount = when (msg) {
             CountingMsg.Incr -> mdl.count + 1
             CountingMsg.Decr -> mdl.count - 1
         }
-        tomic.write(Edit.Count(newCount))
-        return mdl.copy(db = tomic.getDb())
+        return tomic.modOwnersOf(Counter.Count2) {
+            mods = modEnt(counterEnt) { Counter.Count2 set newCount }
+            mdl.copy(count = any!![Counter.Count2]!!)
+        }
     }
     return Pair(init, ::update)
 }

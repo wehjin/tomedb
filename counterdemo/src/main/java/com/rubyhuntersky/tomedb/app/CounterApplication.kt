@@ -7,16 +7,9 @@ import java.io.File
 
 class CounterApplication : Application() {
 
-    sealed class Edit {
-        data class Count(val count: Long) : Edit()
-    }
-
     override fun onCreate() {
         super.onCreate()
-        tomic = tomicOf(dir = File(filesDir, "tome")) {
-            on(Edit.Count::class.java) { write(Counter.Count, edit.count) }
-            Counter.attrs().toList()
-        }
+        tomic = tomicOf(dir = File(filesDir, "tome")) { Counter.attrs().toList() }
     }
 
     override fun onTerminate() {
@@ -25,6 +18,6 @@ class CounterApplication : Application() {
     }
 
     companion object {
-        lateinit var tomic: Tomic<Edit>
+        lateinit var tomic: Tomic
     }
 }

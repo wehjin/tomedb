@@ -1,18 +1,18 @@
 package com.rubyhuntersky.tomedb.app
 
-import com.rubyhuntersky.tomedb.attributes.*
+import com.rubyhuntersky.tomedb.attributes.AttributeGroup
+import com.rubyhuntersky.tomedb.attributes.AttributeInObject
+import com.rubyhuntersky.tomedb.attributes.LongScriber
+import com.rubyhuntersky.tomedb.attributes.Scriber
 
-sealed class Counter<T : Any> : Attribute<T> {
-    override val itemName: String get() = fallbackItemName
-    override val groupName: String get() = fallbackGroupName
+sealed class Counter<T : Any> : AttributeInObject<T>() {
 
     companion object : AttributeGroup {
-        fun attrs() = arrayOf(Count)
+        fun attrs() = arrayOf(Count2)
     }
 
-    object Count : Counter<Long>() {
-        override val valueType = ValueType.LONG
-        override val cardinality = Cardinality.ONE
+    object Count2 : Counter<Long>() {
         override val description = "The current count of a counter"
+        override val scriber: Scriber<Long> = LongScriber
     }
 }
