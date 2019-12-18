@@ -1,6 +1,5 @@
 package com.rubyhuntersky.tomedb.attributes
 
-import java.text.SimpleDateFormat
 import java.util.*
 
 interface Attribute2<T> : GroupedItem, Attribute<String> {
@@ -14,10 +13,9 @@ interface Scriber<T> {
 }
 
 object DateScriber : Scriber<Date> {
-    private val simpleDateFormat = SimpleDateFormat.getDateTimeInstance()
-    override val emptyScript: String = simpleDateFormat.format(Date(0))
-    override fun scribe(quant: Date): String = simpleDateFormat.format(quant)
-    override fun unscribe(script: String): Date = simpleDateFormat.parse(script)
+    override val emptyScript: String = "0"
+    override fun scribe(quant: Date): String = quant.time.toString()
+    override fun unscribe(script: String): Date = Date(script.toLong())
 }
 
 object StringScriber : Scriber<String> {

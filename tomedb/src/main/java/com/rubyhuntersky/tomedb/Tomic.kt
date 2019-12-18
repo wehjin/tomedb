@@ -36,6 +36,10 @@ inline fun <reified T : Any> Tomic.ownersOf(property: Attribute2<T>): OwnerHive<
             }
         }
         override val ownerList: List<Owner<T>> by lazy { owners.values.toList() }
+
+        override fun Map<Long, Owner<T>>.matchKey(key: T): Owner<T>? {
+            return owners.values.firstOrNull { key == it[property] }
+        }
     }
 }
 
@@ -49,12 +53,16 @@ inline fun <reified T : Any, R> Tomic.modOwnersOf(
         override val owners: Map<Long, Owner<T>> get() = hive.owners
         override val any: Owner<T>? get() = hive.any
         override val ownerList: List<Owner<T>> get() = hive.ownerList
+        override fun Map<Long, Owner<T>>.matchKey(key: T): Owner<T>? =
+            hive.run { this.owners.matchKey(key) }
+
         override var mods: List<Mod<*>> = emptyList()
             set(value) {
                 check(field.isEmpty())
                 field = value.also { write(value) }
                 hive = ownersOf(property)
             }
+
     }
     return modHive.run(block)
 }

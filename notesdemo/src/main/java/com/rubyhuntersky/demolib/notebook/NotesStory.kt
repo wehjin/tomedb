@@ -24,28 +24,23 @@ class NotesStory(private val tomic: Tomic) {
         is Msg.ADD -> {
             val today = Date()
             val text = if (msg.text.isNotBlank()) msg.text else "Today is $today"
-            val ent = Random.nextLong().absoluteValue
-            tomic.write(mods = modEnt(ent) {
-                Note.CREATED set today
-                Note.TEXT set text
-            })
-            mdl.copy(notes = tomic.ownerList(Note.CREATED))
+            tomic.modOwnersOf(Note.CREATED) {
+                val ent = Random.nextLong().absoluteValue
+                mods = modEnt(ent) { Note.CREATED set today; Note.TEXT set text }
+                mdl.copy(notes = ownerList)
+            }
         }
         is Msg.REVISE -> {
             tomic.modOwnersOf(Note.CREATED) {
-                val target = owners.values.firstOrNull { it[Note.CREATED] == msg.key }
-                target?.let { owner ->
-                    mods = owner.mod { Note.TEXT set msg.text }
-                }
+                val note = owners.matchKey(msg.key) ?: error("Missing note")
+                mods = note.mod { Note.TEXT set msg.text }
                 mdl.copy(notes = ownerList)
             }
         }
         is Msg.DROP -> {
             tomic.modOwnersOf(Note.CREATED) {
-                val target = owners.values.firstOrNull { it[Note.CREATED] == msg.key }
-                target?.let { owner ->
-                    mods = owner.mod { Note.CREATED set null }
-                }
+                val note = owners.matchKey(msg.key) ?: error("Missing note")
+                mods = note.mod { Note.CREATED set null }
                 mdl.copy(notes = ownerList)
             }
         }

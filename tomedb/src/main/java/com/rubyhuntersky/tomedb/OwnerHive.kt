@@ -7,6 +7,7 @@ interface OwnerHive<T : Any> {
     val owners: Map<Long, Owner<T>>
     val any: Owner<T>?
     val ownerList: List<Owner<T>>
+    fun Map<Long, Owner<T>>.matchKey(key: T): Owner<T>?
 }
 
 fun <T : Any, R> OwnerHive<T>.visit(block: OwnerHive<T>.() -> R): R = run(block)

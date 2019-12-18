@@ -39,6 +39,22 @@ class TomicKtTest {
     )
 
     @Test
+    fun anyWithKey() {
+        val tome = startTome("anyWithKey")
+        val now = Date(1350)
+        tome.write(mods = modEnt {
+            Wallet.Dollars set Amount(1)
+            Wallet.CreationTime set now
+        })
+
+        val dollars = tome.visitOwnersOf(Wallet.CreationTime) {
+            val wallet = owners.matchKey(now)
+            wallet!![Wallet.Dollars]
+        }
+        assertEquals(Amount(1), dollars)
+    }
+
+    @Test
     fun crud() {
         val tome = startTome("crud")
 
