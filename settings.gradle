@@ -1,1 +1,1 @@
-include ':counterdemo', ':tomedb', ':notesdemo'
+include ':counterdemo', ':tomedb', ':notesdemo', ':webcore'
