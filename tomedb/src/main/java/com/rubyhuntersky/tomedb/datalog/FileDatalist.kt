@@ -38,10 +38,22 @@ class FileDatalist(
 
     private fun Keyword.toKey() = UniHash.hashLong(groupedItemHashCode().toLong())
 
-    override fun ents(attr: Keyword): Sequence<Long> {
-        val entReader = entTableReader
+    override fun factsOfAttr(attr: Keyword, minHeight: Long, maxHeight: Long): Sequence<Fact> {
         val evtBase = aevtReader[attr.toKey()]
         val evtReader = getIndexReader(evtBase)
+        return evtReader.entries().flatMap { (key, vtBase) ->
+            val ent = entFromEntKey(key, entTableReader)
+            readValueLines(vtBase)
+                .dropWhile { it.height.height > maxHeight }
+                .takeWhile { it.height.height > minHeight }
+                .map { it.toFact(ent, attr) }
+        }
+    }
+
+    override fun ents(attr: Keyword): Sequence<Long> {
+        val evtBase = aevtReader[attr.toKey()]
+        val evtReader = getIndexReader(evtBase)
+        val entReader = entTableReader
         val ents = evtReader.keys().map { entFromEntKey(it, entReader) }
         return ents.filter { isAsserted(it, attr) }
     }
@@ -66,9 +78,9 @@ class FileDatalist(
     }
 
     override fun attrs(entity: Long): Sequence<Keyword> {
-        val attrReader = attrTableReader
         val avtBase = eavtReader[entToKey(entity)]
         val avtReader = getIndexReader(avtBase)
+        val attrReader = attrTableReader
         val attrs = avtReader.keys().map { keywordFromAttrKey(it, attrReader) }
         return attrs.filter { attr -> isAsserted(entity, attr) }
     }

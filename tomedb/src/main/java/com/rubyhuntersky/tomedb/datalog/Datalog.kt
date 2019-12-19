@@ -6,6 +6,7 @@ interface Datalist {
 
     val height: Long
 
+    fun factsOfAttr(attr: Keyword, minHeight: Long, maxHeight: Long): Sequence<Fact>
     fun ents(attr: Keyword): Sequence<Long>
     fun ents(): Sequence<Long>
 

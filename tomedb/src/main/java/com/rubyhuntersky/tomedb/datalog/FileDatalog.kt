@@ -193,9 +193,9 @@ class FileDatalog(private val rootDir: File) : Datalog {
         return FileDatalist(rootDir, entTableBase, attrTableBase, eavtBase, aevtBase, height)
     }
 
-    override fun factsOfEnt(ent: Long, minHeight: Long, maxHeight: Long): Sequence<Fact> {
-        // TODO Should this be implemented here?
-        return toDatalist().factsOfEnt(ent, minHeight, maxHeight)
+    override fun factsOfAttr(attr: Keyword, minHeight: Long, maxHeight: Long): Sequence<Fact> {
+        // TODO Decide if Datalog should implement Datalist
+        return toDatalist().factsOfAttr(attr, minHeight, maxHeight)
     }
 
     override fun ents(attr: Keyword): Sequence<Long> {
@@ -211,6 +211,11 @@ class FileDatalog(private val rootDir: File) : Datalog {
     override fun ents(): Sequence<Long> {
         val entFromKeyReader = entTableReader
         return eavtReader.keys().map { entFromEntKey(it, entFromKeyReader) }
+    }
+
+    override fun factsOfEnt(ent: Long, minHeight: Long, maxHeight: Long): Sequence<Fact> {
+        // TODO Should this be implemented here?
+        return toDatalist().factsOfEnt(ent, minHeight, maxHeight)
     }
 
     override fun attrs(entity: Long): Sequence<Keyword> {

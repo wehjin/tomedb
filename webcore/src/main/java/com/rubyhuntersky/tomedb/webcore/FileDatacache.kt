@@ -11,6 +11,7 @@ class FileDatacache(dir: File, private val datalog: Datalog) : Datacache {
 
     private val localDatalog = FileDatalog(dir)
     private val entHeights = mutableMapOf<Long, Long>()
+    private val attrHeights = mutableMapOf<Keyword, Long>()
 
     override fun liftEntToHeight(ent: Long, height: Long): Boolean {
         val localHeight = entHeights[ent] ?: -1
@@ -24,12 +25,30 @@ class FileDatacache(dir: File, private val datalog: Datalog) : Datacache {
         }
     }
 
+    override fun liftAttrToHeight(attr: Keyword, height: Long): Boolean {
+        val localHeight = attrHeights[attr] ?: -1
+        return if (localHeight < height) {
+            val newFacts = datalog.factsOfAttr(attr, localHeight, height)
+            localDatalog.addFactsCommit(newFacts)
+            attrHeights[attr] = height
+            true
+        } else {
+            false
+        }
+    }
+
     override fun toDatalist(): Datalist = object : Datalist {
 
         override val height = datalog.height
 
-        override fun ents(attr: Keyword): Sequence<Long> {
+        override fun factsOfAttr(attr: Keyword, minHeight: Long, maxHeight: Long): Sequence<Fact> {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun ents(attr: Keyword): Sequence<Long> {
+            this@FileDatacache.liftAttrToHeight(attr, height)
+            // TODO Add height limit to Datalist
+            return this@FileDatacache.localDatalog.toDatalist(height).ents(attr)
         }
 
         override fun ents(): Sequence<Long> {
