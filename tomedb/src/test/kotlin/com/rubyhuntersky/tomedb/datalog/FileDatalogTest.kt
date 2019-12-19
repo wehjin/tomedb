@@ -23,7 +23,7 @@ class FileDatalogTest {
         val fact = datalog.append(entity, attr, value)
         assertEquals(entity, fact.entity)
         assertEquals(attr, fact.attr)
-        assertEquals(value, fact.value)
+        assertEquals(value, fact.quant)
         assertEquals(setOf(entity), datalog.ents(attr).toSet())
         assertEquals(setOf(entity), datalog.ents().toSet())
         assertEquals(setOf(attr), datalog.attrs(entity).toSet())

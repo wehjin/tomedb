@@ -16,11 +16,13 @@ import com.rubyhuntersky.tomedb.datalog.pile.PileWriter
 import java.io.File
 import java.io.RandomAccessFile
 import java.util.*
+import kotlin.math.max
 
 class FileDatalog(private val rootDir: File) : Datalog {
     // TODO Refactor with FileDatalist
 
     private var nextHeight = TxnId(0)
+    private var appendable = true
     private var entTableBase: Long? = null
     private var attrTableBase: Long? = null
     private var eavtBase: Long? = null
@@ -87,20 +89,40 @@ class FileDatalog(private val rootDir: File) : Datalog {
         }
     }
 
-    override fun append(entity: Long, attr: Keyword, value: Any, standing: Standing): Fact {
-        updateCardMap(entity, attr, value, cardinalityMap)
+    override val height: Long
+        get() = nextHeight.height - 1
+
+    override fun append(entity: Long, attr: Keyword, quant: Any, standing: Standing): Fact {
+        check(appendable)
         val instant = Date()
-        val fact = Fact(entity, attr, value, standing, instant, nextHeight++)
+        return Fact(entity, attr, quant, standing, instant, nextHeight++).also { addFact(it) }
+    }
+
+    override fun addFactsCommit(facts: Sequence<Fact>) {
+        val maxHeightAfterNewFacts = facts.fold(
+            initial = nextHeight.height - 1,
+            operation = { maxHeight, fact ->
+                addFact(fact)
+                max(maxHeight, fact.txn.height)
+            }
+        )
+        nextHeight = TxnId(maxHeightAfterNewFacts + 1)
+        appendable = false
+        commit()
+    }
+
+    private fun addFact(fact: Fact) {
+        updateCardMap(fact.entity, fact.attr, fact.quant, cardinalityMap)
         val entKey = addEntToTable(fact.entity)
         val attrKey = addAttrToTable(fact.attr)
 
         val avtBase = eavtReader[entKey]
         val vtBase = getIndexReader(avtBase)[attrKey]
         val retracts =
-            if (cardinalityMap[attr] == Cardinality.ONE) readValueLines(vtBase) else emptySequence()
+            if (cardinalityMap[fact.attr] == Cardinality.ONE) readValueLines(vtBase) else emptySequence()
         val retractBase = retracts.fold(vtBase) { nextBase, retract ->
             PileWriter(nextBase, valueFrameWriter)
-                .write(retract.flip(instant, nextHeight++).toBytes())
+                .write(retract.flip(fact.inst, nextHeight++).toBytes())
         }
         val newVtBase = PileWriter(retractBase, valueFrameWriter)
             .write(ValueLine.from(fact).toBytes())
@@ -115,7 +137,6 @@ class FileDatalog(private val rootDir: File) : Datalog {
                 value = newAvtBase
             )
         updateAevtBase(newVtBase, attrKey, entKey)
-        return fact
     }
 
     private fun addEntToTable(ent: Long): Long {
@@ -168,8 +189,13 @@ class FileDatalog(private val rootDir: File) : Datalog {
         }
     }
 
-    override fun toDatalist(): Datalist {
-        return FileDatalist(rootDir, entTableBase, attrTableBase, eavtBase, aevtBase)
+    override fun toDatalist(height: Long): Datalist {
+        return FileDatalist(rootDir, entTableBase, attrTableBase, eavtBase, aevtBase, height)
+    }
+
+    override fun factsOfEnt(ent: Long, minHeight: Long, maxHeight: Long): Sequence<Fact> {
+        // TODO Should this be implemented here?
+        return toDatalist().factsOfEnt(ent, minHeight, maxHeight)
     }
 
     override fun ents(attr: Keyword): Sequence<Long> {

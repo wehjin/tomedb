@@ -1,5 +1,6 @@
 package com.rubyhuntersky.tomedb.datalog
 
+import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.basics.bytesFromLong
 import com.rubyhuntersky.tomedb.basics.longFromBytes
 import java.util.*
@@ -23,10 +24,12 @@ data class ValueLine(
         return valueBytes + standingByte + instantBytes + heightBytes
     }
 
+    fun toFact(ent: Long, attr: Keyword) = Fact(ent, attr, value, standing, instant, height)
+
     companion object {
         fun from(fact: Fact): ValueLine =
             ValueLine(
-                fact.value,
+                fact.quant,
                 fact.standing,
                 fact.inst,
                 fact.txn

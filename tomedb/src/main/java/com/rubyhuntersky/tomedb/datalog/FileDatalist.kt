@@ -13,7 +13,8 @@ class FileDatalist(
     entTableBase: Long?,
     attrTableBase: Long?,
     eavtBase: Long?,
-    aevtBase: Long?
+    aevtBase: Long?,
+    override val height: Long
 ) : Datalist {
 
     private val valueFile = File(rootDir.apply { mkdirs() }, "values")
@@ -50,6 +51,18 @@ class FileDatalist(
     override fun ents(): Sequence<Long> {
         val entFromKeyReader = entTableReader
         return eavtReader.keys().map { entFromEntKey(it, entFromKeyReader) }
+    }
+
+    override fun factsOfEnt(ent: Long, minHeight: Long, maxHeight: Long): Sequence<Fact> {
+        val avtBase = eavtReader[entToKey(ent)]
+        val avtReader = getIndexReader(avtBase)
+        return avtReader.entries().flatMap { (key, vtBase) ->
+            val keyword = keywordFromAttrKey(key, attrTableReader)
+            readValueLines(vtBase)
+                .dropWhile { it.height.height > maxHeight }
+                .takeWhile { it.height.height > minHeight }
+                .map { it.toFact(ent, keyword) }
+        }
     }
 
     override fun attrs(entity: Long): Sequence<Keyword> {
@@ -91,6 +104,7 @@ class FileDatalist(
                 }
                 !retracted.contains(it.value)
             }
+            .dropWhile { it.height.height > height }
     }
 
     override fun values(): Sequence<Any> {

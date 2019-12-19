@@ -10,6 +10,15 @@ class HamtReader(private val frameReader: FrameReader, private val rootBase: Lon
         data class Success(val value: Long) : Search()
     }
 
+    fun entries(): Sequence<Pair<Long, Long>> {
+        return rootBase?.let {
+            sequence {
+                yieldAll(entries(HamtTable.fromRootBytes(frameReader.read(it))))
+            }
+        } ?: emptySequence()
+
+    }
+
     fun keys(): Sequence<Long> {
         return rootBase?.let {
             sequence {
@@ -26,35 +35,23 @@ class HamtReader(private val frameReader: FrameReader, private val rootBase: Lon
         } ?: emptySequence()
     }
 
-    private fun keys(table: HamtTable): Sequence<Long> {
+    private fun entries(table: HamtTable): Sequence<Pair<Long, Long>> {
         return sequence {
             table.slots.forEach {
                 when (it) {
                     HamtTable.Slot.Empty -> Unit
-                    is HamtTable.Slot.KeyValue -> yield(it.key)
+                    is HamtTable.Slot.KeyValue -> yield(Pair(it.key, it.value))
                     is HamtTable.Slot.MapBase -> {
                         val subTable = it.toSubTable(frameReader)
-                        yieldAll(keys(subTable))
+                        yieldAll(entries(subTable))
                     }
                 }
             }
         }
     }
 
-    private fun values(table: HamtTable): Sequence<Long> {
-        return sequence {
-            table.slots.forEach {
-                when (it) {
-                    HamtTable.Slot.Empty -> Unit
-                    is HamtTable.Slot.KeyValue -> yield(it.value)
-                    is HamtTable.Slot.MapBase -> {
-                        val subTable = it.toSubTable(frameReader)
-                        yieldAll(keys(subTable))
-                    }
-                }
-            }
-        }
-    }
+    private fun keys(table: HamtTable): Sequence<Long> = entries(table).map { it.first }
+    private fun values(table: HamtTable): Sequence<Long> = entries(table).map { it.second }
 
     operator fun get(key: Long): Long? {
         return rootBase?.let {
