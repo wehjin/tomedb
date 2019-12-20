@@ -17,5 +17,5 @@ fun <A : Attribute2<T>, T : Any, R> PeerHive<A, T>.visit(
 ): R = run(block)
 
 interface MutablePeerHive<A : Attribute2<T>, T : Any> : PeerHive<A, T> {
-    var mods: List<Mod<*>>
+    var forms: List<Form<*>>
 }

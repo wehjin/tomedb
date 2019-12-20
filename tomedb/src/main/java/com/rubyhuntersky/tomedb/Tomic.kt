@@ -8,7 +8,7 @@ import java.io.File
 
 interface Tomic {
     fun getDb(): Database
-    fun write(mods: List<Mod<*>>)
+    fun write(forms: List<Form<*>>)
     fun close()
 }
 
@@ -19,11 +19,11 @@ fun tomicOf(dir: File, init: TomicScope.() -> List<Attribute<*>>): Tomic {
         override fun close() = session.close()
         override fun getDb(): Database = session.getDb()
 
-        override fun write(mods: List<Mod<*>>) {
-            val updates = mods.map {
+        override fun write(forms: List<Form<*>>) {
+            val updates = forms.map {
                 val updateType = when (it) {
-                    is Mod.Set -> UpdateType.Declare
-                    is Mod.Clear -> UpdateType.Retract
+                    is Form.Set -> UpdateType.Declare
+                    is Form.Clear -> UpdateType.Retract
                 }
                 Update(it.ent, it.attribute.toKeyword(), it.quantAsScript(), updateType)
             }

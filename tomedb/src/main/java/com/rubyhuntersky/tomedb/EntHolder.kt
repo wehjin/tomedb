@@ -4,6 +4,6 @@ interface EntHolder {
     val ent: Long
 }
 
-fun EntHolder.mod(
-    init: EntModScope.() -> Unit
-): List<Mod<*>> = modEnt(ent, init)
+fun EntHolder.reform(
+    init: EntReformScope.() -> Unit
+): List<Form<*>> = reformEnt(ent, init)

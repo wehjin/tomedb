@@ -1,8 +1,8 @@
 package com.rubyhuntersky.tomedb.app
 
 import com.rubyhuntersky.tomedb.Tomic
-import com.rubyhuntersky.tomedb.modEnt
-import com.rubyhuntersky.tomedb.modPeers
+import com.rubyhuntersky.tomedb.reformEnt
+import com.rubyhuntersky.tomedb.reformPeers
 import com.rubyhuntersky.tomedb.visitPeers
 
 data class CountingMdl(val count: Long)
@@ -25,8 +25,8 @@ fun countingStory(tomic: Tomic): Pair<CountingMdl, (CountingMdl, CountingMsg) ->
             CountingMsg.Incr -> mdl.count + 1
             CountingMsg.Decr -> mdl.count - 1
         }
-        return tomic.modPeers(Counter.Count2) {
-            mods = modEnt(counterEnt) { Counter.Count2 set newCount }
+        return tomic.reformPeers(Counter.Count2) {
+            forms = reformEnt(counterEnt) { Counter.Count2 set newCount }
             mdl.copy(count = peerOrNull!![Counter.Count2]!!)
         }
     }

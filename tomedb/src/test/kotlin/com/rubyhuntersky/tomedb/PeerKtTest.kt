@@ -42,7 +42,7 @@ class PeerKtTest {
     fun anyWithKey() {
         val tome = startTome("anyWithKey")
         val now = Date(1350)
-        tome.write(mods = modEnt {
+        tome.write(forms = reformEnt {
             Wallet.Dollars set Amount(1)
             Wallet.CreationTime set now
         })
@@ -58,7 +58,7 @@ class PeerKtTest {
     fun crud() {
         val tome = startTome("crud")
 
-        val create = modEnt {
+        val create = reformEnt {
             Wallet.Dollars set Amount(1)
             Wallet.CreationTime set Date()
         }
@@ -70,10 +70,10 @@ class PeerKtTest {
         assertEquals(setOf(Amount(1)), read.map { it.second }.toSet())
 
         val update = read.first().let { Pair(it.first, it.second + Amount(1)) }
-        tome.modPeers(Wallet.CreationTime) {
+        tome.reformPeers(Wallet.CreationTime) {
             val (ent, amount) = update
             val old = peersByEnt[ent] ?: error("No ent in owners")
-            mods = old.mod { Wallet.Dollars set amount }
+            forms = old.reform { Wallet.Dollars set amount }
             val new = peersByEnt[ent] ?: error("No ent in owners")
             assertEquals(amount, new[Wallet.Dollars])
         }
@@ -83,9 +83,9 @@ class PeerKtTest {
         }
 
         val delete = update.first
-        tome.modPeers(Wallet.CreationTime) {
+        tome.reformPeers(Wallet.CreationTime) {
             val owner = peersByEnt[delete] ?: error("No ent in owner")
-            mods = owner.mod { Wallet.CreationTime set null }
+            forms = owner.reform { Wallet.CreationTime set null }
             assertNull(peersByEnt[delete])
         }
         tome.visitPeers(Wallet.CreationTime) { assertNull(peersByEnt[delete]) }
@@ -95,7 +95,7 @@ class PeerKtTest {
     fun immutable() {
         val tome = startTome("immutable")
         val ent = Random.nextLong().absoluteValue
-        modEnt(ent) { Wallet.Dollars set Amount(100) }.also { tome.write(it) }
+        reformEnt(ent) { Wallet.Dollars set Amount(100) }.also { tome.write(it) }
         val oldWallets = tome.collectPeers(Wallet.Dollars)
         // Collective contains value
         oldWallets.visit {
@@ -104,10 +104,10 @@ class PeerKtTest {
         }
 
         // Modify entity
-        val newAmount = tome.modPeers(Wallet.Dollars) {
+        val newAmount = tome.reformPeers(Wallet.Dollars) {
             assertEquals(1, peersByEnt.size)
             assertEquals(Amount(100), peerOrNull!![Wallet.Dollars])
-            mods = peerOrNull!!.mod { Wallet.Dollars set Amount(200) }
+            forms = peerOrNull!!.reform { Wallet.Dollars set Amount(200) }
             assertEquals(1, peersByEnt.size)
             peerOrNull!![Wallet.Dollars]
         }

@@ -4,7 +4,7 @@ import com.rubyhuntersky.tomedb.attributes.Attribute2
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 
-sealed class Mod<T> {
+sealed class Form<T> {
 
     abstract val ent: Long
     abstract val attribute: Attribute2<T>
@@ -14,30 +14,30 @@ sealed class Mod<T> {
         override val ent: Long,
         override val attribute: Attribute2<T>,
         val quant: T
-    ) : Mod<T>() {
+    ) : Form<T>() {
         override fun quantAsScript(): String = attribute.scriber.scribe(quant)
     }
 
     data class Clear<T : Any>(
         override val ent: Long,
         override val attribute: Attribute2<T>
-    ) : Mod<T>() {
+    ) : Form<T>() {
         override fun quantAsScript(): String = attribute.scriber.emptyScript
     }
 }
 
-fun modEnt(
+fun reformEnt(
     ent: Long = Random.nextLong().absoluteValue,
-    init: EntModScope.() -> Unit
-): List<Mod<*>> {
-    return mutableListOf<Mod<*>>().also { mods ->
-        object : EntModScope {
+    init: EntReformScope.() -> Unit
+): List<Form<*>> {
+    return mutableListOf<Form<*>>().also { reforms ->
+        object : EntReformScope {
             override fun <T : Any> bind(attribute: Attribute2<T>, quant: T?) {
-                val mod = when (quant) {
-                    null -> Mod.Clear(ent, attribute)
-                    else -> Mod.Set(ent, attribute, quant)
+                val reform = when (quant) {
+                    null -> Form.Clear(ent, attribute)
+                    else -> Form.Set(ent, attribute, quant)
                 }
-                mods.add(mod)
+                reforms.add(reform)
             }
 
             override infix fun <T : Any> Attribute2<T>.set(quant: T?) = bind(this, quant)
@@ -45,7 +45,7 @@ fun modEnt(
     }
 }
 
-interface EntModScope {
+interface EntReformScope {
     fun <T : Any> bind(attribute: Attribute2<T>, quant: T?)
     infix fun <T : Any> Attribute2<T>.set(quant: T?)
 }

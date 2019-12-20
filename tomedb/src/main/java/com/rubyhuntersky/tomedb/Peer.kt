@@ -60,7 +60,7 @@ inline fun <A : Attribute2<T>, reified T : Any> Tomic.collectPeers(badgeAttr: A)
     }
 }
 
-inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.modPeers(
+inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.reformPeers(
     property: A,
     noinline block: MutablePeerHive<A, T>.() -> R
 ): R {
@@ -73,7 +73,7 @@ inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.modPeers(
         override val peerOrNull: Peer<A, T>? get() = hive.peerOrNull
         override val peerList: List<Peer<A, T>> get() = hive.peerList
 
-        override var mods: List<Mod<*>> = emptyList()
+        override var forms: List<Form<*>> = emptyList()
             set(value) {
                 check(field.isEmpty())
                 field = value.also { write(value) }

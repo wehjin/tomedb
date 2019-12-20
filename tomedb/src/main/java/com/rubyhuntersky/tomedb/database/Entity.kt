@@ -47,7 +47,7 @@ data class Entity<KeyT : Any>(
         val ent = this.ent.long
         val lateData = this.data
         val earlyData = oldEntity.data
-        val (addAttrs, modAttrs, dropAttrs) = toAddModDrop(
+        val (addAttrs, modAttrs, dropAttrs) = toAddModifyDrop(
             lateAttrs = lateData.keys,
             earlyAttrs = earlyData.keys
         )
@@ -73,14 +73,14 @@ data class Entity<KeyT : Any>(
         return dropUpdates + modUpdates + addUpdates
     }
 
-    private fun toAddModDrop(
+    private fun toAddModifyDrop(
         lateAttrs: Set<Keyword>,
         earlyAttrs: Set<Keyword>
     ): Triple<Set<Keyword>, Set<Keyword>, Set<Keyword>> {
         val add = lateAttrs - earlyAttrs
-        val mod = lateAttrs - add
-        val drop = earlyAttrs - mod
-        return Triple(add, mod, drop)
+        val modify = lateAttrs - add
+        val drop = earlyAttrs - modify
+        return Triple(add, modify, drop)
     }
 
     companion object {
