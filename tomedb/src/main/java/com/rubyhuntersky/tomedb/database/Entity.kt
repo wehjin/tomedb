@@ -25,7 +25,7 @@ data class Entity<KeyT : Any>(
 
     fun toUpdates(): List<Update> {
         return data.map { (attr, value) ->
-            Update(ent.long, attr, value)
+            Update(ent.number, attr, value)
         }
     }
 
@@ -44,7 +44,7 @@ data class Entity<KeyT : Any>(
 
     operator fun minus(oldEntity: Entity<KeyT>): List<Update> {
         require(this.ent == oldEntity.ent)
-        val ent = this.ent.long
+        val ent = this.ent.number
         val lateData = this.data
         val earlyData = oldEntity.data
         val (addAttrs, modAttrs, dropAttrs) = toAddModifyDrop(

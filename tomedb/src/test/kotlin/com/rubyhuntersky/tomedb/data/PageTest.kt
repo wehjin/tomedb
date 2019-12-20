@@ -15,12 +15,12 @@ class PageTest {
         val page = pageOf(
             subject = PageSubject.Follower(citizen17, topic),
             lines = setOf(
-                lineOf(Citizen.Country, norway.long),
+                lineOf(Citizen.Country, norway.number),
                 lineOf(Citizen.FullName, "Benjy")
             )
         )
         assertEquals(PageSubject.Follower(citizen17, topic), page.subject)
-        assertEquals(norway.long, page(Citizen.Country))
+        assertEquals(norway.number, page(Citizen.Country))
         assertEquals("Benjy", page(Citizen.FullName))
     }
 }

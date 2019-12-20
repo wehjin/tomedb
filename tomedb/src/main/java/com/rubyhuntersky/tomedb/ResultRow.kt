@@ -55,7 +55,7 @@ data class FindResult(val rows: List<ResultRow>) {
     ): Sequence<Projection<Any>> = rows.asSequence().map {
         val attr = it(aSlot) as Keyword
         val value = it(vSlot)
-        Projection(ent.long, attr, value)
+        Projection(ent.number, attr, value)
     }
 
     fun toEnts(eSlot: Query.Find.Slot): Sequence<Ent> =
