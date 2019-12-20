@@ -26,21 +26,21 @@ class NotesStory(private val tomic: Tomic) {
             val text = if (msg.text.isNotBlank()) msg.text else "Today is $today"
             tomic.reformPeers(Note.CREATED) {
                 val ent = Random.nextLong().absoluteValue
-                forms = reformEnt(ent) { Note.CREATED set today; Note.TEXT set text }
+                reforms = reformEnt(ent) { Note.CREATED set today; Note.TEXT set text }
                 mdl.copy(notes = peerList)
             }
         }
         is Msg.REVISE -> {
             tomic.reformPeers(Note.CREATED) {
                 val note = peersByBadge[msg.key] ?: error("Missing note")
-                forms = note.reform { Note.TEXT set msg.text }
+                reforms = note.reform { Note.TEXT set msg.text }
                 mdl.copy(notes = peerList)
             }
         }
         is Msg.DROP -> {
             tomic.reformPeers(Note.CREATED) {
                 val note = peersByBadge[msg.key] ?: error("Missing note")
-                forms = note.reform { Note.CREATED set null }
+                reforms = note.reform { Note.CREATED set null }
                 mdl.copy(notes = peerList)
             }
         }

@@ -73,7 +73,7 @@ class PeerKtTest {
         tome.reformPeers(Wallet.CreationTime) {
             val (ent, amount) = update
             val old = peersByEnt[ent] ?: error("No ent in owners")
-            forms = old.reform { Wallet.Dollars set amount }
+            reforms = old.reform { Wallet.Dollars set amount }
             val new = peersByEnt[ent] ?: error("No ent in owners")
             assertEquals(amount, new[Wallet.Dollars])
         }
@@ -85,7 +85,7 @@ class PeerKtTest {
         val delete = update.first
         tome.reformPeers(Wallet.CreationTime) {
             val owner = peersByEnt[delete] ?: error("No ent in owner")
-            forms = owner.reform { Wallet.CreationTime set null }
+            reforms = owner.reform { Wallet.CreationTime set null }
             assertNull(peersByEnt[delete])
         }
         tome.visitPeers(Wallet.CreationTime) { assertNull(peersByEnt[delete]) }
@@ -107,7 +107,7 @@ class PeerKtTest {
         val newAmount = tome.reformPeers(Wallet.Dollars) {
             assertEquals(1, peersByEnt.size)
             assertEquals(Amount(100), peerOrNull!![Wallet.Dollars])
-            forms = peerOrNull!!.reform { Wallet.Dollars set Amount(200) }
+            reforms = peerOrNull!!.reform { Wallet.Dollars set Amount(200) }
             assertEquals(1, peersByEnt.size)
             peerOrNull!![Wallet.Dollars]
         }

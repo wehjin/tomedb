@@ -45,12 +45,12 @@ inline fun <A : Attribute2<T>, reified T : Any> Tomic.peers(badge: A): List<Peer
 
 inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.visitPeers(
     badge: A,
-    noinline block: PeerHive<A, T>.() -> R
+    noinline block: PeerPack<A, T>.() -> R
 ): R = collectPeers(badge).visit(block)
 
-inline fun <A : Attribute2<T>, reified T : Any> Tomic.collectPeers(badgeAttr: A): PeerHive<A, T> {
+inline fun <A : Attribute2<T>, reified T : Any> Tomic.collectPeers(badgeAttr: A): PeerPack<A, T> {
     val basis: Database = getDb()
-    return object : PeerHive<A, T> {
+    return object : PeerPack<A, T> {
         override val basis: Database = basis
         override val peers: Set<Peer<A, T>> by lazy { basis.getPeers(badgeAttr).toSet() }
         override val peersByEnt: Map<Long, Peer<A, T>> by lazy { peers.associateBy(Peer<A, T>::ent) }
@@ -62,10 +62,10 @@ inline fun <A : Attribute2<T>, reified T : Any> Tomic.collectPeers(badgeAttr: A)
 
 inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.reformPeers(
     property: A,
-    noinline block: MutablePeerHive<A, T>.() -> R
+    noinline block: MutablePeerPack<A, T>.() -> R
 ): R {
     var hive = collectPeers(property)
-    val mutableHive = object : MutablePeerHive<A, T> {
+    val mutableHive = object : MutablePeerPack<A, T> {
         override val basis: Database get() = hive.basis
         override val peers: Set<Peer<A, T>> get() = hive.peers
         override val peersByEnt: Map<Long, Peer<A, T>> get() = hive.peersByEnt
@@ -73,7 +73,7 @@ inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.reformPeers(
         override val peerOrNull: Peer<A, T>? get() = hive.peerOrNull
         override val peerList: List<Peer<A, T>> get() = hive.peerList
 
-        override var forms: List<Form<*>> = emptyList()
+        override var reforms: List<Form<*>> = emptyList()
             set(value) {
                 check(field.isEmpty())
                 field = value.also { write(value) }

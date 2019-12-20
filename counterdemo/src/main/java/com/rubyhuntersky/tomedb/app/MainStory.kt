@@ -26,7 +26,7 @@ fun countingStory(tomic: Tomic): Pair<CountingMdl, (CountingMdl, CountingMsg) ->
             CountingMsg.Decr -> mdl.count - 1
         }
         return tomic.reformPeers(Counter.Count2) {
-            forms = reformEnt(counterEnt) { Counter.Count2 set newCount }
+            reforms = reformEnt(counterEnt) { Counter.Count2 set newCount }
             mdl.copy(count = peerOrNull!![Counter.Count2]!!)
         }
     }

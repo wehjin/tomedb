@@ -3,7 +3,7 @@ package com.rubyhuntersky.tomedb
 import com.rubyhuntersky.tomedb.attributes.Attribute2
 import com.rubyhuntersky.tomedb.database.Database
 
-interface PeerHive<A : Attribute2<T>, T : Any> {
+interface PeerPack<A : Attribute2<T>, T : Any> {
     val basis: Database
     val peers: Set<Peer<A, T>>
     val peersByEnt: Map<Long, Peer<A, T>>
@@ -12,10 +12,10 @@ interface PeerHive<A : Attribute2<T>, T : Any> {
     val peerList: List<Peer<A, T>>
 }
 
-fun <A : Attribute2<T>, T : Any, R> PeerHive<A, T>.visit(
-    block: PeerHive<A, T>.() -> R
+fun <A : Attribute2<T>, T : Any, R> PeerPack<A, T>.visit(
+    block: PeerPack<A, T>.() -> R
 ): R = run(block)
 
-interface MutablePeerHive<A : Attribute2<T>, T : Any> : PeerHive<A, T> {
-    var forms: List<Form<*>>
+interface MutablePeerPack<A : Attribute2<T>, T : Any> : PeerPack<A, T> {
+    var reforms: List<Form<*>>
 }
