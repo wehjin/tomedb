@@ -2,8 +2,8 @@ package com.rubyhuntersky.tomedb.app
 
 import com.rubyhuntersky.tomedb.Tomic
 import com.rubyhuntersky.tomedb.modEnt
-import com.rubyhuntersky.tomedb.modOwnersOf
-import com.rubyhuntersky.tomedb.visitOwnersOf
+import com.rubyhuntersky.tomedb.modPeers
+import com.rubyhuntersky.tomedb.visitPeers
 
 data class CountingMdl(val count: Long)
 
@@ -16,7 +16,7 @@ private const val counterEnt: Long = 123456
 
 fun countingStory(tomic: Tomic): Pair<CountingMdl, (CountingMdl, CountingMsg) -> CountingMdl> {
     val init = CountingMdl(
-        count = tomic.visitOwnersOf(Counter.Count2) { any?.let { it[Counter.Count2] } ?: 42L }
+        count = tomic.visitPeers(Counter.Count2) { peerOrNull?.let { it[Counter.Count2] } ?: 42L }
     )
 
 
@@ -25,9 +25,9 @@ fun countingStory(tomic: Tomic): Pair<CountingMdl, (CountingMdl, CountingMsg) ->
             CountingMsg.Incr -> mdl.count + 1
             CountingMsg.Decr -> mdl.count - 1
         }
-        return tomic.modOwnersOf(Counter.Count2) {
+        return tomic.modPeers(Counter.Count2) {
             mods = modEnt(counterEnt) { Counter.Count2 set newCount }
-            mdl.copy(count = any!![Counter.Count2]!!)
+            mdl.copy(count = peerOrNull!![Counter.Count2]!!)
         }
     }
     return Pair(init, ::update)

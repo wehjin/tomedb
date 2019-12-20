@@ -18,27 +18,18 @@ interface Database {
         cls: Class<KeyT>
     ): Sequence<Entity<KeyT>>
 
-    fun getOwners(attrName: Keyword): Sequence<Pair<Long, Map<Keyword, Any>>>
+    fun getEntDataPairs(filter: Keyword): Sequence<Pair<Long, Map<Keyword, Any>>>
 }
 
 inline fun <reified T : Any> Database.getDbValue(attr: Attribute<T>): T? {
     return getUntypedDbValue(0L, attr.toKeyword()) as? T
 }
 
-inline fun <reified KeyT : Any> Database.entitiesWith(attr: Attribute<KeyT>): Sequence<Entity<KeyT>> {
-    return getDbEntitiesOfClass(attr, KeyT::class.java)
-}
-
-
 fun Database.entityExistsWithAttrValue(attr: Keyword, value: Any): Boolean {
     return query { rules = listOf(-"e", "e" has attr eq value) }.isEmpty()
 }
 
-fun Database.query(init: Query.Find.() -> Unit) =
-    this.query(Query.build(init))
-
-fun Database.query(query: Query): List<Map<String, Any>> {
-    return find(query as Query.Find).toLegacy()
-}
+fun Database.query(init: Query.Find.() -> Unit) = this.query(Query.build(init))
+fun Database.query(query: Query): List<Map<String, Any>> = find(query as Query.Find).toLegacy()
 
 

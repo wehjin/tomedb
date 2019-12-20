@@ -81,11 +81,11 @@ class DatalogDatabase(private val datalist: Datalist) : Database {
         }
     }
 
-    override fun getOwners(attrName: Keyword): Sequence<Pair<Long, Map<Keyword, Any>>> {
-        val ents = datalist.ents(attrName)
+    override fun getEntDataPairs(filter: Keyword): Sequence<Pair<Long, Map<Keyword, Any>>> {
+        val ents = datalist.ents(filter)
         return ents.mapNotNull { ent ->
             val data = datalist.attrValues(ent).toMap()
-            data[attrName]?.let { Pair(ent, data) }
+            data[filter]?.let { Pair(ent, data) }
         }
     }
 }

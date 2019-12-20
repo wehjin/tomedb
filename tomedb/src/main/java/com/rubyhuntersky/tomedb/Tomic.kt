@@ -13,58 +13,47 @@ interface Tomic {
     fun close()
 }
 
-inline fun <reified T : Any> Tomic.ownerList(property: Attribute2<T>): List<Owner<T>> {
-    return visitOwnersOf(property) { owners.values.toList() }
-}
+inline fun <A : Attribute2<T>, reified T : Any> Tomic.peers(badge: A): List<Peer<A, T>> =
+    visitPeers(badge) { peersByEnt.values.toList() }
 
-inline fun <reified T : Any, R> Tomic.visitOwnersOf(
-    property: Attribute2<T>,
-    noinline block: OwnerHive<T>.() -> R
-): R = ownersOf(property).visit(block)
+inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.visitPeers(
+    badge: A,
+    noinline block: PeerHive<A, T>.() -> R
+): R = collectPeers(badge).visit(block)
 
-inline fun <reified T : Any> Tomic.ownersOf(property: Attribute2<T>): OwnerHive<T> {
-    val basis = getDb()
-    return object : OwnerHive<T> {
+inline fun <A : Attribute2<T>, reified T : Any> Tomic.collectPeers(badgeAttr: A): PeerHive<A, T> {
+    val basis: Database = getDb()
+    return object : PeerHive<A, T> {
         override val basis: Database = basis
-        override val owners: Map<Long, Owner<T>> by lazy {
-            getOwners(basis, property).associateBy(Owner<T>::ent)
-        }
-        override val any: Owner<T>? by lazy {
-            when (owners.any()) {
-                true -> owners.values.first()
-                false -> null
-            }
-        }
-        override val ownerList: List<Owner<T>> by lazy { owners.values.toList() }
-
-        override fun Map<Long, Owner<T>>.matchKey(key: T): Owner<T>? {
-            return owners.values.firstOrNull { key == it[property] }
-        }
+        override val peers: Set<Peer<A, T>> by lazy { basis.getPeers(badgeAttr).toSet() }
+        override val peersByEnt: Map<Long, Peer<A, T>> by lazy { peers.associateBy(Peer<A, T>::ent) }
+        override val peersByBadge: Map<T, Peer<A, T>> by lazy { peers.associateBy { it.badge.quant } }
+        override val peerOrNull: Peer<A, T>? by lazy { peers.firstOrNull() }
+        override val peerList: List<Peer<A, T>> by lazy { peersByEnt.values.toList() }
     }
 }
 
-inline fun <reified T : Any, R> Tomic.modOwnersOf(
-    property: Attribute2<T>,
-    noinline block: ModOwnerHive<T>.() -> R
+inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.modPeers(
+    property: A,
+    noinline block: MutablePeerHive<A, T>.() -> R
 ): R {
-    var hive = ownersOf(property)
-    val modHive = object : ModOwnerHive<T> {
+    var hive = collectPeers(property)
+    val mutableHive = object : MutablePeerHive<A, T> {
         override val basis: Database get() = hive.basis
-        override val owners: Map<Long, Owner<T>> get() = hive.owners
-        override val any: Owner<T>? get() = hive.any
-        override val ownerList: List<Owner<T>> get() = hive.ownerList
-        override fun Map<Long, Owner<T>>.matchKey(key: T): Owner<T>? =
-            hive.run { this.owners.matchKey(key) }
+        override val peers: Set<Peer<A, T>> get() = hive.peers
+        override val peersByEnt: Map<Long, Peer<A, T>> get() = hive.peersByEnt
+        override val peersByBadge: Map<T, Peer<A, T>> get() = hive.peersByBadge
+        override val peerOrNull: Peer<A, T>? get() = hive.peerOrNull
+        override val peerList: List<Peer<A, T>> get() = hive.peerList
 
         override var mods: List<Mod<*>> = emptyList()
             set(value) {
                 check(field.isEmpty())
                 field = value.also { write(value) }
-                hive = ownersOf(property)
+                hive = collectPeers(property)
             }
-
     }
-    return modHive.run(block)
+    return mutableHive.run(block)
 }
 
 fun tomicOf(dir: File, init: TomicScope.() -> List<Attribute<*>>): Tomic {

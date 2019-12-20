@@ -47,8 +47,8 @@ class TomicKtTest {
             Wallet.CreationTime set now
         })
 
-        val dollars = tome.visitOwnersOf(Wallet.CreationTime) {
-            val wallet = owners.matchKey(now)
+        val dollars = tome.visitPeers(Wallet.CreationTime) {
+            val wallet = peersByBadge[now]
             wallet!![Wallet.Dollars]
         }
         assertEquals(Amount(1), dollars)
@@ -64,31 +64,31 @@ class TomicKtTest {
         }
         tome.write(create)
 
-        val read = tome.ownersOf(Wallet.CreationTime).visit {
-            owners.values.map { Pair(it.ent, it[Wallet.Dollars] ?: Amount(0)) }
+        val read = tome.visitPeers(Wallet.CreationTime) {
+            peersByEnt.values.map { Pair(it.ent, it[Wallet.Dollars] ?: Amount(0)) }
         }
         assertEquals(setOf(Amount(1)), read.map { it.second }.toSet())
 
         val update = read.first().let { Pair(it.first, it.second + Amount(1)) }
-        tome.modOwnersOf(Wallet.CreationTime) {
+        tome.modPeers(Wallet.CreationTime) {
             val (ent, amount) = update
-            val old = owners[ent] ?: error("No ent in owners")
+            val old = peersByEnt[ent] ?: error("No ent in owners")
             mods = old.mod { Wallet.Dollars set amount }
-            val new = owners[ent] ?: error("No ent in owners")
+            val new = peersByEnt[ent] ?: error("No ent in owners")
             assertEquals(amount, new[Wallet.Dollars])
         }
-        tome.visitOwnersOf(Wallet.CreationTime) {
-            val updated = owners[update.first] ?: error("No ent in owners")
+        tome.visitPeers(Wallet.CreationTime) {
+            val updated = peersByEnt[update.first] ?: error("No ent in owners")
             assertEquals(update.second, updated[Wallet.Dollars])
         }
 
         val delete = update.first
-        tome.modOwnersOf(Wallet.CreationTime) {
-            val owner = owners[delete] ?: error("No ent in owner")
+        tome.modPeers(Wallet.CreationTime) {
+            val owner = peersByEnt[delete] ?: error("No ent in owner")
             mods = owner.mod { Wallet.CreationTime set null }
-            assertNull(owners[delete])
+            assertNull(peersByEnt[delete])
         }
-        tome.visitOwnersOf(Wallet.CreationTime) { assertNull(owners[delete]) }
+        tome.visitPeers(Wallet.CreationTime) { assertNull(peersByEnt[delete]) }
     }
 
     @Test
@@ -96,32 +96,32 @@ class TomicKtTest {
         val tome = startTome("immutable")
         val ent = Random.nextLong().absoluteValue
         modEnt(ent) { Wallet.Dollars set Amount(100) }.also { tome.write(it) }
-        val oldWallets = tome.ownersOf(Wallet.Dollars)
+        val oldWallets = tome.collectPeers(Wallet.Dollars)
         // Collective contains value
         oldWallets.visit {
-            assertEquals(1, owners.size)
-            assertEquals(Amount(100), any!![Wallet.Dollars])
+            assertEquals(1, peersByEnt.size)
+            assertEquals(Amount(100), peerOrNull!![Wallet.Dollars])
         }
 
         // Modify entity
-        val newAmount = tome.modOwnersOf(Wallet.Dollars) {
-            assertEquals(1, owners.size)
-            assertEquals(Amount(100), any!![Wallet.Dollars])
-            mods = any!!.mod { Wallet.Dollars set Amount(200) }
-            assertEquals(1, owners.size)
-            any!![Wallet.Dollars]
+        val newAmount = tome.modPeers(Wallet.Dollars) {
+            assertEquals(1, peersByEnt.size)
+            assertEquals(Amount(100), peerOrNull!![Wallet.Dollars])
+            mods = peerOrNull!!.mod { Wallet.Dollars set Amount(200) }
+            assertEquals(1, peersByEnt.size)
+            peerOrNull!![Wallet.Dollars]
         }
         // New collective contains new value
         assertEquals(Amount(200), newAmount)
-        tome.visitOwnersOf(Wallet.Dollars) {
-            assertEquals(1, owners.size)
-            assertEquals(Amount(200), any!![Wallet.Dollars])
+        tome.visitPeers(Wallet.Dollars) {
+            assertEquals(1, peersByEnt.size)
+            assertEquals(Amount(200), peerOrNull!![Wallet.Dollars])
         }
 
         // Old collective remains unchanged
         oldWallets.visit {
-            assertEquals(1, owners.size)
-            assertEquals(Amount(100), any!![Wallet.Dollars])
+            assertEquals(1, peersByEnt.size)
+            assertEquals(Amount(100), peerOrNull!![Wallet.Dollars])
         }
     }
 }

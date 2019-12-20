@@ -2,7 +2,7 @@ package com.rubyhuntersky.demolib.notebook
 
 import com.rubyhuntersky.demolib.notebook.NotesStory.Mdl
 import com.rubyhuntersky.demolib.notebook.NotesStory.Msg
-import com.rubyhuntersky.tomedb.Owner
+import com.rubyhuntersky.tomedb.Peer
 import com.rubyhuntersky.tomedb.tomicOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -55,7 +55,10 @@ private suspend fun printMdls(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
     NotesPrinter.printSessionFooter()
 }
 
-private tailrec fun sendMsg(entities: List<Owner<Date>>, actor: SendChannel<Msg>): Boolean {
+private tailrec fun sendMsg(
+    entities: List<Peer<Note.CREATED, Date>>,
+    actor: SendChannel<Msg>
+): Boolean {
     val userLine = readLine()!!
     when {
         userLine == "list" -> actor.offer(Msg.LIST)
