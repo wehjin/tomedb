@@ -25,8 +25,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                 latest = next(latest, change).also { render(it) }
             }
         }
-        plusButton.setOnClickListener { _ -> actor.offer(CountingMsg.Incr) }
-        minusButton.setOnClickListener { _ -> actor.offer(CountingMsg.Decr) }
+        plusButton.setOnClickListener { actor.offer(CountingMsg.Incr) }
+        minusButton.setOnClickListener { actor.offer(CountingMsg.Decr) }
     }
 
     private fun render(mdl: CountingMdl) {

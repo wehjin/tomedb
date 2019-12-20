@@ -2,7 +2,6 @@ package com.rubyhuntersky.tomedb.data
 
 import com.rubyhuntersky.tomedb.attributes.Attribute
 import com.rubyhuntersky.tomedb.attributes.attrName
-import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 
 /**
@@ -14,7 +13,4 @@ typealias Line<T> = Pair<Keyword, T>
 
 val <T : Any> Line<T>.lineAttr: Keyword get() = this.first
 val <T : Any> Line<T>.lineValue: T get() = this.second
-fun <T : Any> Line<T>.bindEnt(ent: Ent): Projection<T> =
-    Projection(ent.number, this.first, this.second)
-
 fun <T : Any> lineOf(attr: Attribute<*>, value: T): Line<T> = Pair(attr.attrName, value)

@@ -1,8 +1,6 @@
 package com.rubyhuntersky.tomedb.database
 
 import com.rubyhuntersky.tomedb.*
-import com.rubyhuntersky.tomedb.attributes.Attribute
-import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.datalog.Datalist
 import com.rubyhuntersky.tomedb.datalog.attrValues
@@ -63,22 +61,6 @@ class DatalogDatabase(private val datalist: Datalist) : Database {
 
     override fun getUntypedDbValue(ent: Long, attr: Keyword): Any? {
         return datalist.values(ent, attr).firstOrNull()
-    }
-
-    override fun <KeyT : Any> getDbEntitiesOfClass(
-        attr: Attribute<*>,
-        cls: Class<KeyT>
-    ): Sequence<Entity<KeyT>> {
-        val keyword = attr.toKeyword()
-
-        val ents = datalist.ents(keyword)
-        return ents.mapNotNull { ent ->
-            val data = datalist.attrValues(ent).toMap()
-            val value: KeyT? = cls.cast(data[keyword])
-            value?.let {
-                Entity.from(attr, it, data)
-            }
-        }
     }
 
     override fun getEntDataPairs(filter: Keyword): Sequence<Pair<Long, Map<Keyword, Any>>> {

@@ -9,6 +9,21 @@ import kotlin.random.Random
 class MinionKtTest : TomeTest("minionTest") {
 
     @Test
+    fun minions() {
+        val tome = startTome("crud")
+        val leader = Leader(1000, Wallet.Owner)
+        tome.reformMinions(leader) {
+            reforms = listOf(
+                formMinion(Random.nextLong().absoluteValue) { Wallet.Dollars set Amount(1) },
+                formMinion(Random.nextLong().absoluteValue) { Wallet.Dollars set Amount(1) }
+            ).flatten()
+            minions
+        }
+        val minions = tome.minions(leader)
+        assertEquals(2, minions.size)
+    }
+
+    @Test
     fun crud() {
         val tome = startTome("crud")
         val leader = Leader(1000, Wallet.Owner)

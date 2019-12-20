@@ -16,8 +16,8 @@ class GroupedItemTest {
         override val groupName: String get() = fallbackGroupName
     }
 
-    enum class B(val typeId: Int) : GroupedItem {
-        V(1);
+    enum class B : GroupedItem {
+        V;
 
         override val itemName: String get() = fallbackItemName
         override val groupName: String get() = fallbackGroupName

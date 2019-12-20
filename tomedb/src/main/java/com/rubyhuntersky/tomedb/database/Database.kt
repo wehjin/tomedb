@@ -9,15 +9,7 @@ import com.rubyhuntersky.tomedb.basics.Keyword
 interface Database {
 
     fun find(query: Query.Find): FindResult
-
     fun getUntypedDbValue(ent: Long, attr: Keyword): Any?
-
-    @Deprecated("Use getOwners, etc.")
-    fun <KeyT : Any> getDbEntitiesOfClass(
-        attr: Attribute<*>,
-        cls: Class<KeyT>
-    ): Sequence<Entity<KeyT>>
-
     fun getEntDataPairs(filter: Keyword): Sequence<Pair<Long, Map<Keyword, Any>>>
 }
 

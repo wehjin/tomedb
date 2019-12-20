@@ -4,7 +4,7 @@ import com.rubyhuntersky.tomedb.basics.bytesFromLong
 import java.io.File
 import java.io.FileOutputStream
 
-class SubTableIo(private val file: File) {
+class SubTableIo(file: File) {
 
     private var end = file.length()
     private val fileOutputStream = FileOutputStream(file)

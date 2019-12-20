@@ -63,7 +63,7 @@ class SubTableTest {
         val testCount = SubTable.slotCount * SubTable.slotCount
         val tests = (0L until testCount).associateWith { key -> 2 * key }
         val final = tests.entries.fold(
-            initial = SubTable.new() as SubTable,
+            initial = SubTable.new(),
             operation = { subTable, (key, value) ->
                 subTable.setValue(key, value)
             }
@@ -82,7 +82,7 @@ class SubTableTest {
         }
         val tests = mapOf(1L to 1L, 2L to 2L)
         val final = tests.entries.fold(
-            initial = SubTable.new() as SubTable,
+            initial = SubTable.new(),
             operation = { subTable, (key, value) ->
                 subTable.setValue(keyBreaker, key, value)
             }
