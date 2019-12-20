@@ -50,11 +50,11 @@ inline fun <A : Attribute2<T>, reified T : Any> Tomic.collectPeers(badgeAttr: A)
 }
 
 inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.reformPeers(
-    property: A,
-    noinline block: MutablePeerPack<A, T>.() -> R
+    badgeAttribute: A,
+    noinline block: PeerPackReformScope<A, T>.() -> R
 ): R {
-    var hive = collectPeers(property)
-    val mutableHive = object : MutablePeerPack<A, T> {
+    var hive = collectPeers(badgeAttribute)
+    val mutableHive = object : PeerPackReformScope<A, T> {
         override val basis: Database get() = hive.basis
         override val peers: Set<Peer<A, T>> get() = hive.peers
         override val peersByEnt: Map<Long, Peer<A, T>> get() = hive.peersByEnt
@@ -66,8 +66,19 @@ inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.reformPeers(
             set(value) {
                 check(field.isEmpty())
                 field = value.also { write(value) }
-                hive = collectPeers(property)
+                hive = collectPeers(badgeAttribute)
             }
+
+        override fun formPeer(
+            quant: T,
+            ent: Long,
+            init: EntReformScope.() -> Unit
+        ): List<Form<*>> {
+            return reformEnt(ent) {
+                badgeAttribute set quant
+                this.init()
+            }
+        }
     }
     return mutableHive.run(block)
 }

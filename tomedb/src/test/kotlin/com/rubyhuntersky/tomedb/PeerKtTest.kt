@@ -3,8 +3,7 @@ package com.rubyhuntersky.tomedb
 import com.rubyhuntersky.tomedb.attributes.AttributeInObject
 import com.rubyhuntersky.tomedb.attributes.DateScriber
 import com.rubyhuntersky.tomedb.attributes.Scriber
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.*
 import org.junit.Test
 import java.util.*
 import kotlin.math.absoluteValue
@@ -58,18 +57,25 @@ class PeerKtTest {
     fun crud() {
         val tome = startTome("crud")
 
-        val create = reformEnt {
-            Wallet.Dollars set Amount(1)
-            Wallet.CreationTime set Date()
+        val create = tome.reformPeers(Wallet.CreationTime) {
+            val badge = Date()
+            reforms = formPeer(badge) { Wallet.Dollars set Amount(1) }
+            peersByBadge[badge]
         }
-        tome.write(create)
+        assertNotNull(create)
 
         val read = tome.visitPeers(Wallet.CreationTime) {
-            peersByEnt.values.map { Pair(it.ent, it[Wallet.Dollars] ?: Amount(0)) }
+            peersByEnt.values.map {
+                val id = it.ent
+                val amount = it[Wallet.Dollars] ?: Amount(0)
+                Pair(id, amount)
+            }.toSet()
         }
         assertEquals(setOf(Amount(1)), read.map { it.second }.toSet())
 
-        val update = read.first().let { Pair(it.first, it.second + Amount(1)) }
+        val update = read.first().let { (id, amount) ->
+            Pair(id, amount + Amount(1))
+        }
         tome.reformPeers(Wallet.CreationTime) {
             val (ent, amount) = update
             val old = peersByEnt[ent] ?: error("No ent in owners")
