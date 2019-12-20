@@ -10,7 +10,7 @@ import java.util.*
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 
-class TomicKtTest {
+class PeerKtTest {
     data class Amount(val x: Int) {
         operator fun plus(other: Amount) = Amount(x + other.x)
     }
@@ -34,7 +34,7 @@ class TomicKtTest {
     }
 
     private fun startTome(name: String) = tomicOf(
-        dir = createTempDir("$name-", ".tomicTest").also { println("Location: $it") },
+        dir = createTempDir("$name-", ".peerTest").also { println("Location: $it") },
         init = { emptyList() }
     )
 
