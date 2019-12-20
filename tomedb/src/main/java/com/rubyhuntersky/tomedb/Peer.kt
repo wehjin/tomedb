@@ -4,6 +4,17 @@ import com.rubyhuntersky.tomedb.attributes.Attribute2
 import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.database.Database
 
+interface Minion<A : Attribute2<Long>> : EntHolder {
+    override val ent: Long
+    val leader: Leader<A>
+    operator fun <U : Any> get(attribute: Attribute2<U>): U?
+}
+
+data class Leader<A : Attribute2<Long>>(
+    val attr: A,
+    val quant: Long
+)
+
 interface Peer<A : Attribute2<T>, T : Any> : EntHolder {
     override val ent: Long
     val badge: Badge<A, T>
