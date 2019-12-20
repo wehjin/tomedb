@@ -2,7 +2,9 @@ package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.AttributeInObject
 import com.rubyhuntersky.tomedb.attributes.DateScriber
+import com.rubyhuntersky.tomedb.attributes.EntScriber
 import com.rubyhuntersky.tomedb.attributes.Scriber
+import com.rubyhuntersky.tomedb.basics.Ent
 import java.util.*
 
 data class Amount(val x: Int) {
@@ -25,9 +27,18 @@ object Wallet {
         override val description: String = "Time of creation"
         override val scriber: Scriber<Date> = DateScriber
     }
+
+    object Owner : AttributeInObject<Ent>() {
+        override val description: String = "The owner of the wallet"
+        override val scriber: Scriber<Ent> = EntScriber
+    }
 }
 
 fun startTome(name: String, group: String) = tomicOf(
     dir = createTempDir("$name-", ".$group").also { println("Location: $it") },
     init = { emptyList() }
 )
+
+open class TomeTest(private val group: String) {
+    protected fun startTome(name: String) = startTome(name, group)
+}

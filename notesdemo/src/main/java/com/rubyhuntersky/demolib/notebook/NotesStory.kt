@@ -8,7 +8,7 @@ import kotlin.random.Random
 
 class NotesStory(private val tomic: Tomic) {
 
-    data class Mdl(val notes: List<Peer<Note.CREATED, Date>>)
+    data class Mdl(val notes: Set<Peer<Note.CREATED, Date>>)
 
     sealed class Msg {
         object LIST : Msg()
@@ -27,21 +27,21 @@ class NotesStory(private val tomic: Tomic) {
             tomic.reformPeers(Note.CREATED) {
                 val ent = Random.nextLong().absoluteValue
                 reforms = reformEnt(ent) { Note.CREATED set today; Note.TEXT set text }
-                mdl.copy(notes = peerList)
+                mdl.copy(notes = peers)
             }
         }
         is Msg.REVISE -> {
             tomic.reformPeers(Note.CREATED) {
                 val note = peersByBadge[msg.key] ?: error("Missing note")
                 reforms = note.reform { Note.TEXT set msg.text }
-                mdl.copy(notes = peerList)
+                mdl.copy(notes = peers)
             }
         }
         is Msg.DROP -> {
             tomic.reformPeers(Note.CREATED) {
                 val note = peersByBadge[msg.key] ?: error("Missing note")
                 reforms = note.reform { Note.CREATED set null }
-                mdl.copy(notes = peerList)
+                mdl.copy(notes = peers)
             }
         }
     }

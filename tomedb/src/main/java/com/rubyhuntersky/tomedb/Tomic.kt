@@ -8,7 +8,7 @@ import java.io.File
 
 interface Tomic {
     fun getDb(): Database
-    fun write(forms: List<Form<*>>)
+    fun write(reforms: List<Form<*>>)
     fun close()
 }
 
@@ -19,8 +19,8 @@ fun tomicOf(dir: File, init: TomicScope.() -> List<Attribute<*>>): Tomic {
         override fun close() = session.close()
         override fun getDb(): Database = session.getDb()
 
-        override fun write(forms: List<Form<*>>) {
-            val updates = forms.map {
+        override fun write(reforms: List<Form<*>>) {
+            val updates = reforms.map {
                 val updateType = when (it) {
                     is Form.Set -> UpdateType.Declare
                     is Form.Clear -> UpdateType.Retract

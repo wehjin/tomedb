@@ -1,8 +1,6 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute2
-import kotlin.math.absoluteValue
-import kotlin.random.Random
 
 sealed class Form<T> {
 
@@ -27,10 +25,10 @@ sealed class Form<T> {
 }
 
 fun reformEnt(
-    ent: Long = Random.nextLong().absoluteValue,
+    ent: Long,
     init: EntReformScope.() -> Unit
-): List<Form<*>> {
-    return mutableListOf<Form<*>>().also { reforms ->
+): List<Form<*>> = mutableListOf<Form<*>>()
+    .also { reforms ->
         object : EntReformScope {
             override fun <T : Any> bind(attribute: Attribute2<T>, quant: T?) {
                 val reform = when (quant) {
@@ -43,7 +41,6 @@ fun reformEnt(
             override infix fun <T : Any> Attribute2<T>.set(quant: T?) = bind(this, quant)
         }.init()
     }
-}
 
 interface EntReformScope {
     fun <T : Any> bind(attribute: Attribute2<T>, quant: T?)

@@ -1,15 +1,33 @@
 package com.rubyhuntersky.tomedb.attributes
 
+import com.rubyhuntersky.tomedb.basics.Ent
+import com.rubyhuntersky.tomedb.basics.Keyword
 import java.util.*
 
 interface Attribute2<T> : GroupedItem, Attribute<String> {
     val scriber: Scriber<T>
 }
 
+inline fun <reified T : Any> Attribute2<T>.findInData(
+    data: Map<Keyword, Any>
+): T? {
+    val keyword = toKeyword()
+    val quant = data[keyword]
+    return (quant as? String)?.let {
+        scriber.unscribe(it)
+    }
+}
+
 interface Scriber<T> {
     val emptyScript: String
     fun scribe(quant: T): String
     fun unscribe(script: String): T
+}
+
+object EntScriber : Scriber<Ent> {
+    override val emptyScript: String = "1"
+    override fun scribe(quant: Ent): String = "${quant.number}"
+    override fun unscribe(script: String): Ent = Ent(script.toLong())
 }
 
 object DateScriber : Scriber<Date> {

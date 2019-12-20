@@ -3,6 +3,7 @@ package com.rubyhuntersky.demolib.notebook
 import com.rubyhuntersky.demolib.notebook.NotesStory.Mdl
 import com.rubyhuntersky.demolib.notebook.NotesStory.Msg
 import com.rubyhuntersky.tomedb.Peer
+import com.rubyhuntersky.tomedb.get
 import com.rubyhuntersky.tomedb.tomicOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -38,19 +39,19 @@ private suspend fun printMdls(mdls: Channel<Mdl>, actor: SendChannel<Msg>) {
     loop@ while (!mdls.isClosedForReceive) {
         val mdl = mdls.receive()
         NotesPrinter.printScreenHeader()
-        val entities = mdl.notes.toList()
-        if (entities.isEmpty()) {
+        val notes = mdl.notes.toList()
+        if (notes.isEmpty()) {
             NotesPrinter.printEmptyNotes()
         } else {
-            entities.forEachIndexed { index, entity ->
+            notes.forEachIndexed { index, note ->
                 val number = index + 1
-                val date = entity[Note.CREATED]!!
-                val text = entity[Note.TEXT]!!
+                val date = note[Note.CREATED]!!
+                val text = note[Note.TEXT]!!
                 NotesPrinter.printNote(number, date, text)
             }
         }
         NotesPrinter.printScreenFooterAndPrompt()
-        if (!sendMsg(entities, actor)) break@loop
+        if (!sendMsg(notes, actor)) break@loop
     }
     NotesPrinter.printSessionFooter()
 }

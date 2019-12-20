@@ -1,19 +1,20 @@
 package com.rubyhuntersky.tomedb
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.util.*
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 
-class PeerKtTest {
-    private fun startTome(name: String) = startTome(name, "peerTest")
+class PeerKtTest : TomeTest("peerTest") {
 
     @Test
     fun anyWithKey() {
         val tome = startTome("anyWithKey")
         val now = Date(1350)
-        tome.write(forms = reformEnt {
+        val ent = Random.nextLong().absoluteValue
+        tome.write(reforms = reformEnt(ent) {
             Wallet.Dollars set Amount(1)
             Wallet.CreationTime set now
         })
@@ -29,44 +30,34 @@ class PeerKtTest {
     fun crud() {
         val tome = startTome("crud")
 
+        val createDate = Date()
         val create = tome.reformPeers(Wallet.CreationTime) {
-            val badge = Date()
-            reforms = formPeer(badge) { Wallet.Dollars set Amount(1) }
-            peersByBadge[badge]
+            reforms = formPeer(createDate) { Wallet.Dollars set Amount(1) }
+            peer(createDate)
         }
-        assertNotNull(create)
+        assertEquals(createDate, create.badge.quant)
 
         val read = tome.visitPeers(Wallet.CreationTime) {
-            peersByEnt.values.map {
-                val id = it.ent
+            peers.map {
+                val badge = it.badge.quant
                 val amount = it[Wallet.Dollars] ?: Amount(0)
-                Pair(id, amount)
+                Pair(badge, amount)
             }.toSet()
         }
-        assertEquals(setOf(Amount(1)), read.map { it.second }.toSet())
+        assertEquals(setOf(Amount(1)), read.map { (_, amount) -> amount }.toSet())
 
-        val update = read.first().let { (id, amount) ->
-            Pair(id, amount + Amount(1))
+        val (picked, pickedAmount) = read.first()
+        val update = tome.reformPeers(Wallet.CreationTime) {
+            reforms = peer(picked).reform { Wallet.Dollars set pickedAmount + Amount(1) }
+            peer(picked)[Wallet.Dollars]
         }
-        tome.reformPeers(Wallet.CreationTime) {
-            val (ent, amount) = update
-            val old = peersByEnt[ent] ?: error("No ent in owners")
-            reforms = old.reform { Wallet.Dollars set amount }
-            val new = peersByEnt[ent] ?: error("No ent in owners")
-            assertEquals(amount, new[Wallet.Dollars])
-        }
-        tome.visitPeers(Wallet.CreationTime) {
-            val updated = peersByEnt[update.first] ?: error("No ent in owners")
-            assertEquals(update.second, updated[Wallet.Dollars])
-        }
+        assertEquals(Amount(2), update)
 
-        val delete = update.first
-        tome.reformPeers(Wallet.CreationTime) {
-            val owner = peersByEnt[delete] ?: error("No ent in owner")
-            reforms = owner.reform { Wallet.CreationTime set null }
-            assertNull(peersByEnt[delete])
+        val delete = tome.reformPeers(Wallet.CreationTime) {
+            reforms = peer(picked).unform
+            peerOrNull(picked)
         }
-        tome.visitPeers(Wallet.CreationTime) { assertNull(peersByEnt[delete]) }
+        assertNull(delete)
     }
 
     @Test

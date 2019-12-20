@@ -12,11 +12,11 @@ interface PeerPack<A : Attribute2<T>, T : Any> {
     val peersByBadge: Map<T, Peer<A, T>>
     val peerOrNull: Peer<A, T>?
     val peerList: List<Peer<A, T>>
+    fun peer(badge: T): Peer<A, T>
+    fun peerOrNull(badge: T): Peer<A, T>?
+    fun <R> visit(block: PeerPack<A, T>.() -> R): R
 }
 
-fun <A : Attribute2<T>, T : Any, R> PeerPack<A, T>.visit(block: PeerPack<A, T>.() -> R): R {
-    return run(block)
-}
 
 interface PeerPackReformScope<A : Attribute2<T>, T : Any> : PeerPack<A, T> {
 
