@@ -7,7 +7,7 @@ import com.rubyhuntersky.tomedb.database.Database
 import java.io.File
 
 interface Tomic {
-    fun getDb(): Database
+    val latest: Database
     fun write(reforms: List<Form<*>>)
     fun close()
 }
@@ -17,7 +17,8 @@ fun tomicOf(dir: File, init: TomicScope.() -> List<Attribute<*>>): Tomic {
     val session = startSession(dir, spec)
     return object : Tomic {
         override fun close() = session.close()
-        override fun getDb(): Database = session.getDb()
+        override val latest: Database
+            get() = session.getDb()
 
         override fun write(reforms: List<Form<*>>) {
             val updates = reforms.map {

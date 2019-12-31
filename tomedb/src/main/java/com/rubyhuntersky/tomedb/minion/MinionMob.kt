@@ -1,8 +1,11 @@
-package com.rubyhuntersky.tomedb
+package com.rubyhuntersky.tomedb.minion
 
+import com.rubyhuntersky.tomedb.EntReformScope
+import com.rubyhuntersky.tomedb.Form
 import com.rubyhuntersky.tomedb.attributes.Attribute2
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.database.Database
+import com.rubyhuntersky.tomedb.randomEnt
 
 interface MinionMob<A : Attribute2<Ent>> {
     val basis: Database
@@ -20,5 +23,10 @@ interface MinionMob<A : Attribute2<Ent>> {
 interface MinionMobReformScope<A : Attribute2<Ent>> : MinionMob<A> {
 
     var reforms: List<Form<*>>
-    fun formMinion(ent: Long, init: EntReformScope.() -> Unit = {}): List<Form<*>>
+    fun formMinion(ent: Long = randomEnt(), init: EntReformScope.() -> Unit = {}): List<Form<*>>
+    fun reformMinion(ent: Long, reform: MinionReformScope<A>.() -> Unit = {}): List<Form<*>>
+}
+
+interface MinionReformScope<A : Attribute2<Ent>> : EntReformScope {
+    val minion: Minion<A>
 }

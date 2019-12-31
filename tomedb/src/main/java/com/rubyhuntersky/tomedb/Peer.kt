@@ -37,7 +37,7 @@ inline fun <A : Attribute2<T>, reified T : Any, R> Tomic.visitPeers(
 ): R = collectPeers(badge).visit(block)
 
 inline fun <A : Attribute2<T>, reified T : Any> Tomic.collectPeers(badgeAttr: A): PeerPack<A, T> {
-    val basis: Database = getDb()
+    val basis: Database = latest
     return object : PeerPack<A, T> {
         override val basis: Database = basis
         override val peers: Set<Peer<A, T>> by lazy { basis.getPeers(badgeAttr).toSet() }

@@ -1,6 +1,8 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute2
+import kotlin.math.absoluteValue
+import kotlin.random.Random
 
 sealed class Form<T> {
 
@@ -23,6 +25,8 @@ sealed class Form<T> {
         override fun quantAsScript(): String = attribute.scriber.emptyScript
     }
 }
+
+fun randomEnt(): Long = Random.nextLong().absoluteValue
 
 fun reformEnt(
     ent: Long,

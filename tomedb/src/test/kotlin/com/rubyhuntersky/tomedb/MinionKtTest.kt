@@ -1,10 +1,9 @@
 package com.rubyhuntersky.tomedb
 
+import com.rubyhuntersky.tomedb.minion.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import kotlin.math.absoluteValue
-import kotlin.random.Random
 
 class MinionKtTest : TomeTest("minionTest") {
 
@@ -14,12 +13,11 @@ class MinionKtTest : TomeTest("minionTest") {
         val leader = Leader(1000, Wallet.Owner)
         tome.reformMinions(leader) {
             reforms = listOf(
-                formMinion(Random.nextLong().absoluteValue) { Wallet.Dollars set Amount(1) },
-                formMinion(Random.nextLong().absoluteValue) { Wallet.Dollars set Amount(1) }
+                formMinion { Wallet.Dollars set Amount(1) },
+                formMinion { Wallet.Dollars set Amount(1) }
             ).flatten()
-            minions
         }
-        val minions = tome.minions(leader)
+        val minions = tome.latest.minions(leader)
         assertEquals(2, minions.size)
     }
 
@@ -27,32 +25,24 @@ class MinionKtTest : TomeTest("minionTest") {
     fun crud() {
         val tome = startTome("crud")
         val leader = Leader(1000, Wallet.Owner)
-        val create = tome.reformMinions(leader) {
-            val ent = Random.nextLong().absoluteValue
-            reforms = formMinion(ent) { Wallet.Dollars set Amount(1) }
-            minion(ent)
-        }
-        assertEquals(leader, create.leader)
 
-        val read = tome.visitMinions(leader) {
-            val minion = minion(create.ent)
-            checkNotNull(minion[Wallet.Dollars])
-        }
-        assertEquals(Amount(1), read)
+        val created = tome.formMinion(leader) { Wallet.Dollars set Amount(1) }
+        assertEquals(leader, created.leader)
 
-        val update = tome.reformMinions(leader) {
-            reforms = minion(create.ent).reform { Wallet.Dollars set read + Amount(4) }
-            minion(create.ent)[Wallet.Dollars]
-        }
-        assertEquals(Amount(5), update)
+        val read = tome.latest.minionOrNull(leader, created.ent) ?: error("Read failed")
+        assertEquals(created.ent, read.ent)
+        assertEquals(Amount(1), read[Wallet.Dollars])
 
-        val delete = tome.reformMinions(leader) {
-            val minion = minion(create.ent)
-            val minionUnform = minion.unform
-            reforms = minionUnform
-            val after = minionOrNull(create.ent)
-            after
+        val updated = tome.reformMinion(leader, read.ent) {
+            val amount = minion[Wallet.Dollars] ?: error("No amount in wallet")
+            Wallet.Dollars set amount + Amount(4)
         }
-        assertNull(delete)
+        assertEquals(created.ent, updated.ent)
+        assertEquals(Amount(5), updated[Wallet.Dollars])
+        assertEquals(Amount(5), tome.latest[leader, updated.ent, Wallet.Dollars])
+
+        val deleted = tome.unformMinion(leader, updated.ent)
+        assertEquals(created.ent, deleted!!.ent)
+        assertNull(tome.latest[leader, updated.ent])
     }
 }
