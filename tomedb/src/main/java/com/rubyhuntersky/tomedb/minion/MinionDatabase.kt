@@ -52,16 +52,16 @@ fun <A : Attribute2<Ent>> Database.collectMinions(leader: Leader<A>): MinionMob<
 }
 
 private fun <A : Attribute2<Ent>> Database.getMinions(leader: Leader<A>): Sequence<Minion<A>> {
-    val dataPairs = getEntDataPairs(leader.attr.toKeyword())
     val quant = Ent(leader.ent)
-    val filteredPairs = dataPairs.filter { (_, data) ->
-        findQuantInData(data, leader.attr) == quant
-    }
-    return filteredPairs.map { (ent, data) ->
-        object : Minion<A> {
-            override val ent: Long = ent
-            override val data: Map<Keyword, Any> = data
-            override val leader: Leader<A> = leader
+    return getEntDataPairs(leader.attr.toKeyword())
+        .filter { (_, data) ->
+            findQuantInData(data, leader.attr) == quant && leader.includesData(data)
         }
-    }
+        .map { (ent, data) ->
+            object : Minion<A> {
+                override val ent: Long = ent
+                override val data: Map<Keyword, Any> = data
+                override val leader: Leader<A> = leader
+            }
+        }
 }

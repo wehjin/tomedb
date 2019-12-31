@@ -19,7 +19,17 @@ object AmountScriber : Scriber<Amount> {
 
 object Wallet {
     object Dollars : AttributeInObject<Amount>() {
-        override val description = "A property of an owner"
+        override val description = "Dollars in the wallet"
+        override val scriber: Scriber<Amount> = AmountScriber
+    }
+
+    object Yen : AttributeInObject<Amount>() {
+        override val description: String = "Yens in the wallet"
+        override val scriber: Scriber<Amount> = AmountScriber
+    }
+
+    object Bitcoin : AttributeInObject<Amount>() {
+        override val description: String = "Bitcoins in the wallet"
         override val scriber: Scriber<Amount> = AmountScriber
     }
 

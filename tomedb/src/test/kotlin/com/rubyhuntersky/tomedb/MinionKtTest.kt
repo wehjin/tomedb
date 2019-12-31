@@ -22,6 +22,36 @@ class MinionKtTest : TomeTest("minionTest") {
     }
 
     @Test
+    fun filter() {
+        val tome = startTome("filter")
+        val leader = Leader(1000, Wallet.Owner)
+        tome.reformMinions(leader) {
+            reforms = listOf(
+                formMinion { Wallet.Dollars set Amount(1) },
+                formMinion { Wallet.Yen set Amount(100) },
+                formMinion { Wallet.Bitcoin set Amount(2) }
+            ).flatten()
+        }
+
+        val yenLeader = Leader(
+            ent = 1000,
+            attr = Wallet.Owner,
+            filter = BadgeFilter(Wallet.Yen)
+        )
+        val yenMinions = tome.latest.minions(yenLeader)
+        assertEquals(1, yenMinions.size)
+        assertEquals(Amount(100), yenMinions.first()[Wallet.Yen])
+
+        val fiatLeader = Leader(
+            ent = 1000,
+            attr = Wallet.Owner,
+            filter = anyOf(BadgeFilter(Wallet.Yen), BadgeFilter(Wallet.Dollars))
+        )
+        val fiatMinions = tome.latest.minions(fiatLeader)
+        assertEquals(2, fiatMinions.size)
+    }
+
+    @Test
     fun crud() {
         val tome = startTome("crud")
         val leader = Leader(1000, Wallet.Owner)
