@@ -1,7 +1,7 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute2
-import com.rubyhuntersky.tomedb.attributes.findInData
+import com.rubyhuntersky.tomedb.attributes.findQuantInData
 import com.rubyhuntersky.tomedb.basics.Keyword
 
 interface EntHolder {
@@ -17,5 +17,5 @@ interface EntDataHolder : EntHolder {
 }
 
 inline operator fun <reified U : Any> EntDataHolder.get(attribute: Attribute2<U>): U? {
-    return attribute.findInData(data)
+    return findQuantInData(data, attribute)
 }

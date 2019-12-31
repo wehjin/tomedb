@@ -1,11 +1,13 @@
 package com.rubyhuntersky.tomedb
 
 import com.rubyhuntersky.tomedb.attributes.Attribute2
-import com.rubyhuntersky.tomedb.attributes.findInData
+import com.rubyhuntersky.tomedb.attributes.findQuantInData
 import com.rubyhuntersky.tomedb.attributes.toKeyword
 import com.rubyhuntersky.tomedb.basics.Ent
 import com.rubyhuntersky.tomedb.basics.Keyword
 import com.rubyhuntersky.tomedb.database.Database
+
+data class Leader<A : Attribute2<Ent>>(val ent: Long, val attr: A)
 
 interface Minion<A : Attribute2<Ent>> : EntDataHolder {
     val leader: Leader<A>
@@ -14,18 +16,11 @@ interface Minion<A : Attribute2<Ent>> : EntDataHolder {
 val <A : Attribute2<Ent>> Minion<A>.unform: List<Form<*>>
     get() = this.reform { leader.attr set null }
 
-
-data class Leader<A : Attribute2<Ent>>(
-    val quant: Ent,
-    val attr: A
-) {
-    constructor(number: Long, attr: A) : this(Ent(number), attr)
-}
-
 fun <A : Attribute2<Ent>> Database.getMinions(leader: Leader<A>): Sequence<Minion<A>> {
     val dataPairs = getEntDataPairs(leader.attr.toKeyword())
+    val quant = Ent(leader.ent)
     val filteredPairs = dataPairs.filter { (_, data) ->
-        leader.attr.findInData(data) == leader.quant
+        findQuantInData(data, leader.attr) == quant
     }
     return filteredPairs.map { (ent, data) ->
         object : Minion<A> {
@@ -84,7 +79,7 @@ fun <A : Attribute2<Ent>, R> Tomic.reformMinions(
 
         override fun formMinion(ent: Long, init: EntReformScope.() -> Unit): List<Form<*>> {
             return reformEnt(ent) {
-                leader.attr set leader.quant
+                leader.attr set Ent(leader.ent)
                 this.init()
             }
         }

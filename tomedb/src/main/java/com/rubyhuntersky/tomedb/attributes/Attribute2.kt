@@ -8,13 +8,14 @@ interface Attribute2<T> : GroupedItem, Attribute<String> {
     val scriber: Scriber<T>
 }
 
-inline fun <reified T : Any> Attribute2<T>.findInData(
-    data: Map<Keyword, Any>
+inline fun <reified T : Any> findQuantInData(
+    data: Map<Keyword, Any>,
+    attr: Attribute2<T>
 ): T? {
-    val keyword = toKeyword()
+    val keyword = attr.toKeyword()
     val quant = data[keyword]
     return (quant as? String)?.let {
-        scriber.unscribe(it)
+        attr.scriber.unscribe(it)
     }
 }
 
